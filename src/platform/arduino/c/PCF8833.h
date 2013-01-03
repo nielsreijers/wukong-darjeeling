@@ -33,7 +33,7 @@
 #define YELLOW		0xFF0
 #define GRAY		0x222
 #define LIGHTBLUE	0xADE
-#define PINK		0xF6A
+// #define PINK		0xF6A NR 20130103: conflicts with PINK (as in: PIN K) in the AVR header files
 
 /* 8x8 font */
 #define FONT_HEIGHT 8
