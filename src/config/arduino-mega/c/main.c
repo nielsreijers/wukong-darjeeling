@@ -51,7 +51,7 @@ int main()
 	dj_vm *vm;
 
 	// initialise serial port
-	avr_serialInit(57600);
+	avr_serialInit(115200);
 
 	// initialise timer
 	dj_timer_init();
