@@ -123,10 +123,9 @@
 		</path>
 	    </pathconvert>
 	    	
-	    <exec executable="ar">
+	    <exec executable="${ar}">
 	    	<arg line="rcs ${build}/${configuration}/${name}.a ${objectfilestring}"/>
 	    </exec>
-	
 	</target>
 
 	<!-- package the code into a single .jar file -->

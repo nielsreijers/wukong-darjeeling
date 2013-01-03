@@ -18,6 +18,7 @@
 	along with Darjeeling.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <project name="compiler">
+	<property name="ar" value="avr-ar"/>
 
 	<!-- Get the absolute path to where this file (compiler.xml) is located. Will be something like [darjeeling home]/src/architecture/avr/ -->
 	<dirname property="compilerpath" file="${ant.file.compiler}"/>

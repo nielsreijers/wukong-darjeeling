@@ -1,4 +1,5 @@
 <project name="compiler">
+	<property name="ar" value="ar"/> <!-- NR 20130103: Not sure if ar is right for msp430, but it's what it was using before I added this property -->
 
 	<dirname property="compilerpath" file="${ant.file.compiler}"/>
 	

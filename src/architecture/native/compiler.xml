@@ -1,5 +1,6 @@
 <project name="compiler">
-
+	<property name="ar" value="ar"/>
+	
 	<dirname property="compilerpath" file="${ant.file.compiler}"/>
 	
 	<import file="${compilerpath}/../../taskdefs.xml"/>

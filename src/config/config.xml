@@ -130,7 +130,7 @@
 		
 		<!-- Archive the files using gnu ar -->
 		<delete file="${infusionarchive}"/>
-		<exec executable="ar">
+		<exec executable="${ar}">
 			<arg line="rc ${infusionarchive} ${dilibs} ${diapps}"/>
 		</exec>	
 
@@ -142,7 +142,7 @@
 	<target name="unpack">
 		<delete dir="${temp}"/>
 		<mkdir dir="${temp}/unpack"/>
-		<apply executable="ar" parallel="false" dir="${temp}/unpack">
+		<apply executable="${ar}" parallel="false" dir="${temp}/unpack">
 			<arg value="x"/>
 			<fileset includes="${nativelibs}" dir="${configpath}/../lib/"/>
 			<fileset includes="vm.a" dir="${configpath}/../vm/build/${configuration}/"/>
@@ -156,7 +156,7 @@
 			<fileset dir="${temp}" includes="**/*.o"/>
 		</pathconvert>
 		<delete file="${outputfile}"/>
-		<exec executable="ar">
+		<exec executable="${ar}">
 			<arg line="rcs ${outputfile} ${objectfiles}"/>
 		</exec>
 	</target>

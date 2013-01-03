@@ -9,7 +9,7 @@
 	<!-- Override this from the standard, merge in the appropriate contiki lib-->
 	<target name="ar">
 	
-		<exec executable="ar" dir="${platformtargetpath}/build/${configuration}/o">
+		<exec executable="${ar}" dir="${platformtargetpath}/build/${configuration}/o">
 			<arg line="x ${platformtargetpath}/lib/contiki-${contiki-platform}.a"/>
 		</exec>
 
@@ -19,7 +19,7 @@
 			</path>
 		</pathconvert>
 
-		<exec executable="ar">
+		<exec executable="${ar}">
 			<arg line="rcs ${afile} ${objectfilestring}"/>
 		</exec>
 	

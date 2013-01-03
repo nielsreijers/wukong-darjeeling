@@ -50,7 +50,7 @@
 	    </pathconvert>
 	    	
     	<mkdir dir="${build}/${configuration}/"/>
-	    <exec executable="ar">
+	    <exec executable="${ar}">
 	    	<arg line="rcs ${build}/${configuration}/vm.a ${objectfilestring}"/>
 	    </exec>
 	

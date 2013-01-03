@@ -65,7 +65,7 @@
 		</path>
 	    </pathconvert>
 	    	
-	    <exec executable="ar">
+	    <exec executable="${ar}">
 	    	<arg line="rcs ${afile} ${objectfilestring}"/>
 	    </exec>
 	
