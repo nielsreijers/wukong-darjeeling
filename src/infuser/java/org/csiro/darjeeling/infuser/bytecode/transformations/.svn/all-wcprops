@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/darjeeling/!svn/ver/316/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations
+END
+OptimizeByteCode.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/svnroot/darjeeling/!svn/ver/316/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/OptimizeByteCode.java
+END
+AnalyseTypes.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/AnalyseTypes.java
+END
+InsertExplicitCasts.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/InsertExplicitCasts.java
+END
+ReplaceStackInstructions.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/ReplaceStackInstructions.java
+END
+ReMapLocalVariables.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/ReMapLocalVariables.java
+END
+CalculateMaxStack.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/CalculateMaxStack.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/svnroot/darjeeling/!svn/ver/179/trunk/src/infuser/java/org/csiro/darjeeling/infuser/bytecode/transformations/package.html
+END

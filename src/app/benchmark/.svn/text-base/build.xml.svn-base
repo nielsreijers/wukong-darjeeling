@@ -1,0 +1,19 @@
+<project default="all">
+
+
+	<!-- set the name of the library -->
+	<property name="name" value="benchmark"/>
+	
+	<!-- list of libraries this library depends on -->
+	<property name="lib-depends" value="base, darjeeling2"/>
+	
+    <!-- list of java sources to include to build -->
+    <property name="java-src-include" value="com/ihp/Benchmark.java"/>
+    
+    <!-- list of java sources to exclude from build -->
+    <!-- <property name="java-src-exclude" value="com/ihp/WhetStoneDouble.java, com/ihp/WhetStoneFloat.java"/> -->
+    
+	<!-- include the library build template -->
+	<import file="../app.xml"/>
+	
+</project>

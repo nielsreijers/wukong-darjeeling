@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/deprecated/contiki-cooja/c
+END
+darjeeling.c
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/deprecated/contiki-cooja/c/darjeeling.c
+END
+main.c
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/deprecated/contiki-cooja/c/main.c
+END
+darjeeling.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/deprecated/contiki-cooja/c/darjeeling.h
+END
+main.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/deprecated/contiki-cooja/c/main.h
+END
+config.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/deprecated/contiki-cooja/c/config.h
+END

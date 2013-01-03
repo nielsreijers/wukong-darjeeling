@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c
+END
+PCF8833.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/PCF8833.c
+END
+djtimer.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/djtimer.c
+END
+spi.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/spi.h
+END
+FONT8x8.h
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/FONT8x8.h
+END
+PCF8833.h
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/PCF8833.h
+END
+avr.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/avr.c
+END
+panic.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/panic.c
+END
+avr.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/darjeeling/!svn/ver/311/trunk/src/platform/arduino/c/avr.h
+END

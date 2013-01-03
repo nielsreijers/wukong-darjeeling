@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/darjeeling/!svn/ver/381/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase
+END
+StackSizeVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/StackSizeVisitor.java
+END
+BinaryOutputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/BinaryOutputStream.java
+END
+CFileVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svnroot/darjeeling/!svn/ver/336/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/CFileVisitor.java
+END
+XHTMLDebugVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/XHTMLDebugVisitor.java
+END
+DebugVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svnroot/darjeeling/!svn/ver/336/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/DebugVisitor.java
+END
+HeaderVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/HeaderVisitor.java
+END
+DIWriterVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/svnroot/darjeeling/!svn/ver/381/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/DIWriterVisitor.java
+END
+CHeaderVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/CHeaderVisitor.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/darjeeling/!svn/ver/179/trunk/src/infuser/java/org/csiro/darjeeling/infuser/outputphase/package.html
+END

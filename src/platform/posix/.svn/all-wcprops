@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svnroot/darjeeling/!svn/ver/359/trunk/src/platform/posix
+END
+platform.xml
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/darjeeling/!svn/ver/359/trunk/src/platform/posix/platform.xml
+END
+build.xml
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/darjeeling/!svn/ver/359/trunk/src/platform/posix/build.xml
+END

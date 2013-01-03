@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svnroot/darjeeling/!svn/ver/381/trunk/src/infuser/java/org/csiro/darjeeling/infuser
+END
+InfuserArguments.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svnroot/darjeeling/!svn/ver/336/trunk/src/infuser/java/org/csiro/darjeeling/infuser/InfuserArguments.java
+END
+InfuserCommandLine.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/InfuserCommandLine.java
+END
+InfuserException.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/InfuserException.java
+END
+Infuser.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/darjeeling/!svn/ver/336/trunk/src/infuser/java/org/csiro/darjeeling/infuser/Infuser.java
+END
+ArgumentParseException.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/ArgumentParseException.java
+END
+Constants.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/Constants.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/darjeeling/!svn/ver/179/trunk/src/infuser/java/org/csiro/darjeeling/infuser/package.html
+END

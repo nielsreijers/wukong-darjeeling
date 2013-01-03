@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/darjeeling/!svn/ver/336/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements
+END
+AbstractClassDefinition.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/svnroot/darjeeling/!svn/ver/336/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractClassDefinition.java
+END
+AbstractStringTable.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractStringTable.java
+END
+AbstractMethod.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractMethod.java
+END
+AbstractClassList.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractClassList.java
+END
+AbstractMethodImplementationList.java
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractMethodImplementationList.java
+END
+AbstractField.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractField.java
+END
+AbstractMethodDefinitionList.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractMethodDefinitionList.java
+END
+AbstractMethodImplementation.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractMethodImplementation.java
+END
+AbstractStaticFieldList.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractStaticFieldList.java
+END
+AbstractHeader.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractHeader.java
+END
+AbstractMethodDefinition.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractMethodDefinition.java
+END
+AbstractReferencedInfusionList.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractReferencedInfusionList.java
+END
+AbstractInfusion.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/svnroot/darjeeling/!svn/ver/311/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/AbstractInfusion.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/svnroot/darjeeling/!svn/ver/179/trunk/src/infuser/java/org/csiro/darjeeling/infuser/structure/elements/package.html
+END

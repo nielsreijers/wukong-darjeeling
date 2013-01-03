@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/tos-tnode
+END
+env.sh
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/darjeeling/!svn/ver/179/trunk/src/config/tos-tnode/env.sh
+END
+getusbownership.sh
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svnroot/darjeeling/!svn/ver/179/trunk/src/config/tos-tnode/getusbownership.sh
+END
+build.xml
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/darjeeling/!svn/ver/354/trunk/src/config/tos-tnode/build.xml
+END
