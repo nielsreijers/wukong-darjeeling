@@ -48,6 +48,18 @@
 	<target name="executable" depends="compile-libs, compile-apps, compile-vm, compile-platform, unpack, compile-main, packdi, repack, link"/>
 	<target name="lib" depends="compile-libs, compile-apps, compile-vm, compile-platform, unpack, compile-main, repack"/>
 	
+	<target name="avrdude-jtag" depends="executable">
+		<exec executable="avrdude">
+			<arg line="-p atmega2560 -P usb -c dragon_jtag -U flash:w:darjeeling.ihex"/>
+		</exec>
+	</target>
+
+	<target name="avarice">
+		<exec executable="avarice">
+			<arg line="-g -j usb -B 4000000 :4242"/>
+		</exec>
+	</target>
+	
 	<!-- Compile libraries -->
 	<target name="compile-libs">
 		<subant inheritall="true">

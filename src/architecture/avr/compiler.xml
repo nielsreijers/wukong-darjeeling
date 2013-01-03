@@ -44,6 +44,7 @@
 					<compilerarg value="-mmcu=${mcu}"/>
 					<compilerarg value="-Os"/>
 					<compilerarg value="-finline-limit-0"/>
+					<compilerarg value="-ggdb"/>
 					<!--
 					<compilerarg value="-O3"/>
 					<compilerarg value="-Wall"/>
