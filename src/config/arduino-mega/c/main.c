@@ -36,8 +36,6 @@
 
 #include "jlib_base.h"
 #include "jlib_darjeeling2.h"
-#include "jlib_nklcd.h"
-#include "jlib_tank.h"
 
 #include "pointerwidth.h"
 
@@ -70,8 +68,6 @@ int main()
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
 			{ "darjeeling2", &darjeeling2_native_handler },
-			{ "nklcd", &nklcd_native_handler },
-			{ "tank", &tank_native_handler },
 		};
 
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
