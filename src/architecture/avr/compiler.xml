@@ -76,6 +76,10 @@
 				<link-elements/>
 			</cc>
 			
+			<exec executable="avr-size">
+				<arg line="-C @{outputfile}"/>
+			</exec>
+			
 			<exec executable="avr-objcopy">
 				<arg line="-O ihex @{outputfile} darjeeling.ihex"/>
 			</exec>
