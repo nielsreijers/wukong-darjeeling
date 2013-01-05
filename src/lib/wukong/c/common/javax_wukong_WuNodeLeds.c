@@ -11,13 +11,20 @@ void javax_wukong_WuNodeLeds_void_setLed_int_boolean()
 	unsigned char on = dj_exec_stackPopShort();
 	unsigned int nr = dj_exec_stackPopInt();
 
-	set_output(DDRK, 0);
-	set_output(DDRK, 1);
-	set_output(DDRK, 2);
-	set_output(DDRK, 3);
-
 	if (on)
 		output_low(PORTK, nr);
 	else
 		output_high(PORTK, nr);
+}
+
+void javax_wukong_WuNodeLeds_void_init()
+{
+	set_output(DDRK, 0);
+	set_output(DDRK, 1);
+	set_output(DDRK, 2);
+	set_output(DDRK, 3);
+	output_high(PORTK, 0);
+	output_high(PORTK, 1);
+	output_high(PORTK, 2);
+	output_high(PORTK, 3);
 }
