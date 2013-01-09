@@ -1,0 +1,2 @@
+This is just here because you can't add empty directories in git, and the build process needs the c dir to be there.
+Can be deleted if there's every any real C code in here.
