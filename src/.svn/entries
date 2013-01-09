@@ -1,83 +1,0 @@
-10
-
-dir
-398
-https://darjeeling.svn.sourceforge.net/svnroot/darjeeling/trunk/src
-https://darjeeling.svn.sourceforge.net/svnroot/darjeeling
-
-
-
-2012-02-24T11:35:45.031377Z
-398
-omaye
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-6fef45d4-bfbb-4794-bc12-f429be1069c5
-
-app
-dir
-
-architecture
-dir
-
-vm
-dir
-
-taskdefs.xml
-file
-
-
-
-
-2013-01-03T06:22:26.000000Z
-46564ad2c4db6b6187e3b794a75205bb
-2009-11-03T17:15:14.530981Z
-167
-mazaninfardi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1129
-
-platform
-dir
-
-config
-dir
-
-lib
-dir
-
-infuser
-dir
-

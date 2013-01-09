@@ -1,46 +1,0 @@
-10
-
-dir
-398
-https://darjeeling.svn.sourceforge.net/svnroot/darjeeling/trunk/src/architecture
-https://darjeeling.svn.sourceforge.net/svnroot/darjeeling
-
-
-
-2011-11-09T11:45:41.280625Z
-387
-omaye
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-6fef45d4-bfbb-4794-bc12-f429be1069c5
-
-simulator
-dir
-
-msp430
-dir
-
-native
-dir
-
-avr
-dir
-
-msp430x
-dir
-
-tossim
-dir
-
