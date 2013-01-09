@@ -1,0 +1,9 @@
+*.class
+history.xml
+temp.c
+darjeeling.elf
+darjeeling.ihex
+darjeeling.a
+darjeeling-avr.map
+build
+infusions
