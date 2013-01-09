@@ -45,6 +45,10 @@ typedef int64_t dj_time_t;
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
+// #define DBG_DARJEELING true
+// #define DBG_WKPF true
+
+
 #define DARJEELING_PRINTF printf
 #define DARJEELING_PRINTD(x) printf("%d", x)
 //#define ASSEMBLY_DEBUGGING 1

@@ -38,6 +38,9 @@ void avr_serialPrintf(char * format, ...);
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
+// #define DBG_DARJEELING true
+// #define DBG_WKPF true
+
 #define DARJEELING_PRINTF avr_serialPrintf
 // #define DARJEELING_PRINTF
 #define DARJEELING_PGMSPACE_MACRO

@@ -78,7 +78,7 @@ static inline void INSTANCEOF()
 
 	dj_object * object = REF_TO_VOIDP(ref);
 
-    DEBUG_ENTER_NEST("INSTANCEOF()");
+    DEBUG_ENTER_NEST(DBG_DARJEELING, "INSTANCEOF()");
 	// if the reference is null, result should be 0 (FALSE).
     // Else use dj_global_id_testType to dermine
 	// if the ref on the stack is of the desired type
@@ -93,7 +93,7 @@ static inline void INSTANCEOF()
 
 	else if (dj_global_id_isJavaLangObject(dj_global_id_resolve(dj_exec_getCurrentInfusion(), localClassId)))
     {
-        DEBUG_LOG("Ich bin a j.l.Object\n");
+        DEBUG_LOG(DBG_DARJEELING, "Ich bin a j.l.Object\n");
         // a   check  against   a  non-null   object   for  instanceof
         // java.lang.Object should always return true
         pushShort(1);
@@ -102,7 +102,7 @@ static inline void INSTANCEOF()
     {
 		pushShort(dj_global_id_testType(object, localClassId));
     }
-    DEBUG_EXIT_NEST("INSTANCEOF()");
+    DEBUG_EXIT_NEST(DBG_DARJEELING, "INSTANCEOF()");
 }
 
 static inline void CHECKCAST()
@@ -143,7 +143,7 @@ static inline void MONITORENTER()
 	obj = (dj_object*)REF_TO_VOIDP(objRef);
 	dj_mem_addSafePointer((void**)&obj);
 
-    DEBUG_ENTER_NEST_LOG("MONITORENTER() thread:%d, object%p\n", dj_exec_getCurrentThread()->id, REF_TO_VOIDP(objRef));
+    DEBUG_ENTER_NEST_LOG(DBG_DARJEELING, "MONITORENTER() thread:%d, object%p\n", dj_exec_getCurrentThread()->id, REF_TO_VOIDP(objRef));
 
 	// get the monitor for this object
 	monitor = dj_vm_getMonitor(dj_exec_getVM(), obj);
@@ -158,7 +158,7 @@ static inline void MONITORENTER()
 		// check if we can enter the monitor
 		if (monitor->count==0)
 		{
-			DEBUG_LOG("Entering monitor %p\n",monitor);
+			DEBUG_LOG(DBG_DARJEELING, "Entering monitor %p\n",monitor);
 			// we can enter the monitor, huzzaa
 			monitor->count = 1;
 			monitor->owner = dj_exec_getCurrentThread();
@@ -166,7 +166,7 @@ static inline void MONITORENTER()
 		} else {
 			if (monitor->owner==dj_exec_getCurrentThread())
 			{
-				DEBUG_LOG("Reentering monitor %p. count is now %d\n",monitor,monitor->count+1);
+				DEBUG_LOG(DBG_DARJEELING, "Reentering monitor %p. count is now %d\n",monitor,monitor->count+1);
 
 				monitor->count++;
 			} else
@@ -176,7 +176,7 @@ static inline void MONITORENTER()
 				dj_exec_getCurrentThread()->status = THREADSTATUS_BLOCKED_FOR_MONITOR;
 				dj_exec_getCurrentThread()->monitorObject = obj;
 				monitor->waiting_threads++;
-				DEBUG_LOG("monitor is already held by someone. let's block\n");
+				DEBUG_LOG(DBG_DARJEELING, "monitor is already held by someone. let's block\n");
 
 				dj_exec_breakExecution();
 			}
@@ -184,7 +184,7 @@ static inline void MONITORENTER()
 
 	}
 
-    DEBUG_EXIT_NEST_LOG("MONITORENTER()\n");
+    DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "MONITORENTER()\n");
 	dj_mem_removeSafePointer((void**)&obj);
 
 }
@@ -214,7 +214,7 @@ static inline void MONITOREXIT()
 		return;
 	}
 
-	DEBUG_ENTER_NEST_LOG("MONITOREXIT() thread:%d, object:%p\n", dj_exec_getCurrentThread()->id, obj);
+	DEBUG_ENTER_NEST_LOG(DBG_DARJEELING, "MONITOREXIT() thread:%d, object:%p\n", dj_exec_getCurrentThread()->id, obj);
 
     // find the monitor associated with the object
 	monitor = dj_vm_getMonitor(dj_exec_getVM(), obj);
@@ -222,7 +222,7 @@ static inline void MONITOREXIT()
     // if the monitor wasn't found, raise an error
 	if(monitor == NULL)
 	{
-		DEBUG_LOG("Monitor is NULL at MONITOREXIT\n");
+		DEBUG_LOG(DBG_DARJEELING, "Monitor is NULL at MONITOREXIT\n");
 		dj_exec_createAndThrow(BASE_CDEF_java_lang_VirtualMachineError);
 		return;
 	}
@@ -236,19 +236,19 @@ static inline void MONITOREXIT()
 	monitor->count--;
 	monitor->owner = NULL;
 
-    DEBUG_LOG("Exiting monitor %p, count is now %d\n", monitor, monitor->count);
+    DEBUG_LOG(DBG_DARJEELING, "Exiting monitor %p, count is now %d\n", monitor, monitor->count);
 
 	// remove the monitor if the count has reached 0
     if ((monitor->count==0)&&(monitor->waiting_threads==0))
 	{
-        DEBUG_LOG("Removing monitor\n");
+        DEBUG_LOG(DBG_DARJEELING, "Removing monitor\n");
 		dj_vm_removeMonitor(dj_exec_getVM(), monitor);
 	}
 
 	// clear thread's monitor object
     thread->monitorObject = NULL;
 
-    DEBUG_EXIT_NEST_LOG("MONITOREXIT()\n");
+    DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "MONITOREXIT()\n");
 }
 
 #endif /* __misc_instructions_h */

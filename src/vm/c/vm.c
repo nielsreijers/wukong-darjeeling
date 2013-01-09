@@ -466,7 +466,7 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive* archive, dj_named_native_
 
 			dj_infusion_getName(infusion, name, 64);
 
-			DEBUG_LOG("Loaded infusion %s.", name);
+			DEBUG_LOG(DBG_DARJEELING, "Loaded infusion %s.", name);
 #endif
 
 			for (i=0; i<numHandlers; i++)
@@ -477,7 +477,7 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive* archive, dj_named_native_
 					infusion->native_handler = native_handlers[i].handler;
 
 #ifdef DARJEELING_DEBUG
-					DEBUG_LOG("Attached native handler to infusion %s.", name);
+					DEBUG_LOG(DBG_DARJEELING, "Attached native handler to infusion %s.", name);
 #endif
 				}
 			}
@@ -882,7 +882,7 @@ void dj_vm_markRootSet(dj_vm *vm)
 	dj_infusion * infusion;
 	dj_monitor_block * monitorBlock;
 
-	DEBUG_LOG("\t\tmark threads\n");
+	DEBUG_LOG(DBG_DARJEELING, "\t\tmark threads\n");
 
 	// Mark threads
 	thread = vm->threads;
@@ -892,7 +892,7 @@ void dj_vm_markRootSet(dj_vm *vm)
 		thread = thread->next;
 	}
 
-	DEBUG_LOG("\t\tmark infusions\n");
+	DEBUG_LOG(DBG_DARJEELING, "\t\tmark infusions\n");
 
     // Mark infusions
 	infusion = vm->infusions;
@@ -902,7 +902,7 @@ void dj_vm_markRootSet(dj_vm *vm)
 		infusion = infusion->next;
 	}
 
-	DEBUG_LOG("\t\tmark monitors\n");
+	DEBUG_LOG(DBG_DARJEELING, "\t\tmark monitors\n");
 
 	// Mark monitor blocks
 	monitorBlock = vm->monitors;
@@ -1081,7 +1081,7 @@ inline dj_global_id dj_vm_getRuntimeClass(dj_vm *vm, runtime_id_t id)
 	}
 
 	// TODO raise error, class not found
-	DEBUG_LOG("error: class not found: %d\n", id);
+	DEBUG_LOG(DBG_DARJEELING, "error: class not found: %d\n", id);
 	DARJEELING_PRINTF("error: class not found: %d\n", id);
 #ifdef DARJEELING_DEBUG_FRAME
 	dj_exec_debugCurrentFrame();
@@ -1156,7 +1156,7 @@ dj_infusion* dj_vm_runClassInitialisers(dj_vm *vm, dj_infusion *infusion)
 			// if we're out of memory, panic
 		    if (frame==NULL)
 		    {
-		        DEBUG_LOG("dj_vm_runClassInitialisers: could not create frame. Panicking\n");
+		        DEBUG_LOG(DBG_DARJEELING, "dj_vm_runClassInitialisers: could not create frame. Panicking\n");
 		        DARJEELING_PRINTF("Not enough space to create a frame\n");
 		        dj_panic(DJ_PANIC_OUT_OF_MEMORY);
 		    }

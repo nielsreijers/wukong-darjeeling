@@ -54,28 +54,28 @@ void dj_dump_stack(dj_frame *frame)
     if(frame == NULL)
         return ;
 
-    DEBUG_LOG("          |----------|\n");
+    DEBUG_LOG(DBG_DARJEELING, "          |----------|\n");
     localVariables = dj_frame_getLocalVariables(frame);
     for(i=dj_di_methodImplementation_getNrRefs(frame->method)-1;i>=0;i--)
     {
-        DEBUG_LOG("%10p| %8d | local variable %d\n",&localVariables[i],localVariables[i],i);
+        DEBUG_LOG(DBG_DARJEELING, "%10p| %8d | local variable %d\n",&localVariables[i],localVariables[i],i);
     }
 
-    DEBUG_LOG("          |----------|\n");
+    DEBUG_LOG(DBG_DARJEELING, "          |----------|\n");
     operandStack = dj_frame_getStackStart(frame);
     for(i=dj_di_methodImplementation_getMaxStack(frame->method)-1;i>=0;i--)
     {
-        DEBUG_LOG("%10p| %8d | operand %d\n",&operandStack[i],operandStack[i],i);
+        DEBUG_LOG(DBG_DARJEELING, "%10p| %8d | operand %d\n",&operandStack[i],operandStack[i],i);
     }
 
 
-    DEBUG_LOG("          |----------|\n");
-    DEBUG_LOG("%10p|%4d  %4d| saved pc / saved nr_stack_elements\n",&(frame->pc),frame->nr_int_stack);
-    DEBUG_LOG("%10p|%10p| infusion\n",&(frame->infusion),frame->infusion);
-    DEBUG_LOG("%10p|%10d| method\n",&(frame->method),(uint32_t)frame->method);
-    DEBUG_LOG("%10p|%10p| parent\n",frame,frame->parent);
-    DEBUG_LOG("          |----------|\n");
-    DEBUG_LOG("\n");
+    DEBUG_LOG(DBG_DARJEELING, "          |----------|\n");
+    DEBUG_LOG(DBG_DARJEELING, "%10p|%4d  %4d| saved pc / saved nr_stack_elements\n",&(frame->pc),frame->nr_int_stack);
+    DEBUG_LOG(DBG_DARJEELING, "%10p|%10p| infusion\n",&(frame->infusion),frame->infusion);
+    DEBUG_LOG(DBG_DARJEELING, "%10p|%10d| method\n",&(frame->method),(uint32_t)frame->method);
+    DEBUG_LOG(DBG_DARJEELING, "%10p|%10p| parent\n",frame,frame->parent);
+    DEBUG_LOG(DBG_DARJEELING, "          |----------|\n");
+    DEBUG_LOG(DBG_DARJEELING, "\n");
 
     dj_dump_stack(frame->parent);
     */
@@ -97,12 +97,12 @@ void dj_dump_int_array(dj_int_array *array)
         case T_INT:     type='I';break;
         case T_LONG:    type='J';break;
         default:
-            DEBUG_LOG("Unknown array component type: %d\n",array->type);
+            DEBUG_LOG(DBG_DARJEELING, "Unknown array component type: %d\n",array->type);
             DARJEELING_PRINTF("Unknown array component type: %d\n",array->type);
             dj_panic(DJ_PANIC_ILLEGAL_INTERNAL_STATE);
     }
 
-    DEBUG_LOG("@%p{%d%c}\n",array,array->array.length,type);
+    DEBUG_LOG(DBG_DARJEELING, "@%p{%d%c}\n",array,array->array.length,type);
 }
 
 

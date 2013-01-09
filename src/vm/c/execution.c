@@ -191,8 +191,8 @@ static dj_frame *getCurrentFrame() {
 	dj_frame *ret = NULL;
 	dj_thread *thread = dj_exec_getCurrentThread();
 	if( thread==NULL ) {
-		DEBUG_LOG_WHEREAMI();
-		DEBUG_LOG("Thread is NULL. Couldn't determine current frame.\n");
+		DEBUG_LOG_WHEREAMI(DBG_DARJEELING);
+		DEBUG_LOG(DBG_DARJEELING, "Thread is NULL. Couldn't determine current frame.\n");
 	} else {
 		ret = thread->frameStack;
 	}
@@ -412,7 +412,7 @@ void dj_exec_updatePointers() {
  */
 dj_infusion * dj_exec_getCurrentInfusion() {
 #ifndef DARJEELING_DEBUG_FRAME
-	DEBUG_LOG("\tCurrent infusion is being read from %p->%p\n", dj_exec_getCurrentThread(), dj_exec_getCurrentThread()->frameStack);
+	DEBUG_LOG(DBG_DARJEELING, "\tCurrent infusion is being read from %p->%p\n", dj_exec_getCurrentThread(), dj_exec_getCurrentThread()->frameStack);
 #endif
 	return dj_exec_getCurrentThread()->frameStack->method.infusion;
 }
@@ -854,7 +854,7 @@ static inline void callMethod(dj_global_id methodImplId, int virtualCall)
 	{
 
 #ifndef DARJEELING_DEBUG_FRAME
-		DEBUG_LOG("Invoking native method ... \n");
+		DEBUG_LOG(DBG_DARJEELING, "Invoking native method ... \n");
 #endif
 
 		// the method is native, check if we have a native handler
@@ -923,7 +923,7 @@ static inline void callMethod(dj_global_id methodImplId, int virtualCall)
 		}
 		else
 		{
-			DEBUG_LOG("No native method handler for this infusion! \n");
+			DEBUG_LOG(DBG_DARJEELING, "No native method handler for this infusion! \n");
 			// there is no native handler for this method's infusion.
 			// Throw an exception
 			dj_exec_createAndThrow(
@@ -959,7 +959,7 @@ static inline void callMethod(dj_global_id methodImplId, int virtualCall)
 #endif
 
 #ifndef DARJEELING_DEBUG_FRAME
-		DEBUG_LOG("Invoke done\n");
+		DEBUG_LOG(DBG_DARJEELING, "Invoke done\n");
 #endif
 	}
 
@@ -1602,7 +1602,7 @@ int dj_exec_run(int nrOpcodes)
 		case JVM_NOP: /* do nothing :3 */ break;
 
 		default:
-			DEBUG_LOG("Unimplemented opcode %d at pc=%d: %s\n", opcode, oldPc, jvm_opcodes[opcode]);
+			DEBUG_LOG(DBG_DARJEELING, "Unimplemented opcode %d at pc=%d: %s\n", opcode, oldPc, jvm_opcodes[opcode]);
 			dj_exec_createAndThrow(BASE_CDEF_java_lang_VirtualMachineError);
 		}
 
@@ -1612,27 +1612,27 @@ int dj_exec_run(int nrOpcodes)
 		dj_frame *current_frame = currentThread->frameStack;
 		if (current_frame==NULL) continue;
 
-		// DEBUG_LOG("%*s", oldCallDepth*2, "");
-		DEBUG_LOG("%03d->%03d   ", oldPc, pc);
-		DEBUG_LOG("%-15s", jvm_opcodes[opcode]);
+		// DEBUG_LOG(DBG_DARJEELING, "%*s", oldCallDepth*2, "");
+		DEBUG_LOG(DBG_DARJEELING, "%03d->%03d   ", oldPc, pc);
+		DEBUG_LOG(DBG_DARJEELING, "%-15s", jvm_opcodes[opcode]);
 
-		DEBUG_LOG("R<");
+		DEBUG_LOG(DBG_DARJEELING, "R<");
 
 		dj_di_pointer method = dj_global_id_getMethodImplementation(current_frame->method);
 		int len = dj_di_methodImplementation_getReferenceLocalVariableCount(method);
 		for (i=0; i<len; i++)
-			DEBUG_LOG((i==0)?" %-9d ":", %-9d ", localReferenceVariables[i]);
+			DEBUG_LOG(DBG_DARJEELING, (i==0)?" %-9d ":", %-9d ", localReferenceVariables[i]);
 
-		DEBUG_LOG(">");
+		DEBUG_LOG(DBG_DARJEELING, ">");
 
-		DEBUG_LOG("\tI<");
+		DEBUG_LOG(DBG_DARJEELING, "\tI<");
 
 		len = dj_di_methodImplementation_getIntegerLocalVariableCount(method);
 		for (i=0; i<len; i++)
-			DEBUG_LOG((i==0)?" %-9d ":", %-9d ", localIntegerVariables[i]);
+			DEBUG_LOG(DBG_DARJEELING, (i==0)?" %-9d ":", %-9d ", localIntegerVariables[i]);
 
-		DEBUG_LOG(">");
-		DEBUG_LOG("\tR(");
+		DEBUG_LOG(DBG_DARJEELING, ">");
+		DEBUG_LOG(DBG_DARJEELING, "\tR(");
 
 
 		// abuse this method to calculate nr_int_stack and nr_ref_stack for us
@@ -1640,21 +1640,21 @@ int dj_exec_run(int nrOpcodes)
 
 		ref_t *refStackStart = (ref_t*)((int)dj_frame_getStackEnd(current_frame) - current_frame->nr_ref_stack * sizeof(ref_t));
 		for (i=0; i<current_frame->nr_ref_stack; i++)
-			DEBUG_LOG("%-6d,", refStackStart[i]);
+			DEBUG_LOG(DBG_DARJEELING, "%-6d,", refStackStart[i]);
 
-		DEBUG_LOG(")");
+		DEBUG_LOG(DBG_DARJEELING, ")");
 
-		DEBUG_LOG("\tI(");
+		DEBUG_LOG(DBG_DARJEELING, "\tI(");
 
 		int16_t *intStackStart = dj_frame_getStackStart(current_frame);
 		for (i=0; i<current_frame->nr_int_stack; i++)
-			DEBUG_LOG("%-6d,", intStackStart[i]);
+			DEBUG_LOG(DBG_DARJEELING, "%-6d,", intStackStart[i]);
 
-		DEBUG_LOG(")");
+		DEBUG_LOG(DBG_DARJEELING, ")");
 
-		DEBUG_LOG("\t(%d,%d)", current_frame->nr_ref_stack, current_frame->nr_int_stack);
+		DEBUG_LOG(DBG_DARJEELING, "\t(%d,%d)", current_frame->nr_ref_stack, current_frame->nr_int_stack);
 
-		DEBUG_LOG("\n");
+		DEBUG_LOG(DBG_DARJEELING, "\n");
 
 		oldCallDepth = callDepth;
 

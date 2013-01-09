@@ -4,7 +4,7 @@
 	<property name="libs" value="base, util, darjeeling2, wukong"/>
 
 	<!-- Compile these applications -->
-	<property name="apps" value="wunodetest"/>
+	<property name="apps" value="wkpftest"/>
 
 	<!-- Platform and architecture selection -->
 	<property name="platform" value="arduino"/>

@@ -140,14 +140,14 @@ void * dj_mem_alloc(uint16_t size, uint16_t id)
 	if (right_pointer-left_pointer<size)
 	{
 		// not enough memory
-        DEBUG_LOG("dj_mem_alloc: not enough free space, triggering a collection\n");
+        DEBUG_LOG(DBG_DARJEELING, "dj_mem_alloc: not enough free space, triggering a collection\n");
 		dj_mem_gc();
 	}
 
 	if (right_pointer-left_pointer<size)
 	{
 		// still not enough memory, return null
-        DEBUG_LOG("Not enough memory, returning NULL\n");
+        DEBUG_LOG(DBG_DARJEELING, "Not enough memory, returning NULL\n");
         return nullref;
 	}
 
@@ -351,12 +351,12 @@ static inline void dj_mem_mark()
 		loc += chunk->size;
 	}
 
-	DEBUG_LOG("\tmark root set\n");
+	DEBUG_LOG(DBG_DARJEELING, "\tmark root set\n");
 
 	// mark the root set (set all elements in the root set to 'gray')
 	dj_vm_markRootSet(vm);
 
-	DEBUG_LOG("\tmark reference stack\n");
+	DEBUG_LOG(DBG_DARJEELING, "\tmark reference stack\n");
 
 	// mark the panic exception object
 	if (panicExceptionObject!=nullref)
@@ -371,7 +371,7 @@ static inline void dj_mem_mark()
 	int nrGray;
 	do
 	{
-		DEBUG_LOG("\titeration\n");
+		DEBUG_LOG(DBG_DARJEELING, "\titeration\n");
 
 		// move over the chunks and visit all the gray objects
 		nrGray=0;
@@ -535,7 +535,7 @@ void dj_mem_gc()
 {
 	dj_thread * thread;
 
-	DEBUG_LOG("GC start\n");
+	DEBUG_LOG(DBG_DARJEELING, "GC start\n");
 	dj_vm *vm = dj_exec_getVM();
 	if (vm == NULL)
 	{
@@ -557,7 +557,7 @@ void dj_mem_gc()
 	thread = dj_exec_getCurrentThread();
 	if (thread && thread->frameStack) dj_exec_activate_thread(thread);
 
-	DEBUG_LOG("GC done\n");
+	DEBUG_LOG(DBG_DARJEELING, "GC done\n");
 }
 
 //void dj_mem_thread_dump()
@@ -654,15 +654,15 @@ void dj_mem_dump()
 
 		// printf("%c[32mASSERT[%3d] PASSED%c[0m\n", 0x1b, (int)id, 0x1b);
         uint8_t color = 31 + finger->color;
-		DEBUG_LOG("%c[%dm[%p %04d %s]%c[0m ", 0x1b, color, finger, finger->size, chunk_type_pretty_print, 0x1b);
+		DEBUG_LOG(DBG_DARJEELING, "%c[%dm[%p %04d %s]%c[0m ", 0x1b, color, finger, finger->size, chunk_type_pretty_print, 0x1b);
 		total += finger->size;
 		if (finger->size==0)
 			break;
 		finger = (heap_chunk*)((char*)finger + finger->size);
 	}
 
-	DEBUG_LOG("\n");
-	DEBUG_LOG("total %d\n", total);
+	DEBUG_LOG(DBG_DARJEELING, "\n");
+	DEBUG_LOG(DBG_DARJEELING, "total %d\n", total);
 
 }
 #endif // ifdef DARJEELING_DEBUG

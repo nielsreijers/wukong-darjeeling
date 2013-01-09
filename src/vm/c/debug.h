@@ -66,17 +66,26 @@
 // platform-specific header file
 #include "config.h"
 
+// Turn of debug traces by default, unless turned on in config.h
+#ifndef DBG_DARJEELING
+#define DBG_DARJEELING 0
+#endif
+#ifndef DBG_WKPF
+#define DBG_WKPF 0
+#endif
+
+
 #ifndef DARJEELING_DEBUG
 
 /* Then do nothing (easy case) */
 
-#define DEBUG_LOG(format, args...)
+#define DEBUG_LOG(type, format, args...)
 
-#define DEBUG_ENTER_NEST(name)
-#define DEBUG_EXIT_NEST(name)
+#define DEBUG_ENTER_NEST(type, name)
+#define DEBUG_EXIT_NEST(type, name)
 
-#define DEBUG_ENTER_NEST_LOG(format, args...)
-#define DEBUG_EXIT_NEST_LOG(format, args...)
+#define DEBUG_ENTER_NEST_LOG(type, format, args...)
+#define DEBUG_EXIT_NEST_LOG(type, format, args...)
 
 
 #define DEBUG_LOG_WHEREAMI()
@@ -91,7 +100,7 @@
 /*extern*/ int  darjeeling_debug_indent_index;
 /*extern*/ char darjeeling_debug_char_buffer[256];
 
-#define DEBUG_LOG(format, args...)do {                                     \
+#define DEBUG_LOG(type, format, args...) if (type) do {                 \
         DEBUG_PRINT_INDENT;                                             \
         DARJEELING_PRINTF(DARJEELING_PGMSPACE_MACRO(format),##args);    \
     } while(0)
@@ -104,37 +113,37 @@
             DARJEELING_PRINTF(DARJEELING_PGMSPACE_MACRO("   "));        \
     } while(0)
 
-#define DEBUG_ENTER_NEST(name) do {             \
-        DEBUG_LOG(">> %s\n", name);             \
-        darjeeling_debug_nesting_level++;       \
+#define DEBUG_ENTER_NEST(type, name) if (type) do {                     \
+        DEBUG_LOG(type, ">> %s\n", name);                               \
+        darjeeling_debug_nesting_level++;                               \
     } while(0)
 
-#define DEBUG_ENTER_NEST_LOG(format,args...) do {   \
-        DEBUG_LOG(">> ");                                               \
-        DARJEELING_PRINTF(DARJEELING_PGMSPACE_MACRO(format),##args);    \
+#define DEBUG_ENTER_NEST_LOG(type, format,args...) if (type) do {       \
+        DEBUG_LOG(type, ">> ");                                         \
+        DEBUG_LOG(type, format, ##args);                                \
         darjeeling_debug_nesting_level++;                               \
     } while(0)
 
 
-#define DEBUG_EXIT_NEST(name) do {                      \
-        darjeeling_debug_nesting_level--;               \
-        if(darjeeling_debug_nesting_level<0)            \
-        {                                               \
-            DEBUG_LOG("<< negative nesting level !\n"); \
-            darjeeling_debug_nesting_level=0;           \
-        }                                               \
-        DEBUG_LOG("<< %s\n",name);                      \
+#define DEBUG_EXIT_NEST(type, name) if (type) do {                      \
+        darjeeling_debug_nesting_level--;                               \
+        if(darjeeling_debug_nesting_level<0)                            \
+        {                                                               \
+            DEBUG_LOG(type, "<< negative nesting level !\n");           \
+            darjeeling_debug_nesting_level=0;                           \
+        }                                                               \
+        DEBUG_LOG(type, "<< %s\n",name);                                \
     } while(0)
 
-#define DEBUG_EXIT_NEST_LOG(format,args...) do {        \
-        darjeeling_debug_nesting_level--;               \
-        if(darjeeling_debug_nesting_level<0)            \
-        {                                               \
-            DEBUG_LOG("<< negative nesting level !\n"); \
-            darjeeling_debug_nesting_level=0;           \
-        }                                               \
-        DEBUG_LOG("<< ");                               \
-        DARJEELING_PRINTF(DARJEELING_PGMSPACE_MACRO(format),##args);    \
+#define DEBUG_EXIT_NEST_LOG(type, format,args...) if (type) do {        \
+        darjeeling_debug_nesting_level--;                               \
+        if(darjeeling_debug_nesting_level<0)                            \
+        {                                                               \
+            DEBUG_LOG(type, "<< negative nesting level !\n");           \
+            darjeeling_debug_nesting_level=0;                           \
+        }                                                               \
+        DEBUG_LOG(type, "<< ");                                         \
+        DEBUG_LOG(type, format,##args);                                 \
     } while(0)
 
 
@@ -144,7 +153,7 @@
         darjeeling_debug_char_buffer                                    \
                                                                         )
 
-#define DEBUG_LOG_WHEREAMI() do {               \
+#define DEBUG_LOG_WHEREAMI(type) if (type) do { \
         DEBUG_LOG("%s\n",DEBUG_WHEREAMI);       \
     }while(0)
 

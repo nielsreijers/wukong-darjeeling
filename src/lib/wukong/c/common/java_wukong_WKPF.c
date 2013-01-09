@@ -31,7 +31,7 @@ void javax_wukong_WKPF_void_registerWuClass_short_byte__()
 	wuclass.update = NULL;
 	wuclass.number_of_properties = byteArrayProperties->array.length;
 	wuclass.properties = byteArrayProperties->data.bytes; // properties+1; // Seems to be in RAM anyway. This will work while it is, but we want to get it into Flash at some point. +1 to skip the array type byte
-	DEBUG_LOG("WKPF: Registering virtual wuclass with id %x\n", wuclass_id);
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering virtual wuclass with id %x\n", wuclass_id);
 	wkpf_error_code = wkpf_register_wuclass(wuclass);
 }
 

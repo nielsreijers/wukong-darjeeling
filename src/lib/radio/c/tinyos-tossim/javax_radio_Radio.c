@@ -34,8 +34,8 @@ void javax_radio_Radio_void__waitForMessage()
 
 	if (tossim_getNrMessages()==0)
 	{
-		DEBUG_LOG("vm[%p]\n", dj_exec_getVM());
-		DEBUG_LOG("waitFor\t\tthread[%p]->status from %d to %d\n", currentThread, currentThread->status, THREADSTATUS_BLOCKED_FOR_IO);
+		DEBUG_LOG(DBG_DARJEELING, DARJEELING, "vm[%p]\n", dj_exec_getVM());
+		DEBUG_LOG(DBG_DARJEELING, DARJEELING, "waitFor\t\tthread[%p]->status from %d to %d\n", currentThread, currentThread->status, THREADSTATUS_BLOCKED_FOR_IO);
 		// block the current thread for IO
 		currentThread->status = THREADSTATUS_BLOCKED_FOR_IO;
 		currentThread->scheduleTime = 0;
@@ -67,7 +67,7 @@ void javax_radio_Radio_void__broadcast_byte__()
 	{
 		// block the current thread for IO
 		dj_vm* vm = dj_exec_getVM();
-		DEBUG_LOG("broadcast stops\t\tthread[%p]\n", currentThread);
+		DEBUG_LOG(DBG_DARJEELING, DARJEELING, "broadcast stops\t\tthread[%p]\n", currentThread);
 		currentThread->status = THREADSTATUS_BLOCKED_FOR_IO;
 		_global_radio_sendThreadId = currentThread->id;
 		dj_exec_breakExecution();
@@ -87,7 +87,7 @@ void javax_radio_Radio_boolean__send_short_byte__()
 	if (tossim_send((char*)arr->data.bytes, id, arr->array.length)==0)
 	{
 		// block the current thread for IO
-		DEBUG_LOG("send stops thread[%p]\n", currentThread);
+		DEBUG_LOG(DBG_DARJEELING, DARJEELING, "send stops thread[%p]\n", currentThread);
 		currentThread->status = THREADSTATUS_BLOCKED_FOR_IO;
 		_global_radio_sendThreadId = currentThread->id;
 		dj_exec_breakExecution();
@@ -141,7 +141,7 @@ void notify_radio_receive()
 	if (receiveThread!=NULL)
 	{
 		if (receiveThread->status==THREADSTATUS_BLOCKED_FOR_IO){
-			DEBUG_LOG("notifyReceive runs \tthread[%p]\n", receiveThread);
+			DEBUG_LOG(DBG_DARJEELING, DARJEELING, "notifyReceive runs \tthread[%p]\n", receiveThread);
 			receiveThread->status = THREADSTATUS_RUNNING;
 		}
 
@@ -158,7 +158,7 @@ void notify_radio_sendDone()
 	if (sendThread!=NULL)
 	{
 		if (sendThread->status==THREADSTATUS_BLOCKED_FOR_IO){
-			DEBUG_LOG("sendDone runs \t\tthread[%p]\n", sendThread);
+			DEBUG_LOG(DBG_DARJEELING, DARJEELING, "sendDone runs \t\tthread[%p]\n", sendThread);
 			sendThread->status = THREADSTATUS_RUNNING;
 		}
 		_global_radio_sendThreadId = -1;

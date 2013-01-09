@@ -39,11 +39,11 @@
 dj_global_id dj_global_id_resolve(dj_infusion *infusion, dj_local_id local_id)
 {
 	dj_global_id ret;
-	//DEBUG_ENTER_NEST_LOG("dj_global_id_resolve(%p,{%d,%d})\n",infusion,local_id.infusion_id,local_id.entity_id);
+	//DEBUG_ENTER_NEST_LOG(DBG_DARJEELING, "dj_global_id_resolve(%p,{%d,%d})\n",infusion,local_id.infusion_id,local_id.entity_id);
 	ret.infusion = dj_infusion_resolve(infusion, local_id.infusion_id);
 	ret.entity_id = local_id.entity_id;
 
-	//DEBUG_EXIT_NEST_LOG("dj_global_id_resolve(): {%p,%d}\n",ret.infusion,ret.entity_id);
+	//DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "dj_global_id_resolve(): {%p,%d}\n",ret.infusion,ret.entity_id);
 	return ret;
 }
 
@@ -147,49 +147,49 @@ char dj_global_id_implements(dj_global_id class, dj_global_id interface)
 char dj_global_id_isEqualToOrChildOf(dj_global_id child, dj_global_id parent)
 {
 	dj_global_id finger;
-    DEBUG_ENTER_NEST_LOG("dj_global_id_isEqualToOrChildOf({%p,%d},{%p,%d})\n",
+    DEBUG_ENTER_NEST_LOG(DBG_DARJEELING, "dj_global_id_isEqualToOrChildOf({%p,%d},{%p,%d})\n",
                          child.infusion,child.entity_id,
                          parent.infusion,parent.entity_id);
 
     // if equal return true
     if (dj_global_id_isJavaLangObject(parent))
 	{
-		DEBUG_EXIT_NEST_LOG("Parent is of type java.lang.Object, don't check child\n");
+		DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "Parent is of type java.lang.Object, don't check child\n");
 		return 1;
 	}
 
 
     if (dj_global_id_equals(child, parent))
     {
-        DEBUG_EXIT_NEST_LOG("True: child equals parent\n");
+        DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "True: child equals parent\n");
 		return 1;
     }
 
     // if equal return true
 	if (dj_global_id_isJavaLangObject(child))
     {
-        DEBUG_EXIT_NEST_LOG("Object is of type java.lang.Object, don't check parent\n");
+        DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "Object is of type java.lang.Object, don't check parent\n");
 		return 0;
     }
 
 	// check child is a subclass of parent
 	finger = dj_global_id_getParent(child);
-    DEBUG_LOG("we initialize the finger on {%p,%d}\n",finger.infusion,finger.entity_id);
+    DEBUG_LOG(DBG_DARJEELING, "we initialize the finger on {%p,%d}\n",finger.infusion,finger.entity_id);
 
 	while (!dj_global_id_isJavaLangObject(finger))
 	{
-        DEBUG_LOG("we now have a finger on {%p,%d}\n",finger.infusion,finger.entity_id);
+        DEBUG_LOG(DBG_DARJEELING, "we now have a finger on {%p,%d}\n",finger.infusion,finger.entity_id);
 
 		// if the test class and the parent class are equal, return 1
 		if (dj_global_id_equals(finger, parent))
         {
-            DEBUG_EXIT_NEST_LOG("True: finger is equal to the parent\n");
+            DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "True: finger is equal to the parent\n");
 			return 1;
         }
 
 		finger = dj_global_id_getParent(finger);
 	}
-	DEBUG_EXIT_NEST_LOG("False: the parent {%p,%d} was not found among ancestors of {%p,%d}\n",
+	DEBUG_EXIT_NEST_LOG(DBG_DARJEELING, "False: the parent {%p,%d} was not found among ancestors of {%p,%d}\n",
                         parent.infusion,parent.entity_id,
                         child.infusion,child.entity_id);
 	return 0;
@@ -208,25 +208,25 @@ char dj_global_id_testClassType(dj_global_id refClass, dj_global_id testType)
 {
 	// TODO only check for implements if testType is an interface,
 	// only check for extends if testType is a class
-    DEBUG_ENTER_NEST_LOG("dj_global_id_testClassType({%p,%d},{%p,%d})\n",
+    DEBUG_ENTER_NEST_LOG(DBG_DARJEELING, "dj_global_id_testClassType({%p,%d},{%p,%d})\n",
                          refClass.infusion,refClass.entity_id,
                          testType.infusion,testType.entity_id);
 
 	// check if refClass is equal to, or subclass of testType
 	if (dj_global_id_isEqualToOrChildOf(refClass, testType))
     {
-        DEBUG_EXIT_NEST("true !");
+        DEBUG_EXIT_NEST(DBG_DARJEELING, "true !");
 		return 1;
     }
 
 	// check if refClass implements testType as an interface
 	if (dj_global_id_implements(refClass, testType))
     {
-        DEBUG_EXIT_NEST("true !");
+        DEBUG_EXIT_NEST(DBG_DARJEELING, "true !");
 		return 1;
     }
 
-    DEBUG_EXIT_NEST("false");
+    DEBUG_EXIT_NEST(DBG_DARJEELING, "false");
 	return 0;
 }
 
@@ -253,21 +253,21 @@ char dj_global_id_testType(void *ref, dj_local_id localClassId)
 {
 	dj_global_id refClass, testClass;
     char result;
-    DEBUG_ENTER_NEST("dj_global_id_testType()");
+    DEBUG_ENTER_NEST(DBG_DARJEELING, "dj_global_id_testType()");
 
 	// determine if the reference on the stack is an array or object
 	switch (dj_mem_getChunkId(ref))
 	{
 
         case CHUNKID_INTARRAY:
-            DEBUG_LOG("case CHUNKID_INTARRAY\n");
+            DEBUG_LOG(DBG_DARJEELING, "case CHUNKID_INTARRAY\n");
             result = dj_global_id_checkIntArrayType(ref, localClassId);
-            DEBUG_EXIT_NEST("dj_global_id_testType()"); \
+            DEBUG_EXIT_NEST(DBG_DARJEELING, "dj_global_id_testType()"); \
             return result;
 
 
         case CHUNKID_REFARRAY:
-            DEBUG_LOG("case CHUNKID_REFARRAY\n");
+            DEBUG_LOG(DBG_DARJEELING, "case CHUNKID_REFARRAY\n");
 
             // resolve the class we're testing against
             testClass = dj_global_id_resolve(dj_exec_getCurrentInfusion(), localClassId);
@@ -276,11 +276,11 @@ char dj_global_id_testType(void *ref, dj_local_id localClassId)
             refClass = dj_vm_getRuntimeClass(dj_exec_getVM(), ((dj_ref_array*)ref)->runtime_class_id);
 
             result = dj_global_id_testClassType(refClass, testClass);
-            DEBUG_EXIT_NEST("dj_global_id_testType()"); \
+            DEBUG_EXIT_NEST(DBG_DARJEELING, "dj_global_id_testType()"); \
             return result;
 
         default:
-            DEBUG_LOG("default case\n");
+            DEBUG_LOG(DBG_DARJEELING, "default case\n");
 
             // resolve the class we're testing against
             testClass = dj_global_id_resolve(dj_exec_getCurrentInfusion(), localClassId);
@@ -289,7 +289,7 @@ char dj_global_id_testType(void *ref, dj_local_id localClassId)
             refClass = dj_vm_getRuntimeClass(dj_exec_getVM(), dj_mem_getChunkId(ref));
 
             result= dj_global_id_testClassType(refClass, testClass);
-            DEBUG_EXIT_NEST("dj_global_id_testType()"); \
+            DEBUG_EXIT_NEST(DBG_DARJEELING, "dj_global_id_testType()"); \
             return result;
 	}
 
@@ -306,7 +306,7 @@ char dj_global_id_isJavaLangObject(dj_global_id global_class_id)
 	char result = (global_class_id.infusion == dj_vm_getSystemInfusion(dj_exec_getVM()))
 		&& (global_class_id.entity_id == BASE_CDEF_java_lang_Object);
 
-    DEBUG_LOG("dj_global_id_isJavaLangObject({%p,%d}): %s\n",
+    DEBUG_LOG(DBG_DARJEELING, "dj_global_id_isJavaLangObject({%p,%d}): %s\n",
               global_class_id.infusion,global_class_id.entity_id,(result?"true":"false"));
 
     return result;
@@ -358,7 +358,7 @@ dj_global_id dj_global_id_lookupVirtualMethod(dj_global_id resolvedMethodDefId, 
 
 			dj_di_pointer methodTableEntry = dj_di_methodTable_getEntry(methodTable, i);
 
-			DEBUG_LOG("Method lookup: %d.%d ?= %d.%d\n",
+			DEBUG_LOG(DBG_DARJEELING, "Method lookup: %d.%d ?= %d.%d\n",
 					dj_di_methodTableEntry_getDefinitionEntity(methodTableEntry),
 					dj_di_methodTableEntry_getDefinitionInfusion(methodTableEntry),
 					methodDefLocalId.entity_id, methodDefLocalId.infusion_id
@@ -375,7 +375,7 @@ dj_global_id dj_global_id_lookupVirtualMethod(dj_global_id resolvedMethodDefId, 
 				char name[16];
 
 				dj_infusion_getName(ret.infusion, name, 16);
-				DEBUG_LOG("Found %s %d\n", name, ret.entity_id);
+				DEBUG_LOG(DBG_DARJEELING, "Found %s %d\n", name, ret.entity_id);
 #endif
 
 				// no need to scan the rest of the table
@@ -387,7 +387,7 @@ dj_global_id dj_global_id_lookupVirtualMethod(dj_global_id resolvedMethodDefId, 
 		// parent classes
 		if (ret.infusion!=NULL) break;
 
-		DEBUG_LOG("Checking parent ... \n", ret, ret.infusion);
+		DEBUG_LOG(DBG_DARJEELING, "Checking parent ... \n", ret, ret.infusion);
 
 		// go into the parent class
 		if (dj_global_id_isJavaLangObject(classId))
