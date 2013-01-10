@@ -88,7 +88,7 @@
 #define DEBUG_EXIT_NEST_LOG(type, format, args...)
 
 
-#define DEBUG_LOG_WHEREAMI()
+#define DEBUG_LOG_WHEREAMI(type)
 
 #else
 
