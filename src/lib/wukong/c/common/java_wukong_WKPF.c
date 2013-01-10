@@ -17,25 +17,26 @@ void javax_wukong_WKPF_byte_getErrorCode()
 
 void javax_wukong_WKPF_void_registerWuClass_short_byte__()
 {
+	// TODONR: Protect properties data from GC
 	// Not sure yet how to interact with reference on the Darjeeling stack. Just giving this a try.
-	runtime_id_t properties_runtime_id = dj_mem_getChunkId(REF_TO_VOIDP(dj_exec_stackPeekRef(0)));
 	dj_int_array * byteArrayProperties = REF_TO_VOIDP(dj_exec_stackPopRef());
 	// check null
 	if (byteArrayProperties==nullref){
 		dj_exec_createAndThrow(BASE_CDEF_java_lang_NullPointerException);
 	}
-	// ref_t properties = dj_exec_stackPopRef(); //(uint8_t *)stack_pop_ref();
 	uint16_t wuclass_id = (uint16_t)dj_exec_stackPopShort();
-	wkpf_wuclass_definition wuclass;
-	wuclass.wuclass_id = wuclass_id;
-	wuclass.update = NULL;
-	wuclass.number_of_properties = byteArrayProperties->array.length;
-	wuclass.properties = byteArrayProperties->data.bytes; // properties+1; // Seems to be in RAM anyway. This will work while it is, but we want to get it into Flash at some point. +1 to skip the array type byte
 	DEBUG_LOG(DBG_WKPF, "WKPF: Registering virtual wuclass with id %x\n", wuclass_id);
-	wkpf_error_code = wkpf_register_wuclass(wuclass);
+	wkpf_error_code = wkpf_register_wuclass(wuclass_id, NULL, byteArrayProperties->array.length, (uint8_t *)byteArrayProperties->data.bytes);
 }
 
-void javax_wukong_WKPF_void_createWuObject_short_byte_javax_wukong_VirtualWuObject() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
+void javax_wukong_WKPF_void_createWuObject_short_byte_javax_wukong_VirtualWuObject()
+{
+	// heap_id_t virtual_wuclass_instance_heap_id = REF_TO_VOIDP(dj_exec_stackPopRef());
+	// uint8_t port_number = (uint8_t)stack_pop_int();
+	// uint16_t wuclass_id = (uint16_t)stack_pop_int();
+	// DEBUG_LOG(DBG_WKPF, "WKPF: Creating wuobject for virtual wuclass with id %x at port %x (heap_id: %x)\n", wuclass_id, port_number, virtual_wuclass_instance_heap_id);
+	// wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, virtual_wuclass_instance_heap_id);
+}
 
 void javax_wukong_WKPF_void_destroyWuObject_byte() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
 
@@ -75,11 +76,6 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //   } else if(mref == NATIVE_WKPF_METHOD_REGISTER_WUCLASS) {
 
 //   } else if(mref == NATIVE_WKPF_METHOD_CREATE_WUOBJECT) {
-//     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     uint8_t port_number = (uint8_t)stack_pop_int();
-//     uint16_t wuclass_id = (uint16_t)stack_pop_int();
-//     DEBUGF_WKPF("WKPF: Creating wuobject for virtual wuclass with id %x at port %x (heap_id: %x)\n", wuclass_id, port_number, virtual_wuclass_instance_heap_id);
-//     wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, virtual_wuclass_instance_heap_id);
 
 //   } else if(mref == NATIVE_WKPF_METHOD_REMOVE_WUOBJECT) {
 //     uint8_t port_number = (uint8_t)stack_pop_int();
