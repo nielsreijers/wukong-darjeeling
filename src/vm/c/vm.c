@@ -939,9 +939,8 @@ dj_monitor * dj_vm_getMonitor(dj_vm *vm, dj_object * object)
 	int i;
 	dj_monitor *monitor, *ret = NULL;
 	dj_monitor_block *block, *newBlock;
-	dj_object * obj = object;
 
-	dj_mem_addSafePointer((void**)&obj);
+	dj_mem_addSafePointer((void**)&object);
 
 	// search for the monitor
 	block = vm->monitors;
@@ -1004,7 +1003,7 @@ dj_monitor * dj_vm_getMonitor(dj_vm *vm, dj_object * object)
 
 	}
 
-	dj_mem_removeSafePointer((void**)&obj);
+	dj_mem_removeSafePointer((void**)&object);
 
 	return ret;
 }
