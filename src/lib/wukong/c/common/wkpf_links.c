@@ -169,7 +169,7 @@
 //   if (!wkpf_get_component_id(port_number, &component_id))
 //     return WKPF_OK; // WuObject isn't used in the application.
   
-//   wkpf_local_wuobject *src_wuobject;
+//   wuobject_t *src_wuobject;
 //   uint8_t wkpf_error_code;
 
 //   DEBUGF_WKPF("WKPF: propagate property number %x of component %x on port %x (value %x)\n", property_number, component_id, port_number, value);
@@ -188,7 +188,7 @@
 //       address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
 //       if (dest_node_id == nvmcomm_get_node_id()) {
 //         // Local
-//         wkpf_local_wuobject *dest_wuobject;
+//         wuobject_t *dest_wuobject;
 //         wkpf_error_code = wkpf_get_wuobject_by_port(dest_port_number, &dest_wuobject);
 //         if (wkpf_error_code == WKPF_OK) {
 //           DEBUGF_WKPF("WKPF: propagate_property (local). (%x, %x)->(%x, %x), value %x\n", port_number, property_number, dest_port_number, dest_property_number, value);

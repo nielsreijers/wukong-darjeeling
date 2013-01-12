@@ -100,7 +100,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYSHORT) {
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wkpf_local_wuobject *wuobject;
+//     wuobject_t *wuobject;
 //     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
 //     if (wkpf_error_code == WKPF_OK) {
 //       int16_t value;
@@ -113,7 +113,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //     int16_t value = (int16_t)stack_pop_int();
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wkpf_local_wuobject *wuobject;
+//     wuobject_t *wuobject;
 //     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
 //     if (wkpf_error_code == WKPF_OK) {
 //       wkpf_error_code = wkpf_internal_write_property_int16(wuobject, property_number, value);
@@ -122,7 +122,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYBOOLEAN) {
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wkpf_local_wuobject *wuobject;
+//     wuobject_t *wuobject;
 //     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
 //     if (wkpf_error_code == WKPF_OK) {
 //       bool value;
@@ -135,7 +135,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //     bool value = (int16_t)stack_pop_int();
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wkpf_local_wuobject *wuobject;
+//     wuobject_t *wuobject;
 //     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
 //     if (wkpf_error_code == WKPF_OK) {
 //       wkpf_error_code = wkpf_internal_write_property_boolean(wuobject, property_number, value);
@@ -152,7 +152,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //       if (node_id != nvmcomm_get_node_id())
 //         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
 //       else {
-//         wkpf_local_wuobject *wuobject;
+//         wuobject_t *wuobject;
 //         wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
 //         if (wkpf_error_code == WKPF_OK) {
 //           DEBUGF_WKPF("WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
@@ -172,7 +172,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //       if (node_id != nvmcomm_get_node_id())
 //         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
 //       else {
-//         wkpf_local_wuobject *wuobject;
+//         wuobject_t *wuobject;
 //         wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
 //         if (wkpf_error_code == WKPF_OK) {
 //           DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
@@ -192,7 +192,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //       if (node_id != nvmcomm_get_node_id())
 //         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
 //       else {
-//         wkpf_local_wuobject *wuobject;
+//         wuobject_t *wuobject;
 //         wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
 //         if (wkpf_error_code == WKPF_OK) {
 //           DEBUGF_WKPF("WKPF: setPropertyRefreshRate (local). Port %x, property %x, value %x\n", port_number, property_number, value);
@@ -202,7 +202,7 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //     }
 
 //   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
-//     wkpf_local_wuobject *wuobject;
+//     wuobject_t *wuobject;
 //     while(true) {
 //       // Process any incoming messages
 //       nvmcomm_poll();

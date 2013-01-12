@@ -80,7 +80,7 @@
 //   uint8_t port_number;
 //   uint8_t property_number;
 //   uint8_t retval;
-//   wkpf_local_wuobject *wuobject;
+//   wuobject_t *wuobject;
 
 //   if (nvm_runlevel != NVM_RUNLVL_VM)
 //     return;
@@ -134,7 +134,7 @@
 //       number_of_wuclasses = wkpf_get_number_of_wuclasses();
 //       payload[2] = number_of_wuclasses;
 //       for (int i=0; i<number_of_wuclasses && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-//         wkpf_wuclass_definition *wuclass;
+//         wuclass_t *wuclass;
 //         wkpf_get_wuclass_by_index(i, &wuclass);
 //         payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
 //         payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
@@ -147,7 +147,7 @@
 //       number_of_wuobjects = wkpf_get_number_of_wuobjects();
 //       payload[2] = number_of_wuobjects;
 //       for (int i=0; i<number_of_wuobjects && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-//         wkpf_local_wuobject *wuobject;
+//         wuobject_t *wuobject;
 //         wkpf_get_wuobject_by_index(i, &wuobject);
 //         payload[3*i + 3] = (uint8_t)(wuobject->port_number);
 //         payload[3*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);

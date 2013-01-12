@@ -16,7 +16,7 @@
 // uint8_t number_of_properties;
 // property_entry properties[MAX_NUMBER_OF_PROPERTIES];
 
-// uint8_t wkpf_read_property(wkpf_local_wuobject *wuobject, uint8_t property_number, int16_t *value) {
+// uint8_t wkpf_read_property(wuobject_t *wuobject, uint8_t property_number, int16_t *value) {
 //   for (int i=0; i<number_of_properties; i++) {
 //     if (properties[i].wuobject_port_number == wuobject->port_number && properties[i].property_number == property_number) {
 //       DEBUGF_WKPF("WKPF: read_property: (index %x port %x, property %x): %x\n", i, wuobject->port_number, property_number, properties[i].value);
@@ -26,7 +26,7 @@
 //   }
 //   return WKPF_ERR_SHOULDNT_HAPPEN;
 // }
-// uint8_t wkpf_write_property(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t value) {
+// uint8_t wkpf_write_property(wuobject_t *wuobject, uint8_t property_number, bool external_access, int16_t value) {
 //   for (int i=0; i<number_of_properties; i++) {
 //     if (properties[i].wuobject_port_number == wuobject->port_number && properties[i].property_number == property_number) {
 //       DEBUGF_WKPF("WKPF: write_property: (index %x port %x, property %x): %x->%x\n", i, wuobject->port_number, property_number, properties[i].value, value);
@@ -46,7 +46,7 @@
 //   return WKPF_ERR_SHOULDNT_HAPPEN;
 // }
 
-// uint8_t wkpf_verify_property(wkpf_local_wuobject *wuobject, uint8_t property_number, uint8_t access, bool external_access, uint8_t type) {
+// uint8_t wkpf_verify_property(wuobject_t *wuobject, uint8_t property_number, uint8_t access, bool external_access, uint8_t type) {
 //   if (wuobject->wuclass->number_of_properties <= property_number)
 //     return WKPF_ERR_PROPERTY_NOT_FOUND;
 //   uint8_t property = wuobject->wuclass->properties[property_number];
@@ -61,14 +61,14 @@
 //   return WKPF_OK;
 // }
 
-// uint8_t wkpf_read_property_int16(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t *value) {
+// uint8_t wkpf_read_property_int16(wuobject_t *wuobject, uint8_t property_number, bool external_access, int16_t *value) {
 //   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READONLY, external_access, WKPF_PROPERTY_TYPE_SHORT);
 //   if (retval == WKPF_OK)
 //     return wkpf_read_property(wuobject, property_number, value);
 //   else
 //     return retval;
 // }
-// uint8_t wkpf_write_property_int16(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t value) {
+// uint8_t wkpf_write_property_int16(wuobject_t *wuobject, uint8_t property_number, bool external_access, int16_t value) {
 //   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_SHORT);
 //   if (retval == WKPF_OK)
 //     return wkpf_write_property(wuobject, property_number, external_access, value);
@@ -76,7 +76,7 @@
 //     return retval;
 // }
 
-// uint8_t wkpf_read_property_boolean(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, bool *value) {
+// uint8_t wkpf_read_property_boolean(wuobject_t *wuobject, uint8_t property_number, bool external_access, bool *value) {
 //   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READONLY, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
 
 //   if (retval == WKPF_OK) {
@@ -90,7 +90,7 @@
 //   else
 //     return retval;
 // }
-// uint8_t wkpf_write_property_boolean(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, bool value) {
+// uint8_t wkpf_write_property_boolean(wuobject_t *wuobject, uint8_t property_number, bool external_access, bool value) {
 //   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
 //   if (retval == WKPF_OK)
 //     return wkpf_write_property(wuobject, property_number, external_access, value);
@@ -100,14 +100,14 @@
 //   }
 // }
 
-// uint8_t wkpf_read_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t *value) {
+// uint8_t wkpf_read_property_refresh_rate(wuobject_t *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t *value) {
 //   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READONLY, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
 //   if (retval == WKPF_OK)
 //     return wkpf_read_property(wuobject, property_number, value);
 //   else
 //     return retval;
 // }
-// uint8_t wkpf_write_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t value) {
+// uint8_t wkpf_write_property_refresh_rate(wuobject_t *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t value) {
 //   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
 //   if (retval == WKPF_OK) {
 //     retval = wkpf_write_property(wuobject, property_number, external_access, value);
@@ -117,7 +117,7 @@
 //     return retval;
 // }
 
-// uint8_t wkpf_get_property_status(wkpf_local_wuobject *wuobject, uint8_t property_number, uint8_t *status) {
+// uint8_t wkpf_get_property_status(wuobject_t *wuobject, uint8_t property_number, uint8_t *status) {
 //   for (int i=0; i<number_of_properties; i++) {
 //     if (properties[i].wuobject_port_number == wuobject->port_number && properties[i].property_number == property_number) {
 //       DEBUGF_WKPF("WKPF: wkpf_get_property_status: (index %x port %x, property %x): %x\n", i, wuobject->port_number, property_number, properties[i].property_status);
@@ -129,7 +129,7 @@
 // }
 
 
-// uint8_t wkpf_alloc_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
+// uint8_t wkpf_alloc_properties_for_wuobject(wuobject_t *wuobject) {
 //   for (int i=0; i<number_of_properties; i++)
 //     if (properties[i].wuobject_port_number == wuobject->port_number)
 //       return WKPF_ERR_WUOBJECT_ALREADY_ALLOCATED;
@@ -151,7 +151,7 @@
 //   return WKPF_OK;
 // }
 
-// uint8_t wkpf_free_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
+// uint8_t wkpf_free_properties_for_wuobject(wuobject_t *wuobject) {
 //   int16_t first=-1, last=-1;
 //   // Find the sequence of properties corresponding to this wuobject
 //   for (int i=0; i<number_of_properties; i++) {
@@ -167,7 +167,7 @@
 //   return WKPF_OK;
 // }
 
-// uint8_t wkpf_property_needs_initialisation_push(wkpf_local_wuobject *wuobject, uint8_t property_number) {
+// uint8_t wkpf_property_needs_initialisation_push(wuobject_t *wuobject, uint8_t property_number) {
 //   if (wuobject->wuclass->number_of_properties <= property_number)
 //     return WKPF_ERR_PROPERTY_NOT_FOUND;
 //   for (int i=0; i<number_of_properties; i++) {
