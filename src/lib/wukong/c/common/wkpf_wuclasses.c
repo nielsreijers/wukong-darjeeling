@@ -9,7 +9,7 @@ wkpf_wuclass_definition *wuclasses = NULL;
 uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uint8_t number_of_properties, uint8_t properties[]) {
   wkpf_wuclass_definition *wuclass;
   if (wkpf_get_wuclass_by_id(wuclass_id, &wuclass) != WKPF_ERR_WUCLASS_NOT_FOUND) {
-      DEBUG_LOG(DBG_WKPF, "WKPF: WuClass id in use while registering wuclass id %x: FAILED\n", wuclass.wuclass_id);
+      DEBUG_LOG(DBG_WKPF, "WKPF: WuClass id in use while registering wuclass id %x: FAILED\n", wuclass->wuclass_id);
       return WKPF_ERR_WUCLASS_ID_IN_USE;
   }
 
@@ -19,11 +19,11 @@ uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uin
   wuclass = (wkpf_wuclass_definition*)dj_mem_alloc(size, CHUNKID_WUCLASS);
   dj_mem_removeSafePointer((void**)&properties);
   if (wuclass == NULL) {
-    DEBUG_LOG(DBG_WKPF, "WKPF: Out of memory while registering wuclass id %x: FAILED\n", wuclass.wuclass_id);
+    DEBUG_LOG(DBG_WKPF, "WKPF: Out of memory while registering wuclass id %x: FAILED\n", wuclass->wuclass_id);
     return WKPF_ERR_OUT_OF_MEMORY;
   }
 
-  DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %x at index %x\n", wuclass.wuclass_id, number_of_wuclasses);
+  DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %x at index %x\n", wuclass->wuclass_id, wkpf_get_number_of_wuclasses());
   wuclass->wuclass_id = wuclass_id;
   wuclass->update = update;
   wuclass->number_of_properties = number_of_properties;
@@ -66,4 +66,27 @@ uint8_t wkpf_get_number_of_wuclasses() {
     wuclass = wuclass->next;
   }
   return number_of_wuclasses;
+}
+
+void wkpf_markRootSet(void *data) {
+#ifdef DARJEELING_DEBUG
+  DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Marking wuclasses black.\n");
+  dj_mem_dump();
+#endif // DARJEELING_DEBUG
+  wkpf_wuclass_definition *wuclass = wuclasses;
+  while (wuclass) {
+    dj_mem_setChunkColor(wuclass, TCM_BLACK);
+    wuclass = wuclass->next;
+  }
+}
+
+void wkpf_updatePointers(void *data) {
+  DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating references\n");
+  wkpf_wuclass_definition **wuclass = &wuclasses;
+  while (*wuclass) {
+    wkpf_wuclass_definition **next = &(*wuclass)->next; // Store a pointer to this wuclass' next pointer
+    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointers for wuclass %d from %x to %x\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
+    *wuclass = dj_mem_getUpdatedPointer(*wuclass); // Then update the pointer to this wuclass
+    wuclass = next; // Continue from the previously stored next pointer, since we can't access the wuclass itself anymore
+  }
 }

@@ -1,6 +1,7 @@
 #ifndef WKPF_WUCLASSESH
 #define WKPF_WUCLASSESH
 
+#include "heap.h"
 #include "types.h"
 
 #ifdef TEST_WKPF_WUCLASSES
@@ -27,5 +28,9 @@ extern uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t upda
 extern uint8_t wkpf_get_wuclass_by_id(uint16_t wuclass_id, wkpf_wuclass_definition **wuclass);
 extern uint8_t wkpf_get_wuclass_by_index(uint8_t index, wkpf_wuclass_definition **wuclass);
 extern uint8_t wkpf_get_number_of_wuclasses();
+
+// For GC
+extern void wkpf_markRootSet(void *data);
+extern void wkpf_updatePointers(void *data);
 
 #endif // WKPF_WUCLASSESH

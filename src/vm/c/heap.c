@@ -83,6 +83,8 @@
 #include "panic.h"
 #include "jlib_base.h"
 
+#include "hooks.h"
+
 static char *heap_base;
 static dj_object *panicExceptionObject;
 static uint16_t heap_size;
@@ -355,6 +357,7 @@ static inline void dj_mem_mark()
 
 	// mark the root set (set all elements in the root set to 'gray')
 	dj_vm_markRootSet(vm);
+	dj_hook_call(dj_vm_markRootSetHook, NULL);
 
 	DEBUG_LOG(DBG_DARJEELING, "\tmark reference stack\n");
 
@@ -514,6 +517,9 @@ void dj_mem_compact()
 	// update global pointers in the execution engine
 	dj_exec_updatePointers();
 
+	// Finally update any library specific data
+	dj_hook_call(dj_mem_updateReferenceHook, NULL);
+
 	// physically move the chunks to their new positions
 	loc = heap_base;
 	while (loc<left_pointer)
@@ -654,7 +660,7 @@ void dj_mem_dump()
 
 		// printf("%c[32mASSERT[%3d] PASSED%c[0m\n", 0x1b, (int)id, 0x1b);
         uint8_t color = 31 + finger->color;
-		DEBUG_LOG(DBG_DARJEELING, "%c[%dm[%p %04d %s]%c[0m ", 0x1b, color, finger, finger->size, chunk_type_pretty_print, 0x1b);
+		DEBUG_LOG(DBG_DARJEELING, "%c[%dm[%p %04d %s]%c[0m \n", 0x1b, color, finger, finger->size, chunk_type_pretty_print, 0x1b);
 		total += finger->size;
 		if (finger->size==0)
 			break;

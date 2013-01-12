@@ -2,7 +2,7 @@
 #include "panic.h"
 #include "debug.h"
 #include "array.h"
-#include "execution.h"
+#include "hooks.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"
@@ -10,9 +10,21 @@
 
 uint8_t wkpf_error_code = WKPF_OK;
 
+dj_hook wkpf_markRootSetHook;
+dj_hook wkpf_updatePointersHook;
+
+void javax_wukong_WKPF_void__init() {
+	wkpf_markRootSetHook.function = wkpf_markRootSet;
+	dj_hook_add(&dj_vm_markRootSetHook, &wkpf_markRootSetHook);
+
+	wkpf_updatePointersHook.function = wkpf_updatePointers;
+	dj_hook_add(&dj_mem_updateReferenceHook, &wkpf_updatePointersHook);
+}
+
+
 void javax_wukong_WKPF_byte_getErrorCode()
 {
-       dj_exec_stackPushShort(wkpf_error_code);
+	dj_exec_stackPushShort(wkpf_error_code);
 }
 
 void javax_wukong_WKPF_void_registerWuClass_short_byte__()
