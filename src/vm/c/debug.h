@@ -73,6 +73,9 @@
 #ifndef DBG_WKPF
 #define DBG_WKPF 0
 #endif
+#ifndef DBG_WKPFUPDATE
+#define DBG_WKPFUPDATE 0
+#endif
 
 
 #ifndef DARJEELING_DEBUG

@@ -1,23 +1,114 @@
 import javax.wukong.WKPF;
 import javax.wukong.VirtualWuObject;
 
-public class WKPFTest
-{
-	private static class VirtualTestWuClass extends VirtualWuObject
-	{
-		public static final byte[] properties = new byte[]
-		{
-			42, 43, 44, 45, 46
-		};
+public class WKPFTest {
+  private static int passedCount=0;
+  private static int failedCount=0;
 
-		public void update() {}
-	}
+  private static class VirtualTestWuClass extends VirtualWuObject {
+    public static final byte[] properties = new byte[] {
+      WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_READWRITE,
+      WKPF.PROPERTY_TYPE_BOOLEAN|WKPF.PROPERTY_ACCESS_READWRITE};
 
-	public static void main(String args[])
-	{
-		System.out.println("Hello, world!\n\r");
-		System.out.println("WKPF " + WKPF.getErrorCode());
-		WKPF.registerWuClass((short)0x42, VirtualTestWuClass.properties);
-		System.out.println("WKPF " + WKPF.getErrorCode());
-	}
+    public void update() {}
+  }
+
+  public static void assertEqual(int value, int expected, String message) {
+    if (value == expected) {
+      System.out.println("OK: " + message);
+      passedCount++;
+    } else {
+      System.out.println("----------->FAIL: " + message);
+      System.out.println("Expected: " + expected + " Got: " + value);
+      failedCount++;
+    }
+  }
+  public static void assertEqualBoolean(boolean value, boolean expected, String message) {
+    if (value == expected) {
+      System.out.println("OK: " + message);
+      passedCount++;
+    } else {
+      System.out.println("----------->FAIL: " + message);
+      failedCount++;
+    }
+  }
+  public static void assertEqualObject(Object value, Object expected, String message) {
+    if (value == expected) {
+      System.out.println("OK: " + message);
+      passedCount++;
+    } else {
+      System.out.println("----------->FAIL: " + message);
+      failedCount++;
+    }
+  }
+
+  public static void main(String[] args) {
+    System.out.println("WuKong WuClass Framework test");
+
+    WKPF.registerWuClass((short)0x42, VirtualTestWuClass.properties);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualTestWuClass as id 0x42.");
+
+    WKPF.registerWuClass((short)0x43, VirtualTestWuClass.properties);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "... and as id 0x43.");
+
+    VirtualWuObject wuclassInstanceA = new VirtualTestWuClass();
+    WKPF.createWuObject((short)0x42, (byte)0x10, wuclassInstanceA);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for wuclass instance A at port 0x10.");
+
+    VirtualWuObject wuclassInstanceB = new VirtualTestWuClass();
+    WKPF.createWuObject((short)0x42, (byte)0x10, wuclassInstanceB);
+    assertEqual(WKPF.getErrorCode(), WKPF.ERR_PORT_IN_USE, "Creating another wuobject for wuclass instance B at port 0x10, should fail.");
+
+    WKPF.destroyWuObject((byte)0x10);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Removing wuclass instance A and wuobject at port 0x10.");
+
+    WKPF.createWuObject((short)0x42, (byte)0x10, wuclassInstanceB);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating another wuobject for wuclass instance B at port 0x10, now it should work.");
+
+/*
+    WKPF.setPropertyShort(wuclassInstanceB, (byte)0, (short)123);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 0 for wuclass instance B to 123.");
+
+    assertEqual(WKPF.getPropertyShort(wuclassInstanceB, (byte)0), 123, "Getting value for property 0 for wuclass instance B, should be 123.");
+
+    WKPF.setPropertyShort(wuclassInstanceA, (byte)0, (short)123);
+    assertEqual(WKPF.getErrorCode(), WKPF.ERR_WUOBJECT_NOT_FOUND, "Setting property 0 for wuclass instance A to 123, should fail.");
+
+    WKPF.setPropertyShort(wuclassInstanceB, (byte)1, (short)123);
+    assertEqual(WKPF.getErrorCode(), WKPF.ERR_WRONG_DATATYPE, "Setting property 1 for wuclass instance B to 123, should fail.");
+
+    WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, true);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 for wuclass instance B to true.");
+    assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), true, "Getting value for property 1 for wuclass instance B, should be true.");
+
+    WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, false);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 for wuclass instance B to false.");
+    assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), false, "Getting value for property 1 for wuclass instance B, should be false.");
+*/
+/*
+    VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();
+
+    WKPF.registerWuClass(WKPF.WUCLASS_THRESHOLD, GENERATEDVirtualThresholdWuObject.properties);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualThresholdWuObject.");
+
+
+    WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, (byte)0x20, wuclassInstanceThreshold);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for virtual Threshold wuclass at port 0x20.");
+
+    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_GT);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): operator=>");
+
+
+    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)1000);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): threshold=1000");
+    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): value=1200");
+    
+    wuclassInstanceThreshold.update();
+    assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of virtual threshold wuclass, should be true.");
+*/
+
+    System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
+    while (true) {} // Need loop to prevent it from exiting the program
+  }
 }

@@ -3,10 +3,13 @@
 #include "debug.h"
 #include "array.h"
 #include "hooks.h"
+#include "execution.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"
+#include "wkpf_gc.h"
 #include "wkpf_wuclasses.h"
+#include "wkpf_wuobjects.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
 
@@ -29,8 +32,6 @@ void javax_wukong_WKPF_byte_getErrorCode()
 
 void javax_wukong_WKPF_void_registerWuClass_short_byte__()
 {
-	// TODONR: Protect properties data from GC
-	// Not sure yet how to interact with reference on the Darjeeling stack. Just giving this a try.
 	dj_int_array * byteArrayProperties = REF_TO_VOIDP(dj_exec_stackPopRef());
 	// check null
 	if (byteArrayProperties==nullref){
@@ -43,14 +44,19 @@ void javax_wukong_WKPF_void_registerWuClass_short_byte__()
 
 void javax_wukong_WKPF_void_createWuObject_short_byte_javax_wukong_VirtualWuObject()
 {
-	// heap_id_t virtual_wuclass_instance_heap_id = REF_TO_VOIDP(dj_exec_stackPopRef());
-	// uint8_t port_number = (uint8_t)stack_pop_int();
-	// uint16_t wuclass_id = (uint16_t)stack_pop_int();
-	// DEBUG_LOG(DBG_WKPF, "WKPF: Creating wuobject for virtual wuclass with id %x at port %x (heap_id: %x)\n", wuclass_id, port_number, virtual_wuclass_instance_heap_id);
-	// wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, virtual_wuclass_instance_heap_id);
+	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
+	uint8_t port_number = (uint8_t)dj_exec_stackPopShort();
+	uint16_t wuclass_id = (uint16_t)dj_exec_stackPopShort();
+	DEBUG_LOG(DBG_WKPF, "WKPF: Creating wuobject for virtual wuclass with id %x at port %x (heap_id: %x)\n", wuclass_id, port_number, java_instance_reference);
+	wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, java_instance_reference);
 }
 
-void javax_wukong_WKPF_void_destroyWuObject_byte() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
+void javax_wukong_WKPF_void_destroyWuObject_byte()
+{
+	uint8_t port_number = (uint8_t)dj_exec_stackPopShort();
+	DEBUG_LOG(DBG_WKPF, "WKPF: Removing wuobject at port %x\n", port_number);
+	wkpf_error_code = wkpf_remove_wuobject(port_number);
+}
 
 void javax_wukong_WKPF_short_getPropertyShort_javax_wukong_VirtualWuObject_byte() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
 
@@ -90,9 +96,6 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //   } else if(mref == NATIVE_WKPF_METHOD_CREATE_WUOBJECT) {
 
 //   } else if(mref == NATIVE_WKPF_METHOD_REMOVE_WUOBJECT) {
-//     uint8_t port_number = (uint8_t)stack_pop_int();
-//     DEBUGF_WKPF("WKPF: Removing wuobject at port %x\n", port_number);
-//     wkpf_error_code = wkpf_remove_wuobject(port_number);
 
 //   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYSHORT) {
 //     uint8_t property_number = (uint8_t)stack_pop_int();
