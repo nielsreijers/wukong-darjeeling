@@ -10,6 +10,7 @@
 #include "wkpf_gc.h"
 #include "wkpf_wuclasses.h"
 #include "wkpf_wuobjects.h"
+#include "wkpf_properties.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
 
@@ -58,13 +59,51 @@ void javax_wukong_WKPF_void_destroyWuObject_byte()
 	wkpf_error_code = wkpf_remove_wuobject(port_number);
 }
 
-void javax_wukong_WKPF_short_getPropertyShort_javax_wukong_VirtualWuObject_byte() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
+void javax_wukong_WKPF_short_getPropertyShort_javax_wukong_VirtualWuObject_byte()
+{
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
+	wuobject_t *wuobject;
+	wkpf_error_code = wkpf_get_wuobject_by_java_instance_reference(java_instance_reference, &wuobject);
+	if (wkpf_error_code == WKPF_OK) {
+		int16_t value;
+		wkpf_error_code = wkpf_internal_read_property_int16(wuobject, property_number, &value);
+		dj_exec_stackPushShort(value);
+	}
+}
 
-void javax_wukong_WKPF_void_setPropertyShort_javax_wukong_VirtualWuObject_byte_short() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
+void javax_wukong_WKPF_void_setPropertyShort_javax_wukong_VirtualWuObject_byte_short() {
+	int16_t value = (int16_t)dj_exec_stackPopShort();
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
+	wuobject_t *wuobject;
+	wkpf_error_code = wkpf_get_wuobject_by_java_instance_reference(java_instance_reference, &wuobject);
+	if (wkpf_error_code == WKPF_OK) {
+		wkpf_error_code = wkpf_internal_write_property_int16(wuobject, property_number, value);
+	}
+}
 
-void javax_wukong_WKPF_boolean_getPropertyBoolean_javax_wukong_VirtualWuObject_byte() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_void_setPropertyBoolean_javax_wukong_VirtualWuObject_byte_boolean() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
+void javax_wukong_WKPF_boolean_getPropertyBoolean_javax_wukong_VirtualWuObject_byte() {
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
+	wuobject_t *wuobject;
+	wkpf_error_code = wkpf_get_wuobject_by_java_instance_reference(java_instance_reference, &wuobject);
+	if (wkpf_error_code == WKPF_OK) {
+		bool value;
+		wkpf_error_code = wkpf_internal_read_property_boolean(wuobject, property_number, &value);
+		dj_exec_stackPushShort(value);
+	}
+}
+void javax_wukong_WKPF_void_setPropertyBoolean_javax_wukong_VirtualWuObject_byte_boolean() {
+	bool value = (int16_t)dj_exec_stackPopShort();
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
+	wuobject_t *wuobject;
+	wkpf_error_code = wkpf_get_wuobject_by_java_instance_reference(java_instance_reference, &wuobject);
+	if (wkpf_error_code == WKPF_OK) {
+		wkpf_error_code = wkpf_internal_write_property_boolean(wuobject, property_number, value);
+	}
+}
 
 void javax_wukong_WKPF_void_setPropertyShort_short_byte_short() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
 
@@ -98,48 +137,12 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //   } else if(mref == NATIVE_WKPF_METHOD_REMOVE_WUOBJECT) {
 
 //   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYSHORT) {
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wuobject_t *wuobject;
-//     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
-//     if (wkpf_error_code == WKPF_OK) {
-//       int16_t value;
-//       wkpf_error_code = wkpf_internal_read_property_int16(wuobject, property_number, &value);
-//       if (wkpf_error_code == WKPF_OK)
-//         stack_push(value);
-//     }
     
 //   } else if(mref == NATIVE_WKPF_METHOD_SETPROPERTYSHORT) {
-//     int16_t value = (int16_t)stack_pop_int();
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wuobject_t *wuobject;
-//     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
-//     if (wkpf_error_code == WKPF_OK) {
-//       wkpf_error_code = wkpf_internal_write_property_int16(wuobject, property_number, value);
-//     }
     
 //   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYBOOLEAN) {
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wuobject_t *wuobject;
-//     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
-//     if (wkpf_error_code == WKPF_OK) {
-//       bool value;
-//       wkpf_error_code = wkpf_internal_read_property_boolean(wuobject, property_number, &value);
-//       if (wkpf_error_code == WKPF_OK)
-//         stack_push(value);
-//     }
     
 //   } else if(mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN) {
-//     bool value = (int16_t)stack_pop_int();
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wuobject_t *wuobject;
-//     wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
-//     if (wkpf_error_code == WKPF_OK) {
-//       wkpf_error_code = wkpf_internal_write_property_boolean(wuobject, property_number, value);
-//     }
     
 //   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYSHORT_COMPONENT) {
 //     int16_t value = (int16_t)stack_pop_int();

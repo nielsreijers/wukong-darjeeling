@@ -198,7 +198,7 @@ void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject) {
 	}
 }
 
-wuobject_property_t* wkpf_get_property_offset(wuobject_t *wuobject, uint8_t property_number) {
+wuobject_property_t* wkpf_get_property(wuobject_t *wuobject, uint8_t property_number) {
 	wuclass_t *wuclass = wuobject->wuclass;
 	uint8_t offset = 0;
 	while(property_number > 0) {

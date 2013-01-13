@@ -35,7 +35,7 @@ extern bool wkpf_get_next_wuobject_to_update(wuobject_t **wuobject);
 extern void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject);
 
 // Access to the properties
-extern wuobject_property_t* wkpf_get_property_offset(wuobject_t *wuobject, uint8_t property_number);
+extern wuobject_property_t* wkpf_get_property(wuobject_t *wuobject, uint8_t property_number);
 
 
 #endif // WKPF_WUOBJECTSH

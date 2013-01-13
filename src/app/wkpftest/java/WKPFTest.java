@@ -65,17 +65,16 @@ public class WKPFTest {
     WKPF.createWuObject((short)0x42, (byte)0x10, wuclassInstanceB);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating another wuobject for wuclass instance B at port 0x10, now it should work.");
 
-/*
     WKPF.setPropertyShort(wuclassInstanceB, (byte)0, (short)123);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 0 for wuclass instance B to 123.");
 
     assertEqual(WKPF.getPropertyShort(wuclassInstanceB, (byte)0), 123, "Getting value for property 0 for wuclass instance B, should be 123.");
 
     WKPF.setPropertyShort(wuclassInstanceA, (byte)0, (short)123);
-    assertEqual(WKPF.getErrorCode(), WKPF.ERR_WUOBJECT_NOT_FOUND, "Setting property 0 for wuclass instance A to 123, should fail.");
+    assertEqual(WKPF.getErrorCode(), WKPF.ERR_WUOBJECT_NOT_FOUND, "Setting property 0 for wuclass instance A to 123, should fail (A was deleted).");
 
     WKPF.setPropertyShort(wuclassInstanceB, (byte)1, (short)123);
-    assertEqual(WKPF.getErrorCode(), WKPF.ERR_WRONG_DATATYPE, "Setting property 1 for wuclass instance B to 123, should fail.");
+    assertEqual(WKPF.getErrorCode(), WKPF.ERR_WRONG_DATATYPE, "Setting property 1 for wuclass instance B to 123, should fail (prop 1 is a boolean).");
 
     WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, true);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 for wuclass instance B to true.");
@@ -84,7 +83,7 @@ public class WKPFTest {
     WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, false);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 for wuclass instance B to false.");
     assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), false, "Getting value for property 1 for wuclass instance B, should be false.");
-*/
+
 /*
     VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();
 
