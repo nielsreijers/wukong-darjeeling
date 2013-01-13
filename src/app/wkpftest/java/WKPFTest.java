@@ -1,5 +1,6 @@
 import javax.wukong.WKPF;
 import javax.wukong.VirtualWuObject;
+import javax.wukong.wuclasses.VirtualThresholdWuObject;
 
 public class WKPFTest {
   private static int passedCount=0;
@@ -84,9 +85,8 @@ public class WKPFTest {
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 for wuclass instance B to false.");
     assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), false, "Getting value for property 1 for wuclass instance B, should be false.");
 
-/*
     VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();
-
+/*
     WKPF.registerWuClass(WKPF.WUCLASS_THRESHOLD, GENERATEDVirtualThresholdWuObject.properties);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualThresholdWuObject.");
 
