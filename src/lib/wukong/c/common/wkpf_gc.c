@@ -3,8 +3,8 @@
 #include "wkpf_wuclasses.h"
 #include "wkpf_wuobjects.h"
 
-extern wuclass_t *wuclasses;
-extern wuobject_t *wuobjects;
+extern wuclass_t *wuclasses_list;
+extern wuobject_t *wuobjects_list;
 extern wuobject_t *last_updated_wuobject;
 
 void wkpf_markRootSet(void *data) {
@@ -13,7 +13,7 @@ void wkpf_markRootSet(void *data) {
 #endif // DARJEELING_DEBUG
 	// WuClasses
 	DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Marking wuclasses black.\n");
-	wuclass_t *wuclass = wuclasses;
+	wuclass_t *wuclass = wuclasses_list;
 	while (wuclass) {
 		dj_mem_setChunkColor(wuclass, TCM_BLACK);
 		wuclass = wuclass->next;
@@ -21,7 +21,7 @@ void wkpf_markRootSet(void *data) {
 
 	// WuObjects
 	DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Marking wuobjects black, and java instances gray.\n");
-	wuobject_t *wuobject = wuobjects;
+	wuobject_t *wuobject = wuobjects_list;
 	while (wuobject) {
 		dj_mem_setChunkColor(wuobject, TCM_BLACK);
 		if (wuobject->java_instance_reference)
@@ -36,7 +36,7 @@ void wkpf_updatePointers(void *data) {
 	DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating references\n");
 
 	// WuClasses
-	wuclass_t **wuclass = &wuclasses;
+	wuclass_t **wuclass = &wuclasses_list;
 	while (*wuclass) {
 	    wuclass_t **next = &(*wuclass)->next; // Store a pointer to this wuclass' next pointer
 	    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer for wuclass %d from %x to %x\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
@@ -51,7 +51,7 @@ void wkpf_updatePointers(void *data) {
 
 	}
 
-	wuobject_t **wuobject = &wuobjects;
+	wuobject_t **wuobject = &wuobjects_list;
 	while (*wuobject) {
 	    // Print some debug output
 	    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, *wuobject, dj_mem_getUpdatedPointer(*wuobject));

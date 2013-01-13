@@ -4,7 +4,7 @@
 #include "wkpf.h"
 #include "wkpf_wuclasses.h"
 
-wuclass_t *wuclasses = NULL;
+wuclass_t *wuclasses_list = NULL;
 
 uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uint8_t number_of_properties, uint8_t properties[]) {
 	wuclass_t *wuclass;
@@ -29,14 +29,14 @@ uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uin
   wuclass->number_of_properties = number_of_properties;
   for (int i=0; i<number_of_properties; i++)
   	wuclass->properties[i] = properties[i];
-  wuclass->next = wuclasses;
-  wuclasses = wuclass;
+  wuclass->next = wuclasses_list;
+  wuclasses_list = wuclass;
 
   return WKPF_OK;
 }
 
 uint8_t wkpf_get_wuclass_by_id(uint16_t wuclass_id, wuclass_t **wuclass) {
-	*wuclass = wuclasses;
+	*wuclass = wuclasses_list;
 	while (*wuclass) {
 		if ((*wuclass)->wuclass_id == wuclass_id)
 			return WKPF_OK;
@@ -47,7 +47,7 @@ uint8_t wkpf_get_wuclass_by_id(uint16_t wuclass_id, wuclass_t **wuclass) {
 }
 
 uint8_t wkpf_get_wuclass_by_index(uint8_t index, wuclass_t **wuclass) {
-	*wuclass = wuclasses;
+	*wuclass = wuclasses_list;
 	while (index > 0 && wuclass != NULL) {
 		index--;
 		*wuclass = (*wuclass)->next;
@@ -60,7 +60,7 @@ uint8_t wkpf_get_wuclass_by_index(uint8_t index, wuclass_t **wuclass) {
 
 uint8_t wkpf_get_number_of_wuclasses() {
 	int number_of_wuclasses = 0;
-	wuclass_t *wuclass = wuclasses;
+	wuclass_t *wuclass = wuclasses_list;
 	while (wuclass) {
 		number_of_wuclasses++;
 		wuclass = wuclass->next;

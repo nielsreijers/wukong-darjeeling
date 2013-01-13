@@ -5,8 +5,13 @@
 #include "wkpf.h"
 #include "wkpf_wuobjects.h"
 
-wuobject_t *wuobjects = NULL;
+wuobject_t *wuobjects_list = NULL;
 wuobject_t *last_updated_wuobject = NULL;
+
+// Careful: this needs to match the IDs for the datatypes as defined in wkpf.h!
+// The size is 1 for the status byte, plus the size of the property, so for instance a 16bit short takes up 3 bytes.
+const uint8_t wkpf_property_datatype_size[3] = { 3, 2, 3 }; // Short, boolean, refreshrate
+#define WKPF_GET_PROPERTY_DATASIZE(x)	 (wkpf_property_datatype_size[WKPF_GET_PROPERTY_DATATYPE(x)])
 
 uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference /* TODO: find out what datatype to use */ ) {
 	wuobject_t *wuobject;
@@ -27,7 +32,10 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 		return WKPF_ERR_NEED_VIRTUAL_WUCLASS_INSTANCE;
 
 	// Allocate memory for the new wuobject
-	uint16_t size = sizeof(wuobject_t); // TODO: add space for the properties;
+	uint8_t size_of_properties = 0;
+	for(int i=0; i<wuclass->number_of_properties; i++)
+		size_of_properties += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[i]);
+	uint16_t size = sizeof(wuobject_t) + size_of_properties; // TODO: add space for the properties;
 	dj_mem_addSafePointer((void**)&java_instance_reference); // dj_mem_alloc may cause GC to run, so the address of the wuclass and the virtual wuclass instance may change. this tells the GC to update our pointer if it does.
 	dj_mem_addSafePointer((void**)&wuclass); // dj_mem_alloc may cause GC to run, so the address of the wuclass and the virtual wuclass instance may change. this tells the GC to update our pointer if it does.
 	wuobject = (wuobject_t*)dj_mem_alloc(size, CHUNKID_WUCLASS);
@@ -48,8 +56,8 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 	// Run update function once to initialise properties.
 	wkpf_set_need_to_call_update_for_wuobject(wuobject);
 
-	wuobject->next = wuobjects;
-	wuobjects = wuobject;
+	wuobject->next = wuobjects_list;
+	wuobjects_list = wuobject;
 	DEBUG_LOG(DBG_WKPF, "WKPF: Created wuobject for wuclass id %x at port %x\n", wuclass_id, port_number);
 	return WKPF_OK;
 }
@@ -57,10 +65,10 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 uint8_t wkpf_remove_wuobject(uint8_t port_number) {
 	wuobject_t *wuobject;
 
-	wuobject = wuobjects;
+	wuobject = wuobjects_list;
 	if (wuobject && wuobject->port_number == port_number) {
 		// It's the first in the list
-		wuobjects = wuobjects->next;
+		wuobjects_list = wuobjects_list->next;
 		dj_mem_free(wuobject);
 		return WKPF_OK;
 	}
@@ -79,7 +87,7 @@ uint8_t wkpf_remove_wuobject(uint8_t port_number) {
 }
 
 uint8_t wkpf_get_wuobject_by_port(uint8_t port_number, wuobject_t **wuobject) {
-	*wuobject = wuobjects;
+	*wuobject = wuobjects_list;
 	while (*wuobject) {
 		if ((*wuobject)->port_number == port_number) {
 			return WKPF_OK;
@@ -91,7 +99,7 @@ uint8_t wkpf_get_wuobject_by_port(uint8_t port_number, wuobject_t **wuobject) {
 }
 
 uint8_t wkpf_get_wuobject_by_index(uint8_t index, wuobject_t **wuobject) {
-	*wuobject = wuobjects;
+	*wuobject = wuobjects_list;
 	while (index > 0 && wuobject != NULL) {
 		index--;
 		*wuobject = (*wuobject)->next;
@@ -103,7 +111,7 @@ uint8_t wkpf_get_wuobject_by_index(uint8_t index, wuobject_t **wuobject) {
 }
 
 uint8_t wkpf_get_wuobject_by_java_instance_reference(dj_object *java_instance_reference, wuobject_t **wuobject) {
-	*wuobject = wuobjects;
+	*wuobject = wuobjects_list;
 	while (*wuobject) {
 		if ((*wuobject)->java_instance_reference == java_instance_reference) {
 			return WKPF_OK;
@@ -116,7 +124,7 @@ uint8_t wkpf_get_wuobject_by_java_instance_reference(dj_object *java_instance_re
 
 uint8_t wkpf_get_number_of_wuobjects() {
 	int number_of_wuobjects = 0;
-	wuobject_t *wuobject = wuobjects;
+	wuobject_t *wuobject = wuobjects_list;
 	while (wuobject) {
 		number_of_wuobjects++;
 		wuobject = wuobject->next;
@@ -134,10 +142,10 @@ void wkpf_set_need_to_call_update_for_wuobject(wuobject_t *wuobject) {
 }
 
 bool wkpf_get_next_wuobject_to_update(wuobject_t **virtual_wuobject) {
-	if (wuobjects == NULL)
+	if (wuobjects_list == NULL)
 		return false;
 	if (last_updated_wuobject == NULL)
-		last_updated_wuobject = wuobjects;
+		last_updated_wuobject = wuobjects_list;
 	wuobject_t *wuobject = last_updated_wuobject;
 
 	// wuobject is now pointing to the last updated object
@@ -146,11 +154,11 @@ bool wkpf_get_next_wuobject_to_update(wuobject_t **virtual_wuobject) {
 		// Find next object
 		wuobject = wuobject->next;
 		if (wuobject == NULL)
-			wuobject = wuobjects; // Wrap around to the first object.
+			wuobject = wuobjects_list; // Wrap around to the first object.
 
 		// Does it need to be updated?
-		if ((wuobject->next_scheduled_update > 0 && wuobjects->next_scheduled_update < dj_timer_getTimeMillis())
-				|| wuobjects->need_to_call_update) {
+		if ((wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < dj_timer_getTimeMillis())
+				|| wuobject->need_to_call_update) {
 			// Update this object
 			// Clear the flag if it was set
 			wuobject->need_to_call_update = false;
@@ -159,7 +167,7 @@ bool wkpf_get_next_wuobject_to_update(wuobject_t **virtual_wuobject) {
 			wkpf_schedule_next_update_for_wuobject(wuobject);
 			// Call update() directly for native wuobjects, or return virtual wuobject so WKPF.select() can return it to Java
 		if (WKPF_IS_NATIVE_WUOBJECT(wuobject)) {
-				// Mark wuobject as safe just in case the wuclass does something to trigger GC
+			// Mark wuobject as safe just in case the wuclass does something to trigger GC
 			dj_mem_addSafePointer((void**)&wuobject);
 			DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update native wuobject at port %x\n", wuobject->port_number);
 			wuobject->wuclass->update(wuobject);
@@ -179,13 +187,23 @@ void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject) {
 	for (int i=0; i<wuobject->wuclass->number_of_properties; i++) {
 		if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[i]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
 			wkpf_refresh_rate_t refresh_rate;
-// TODONR			wkpf_internal_read_property_refresh_rate(wuobject, i, &refresh_rate);
-      if (refresh_rate == 0) // 0 means turned off
-      	wuobject->next_scheduled_update = 0;
-      else
-      	wuobject->next_scheduled_update = dj_timer_getTimeMillis() + refresh_rate;
-      DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Scheduled next update for object at port %x. Refresh rate:%x Current time:%08lx Next update at:%08lx\n", wuobject->port_number, refresh_rate, dj_timer_getTimeMillis(), wuobject->next_scheduled_update);
-      return;
-  }
+			// TODONR			wkpf_internal_read_property_refresh_rate(wuobject, i, &refresh_rate);
+			if (refresh_rate == 0) // 0 means turned off
+				wuobject->next_scheduled_update = 0;
+			else
+				wuobject->next_scheduled_update = dj_timer_getTimeMillis() + refresh_rate;
+			DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Scheduled next update for object at port %x. Refresh rate:%x Current time:%08lx Next update at:%08lx\n", wuobject->port_number, refresh_rate, dj_timer_getTimeMillis(), wuobject->next_scheduled_update);
+			return;
+		}
+	}
 }
+
+wuobject_property_t* wkpf_get_property_offset(wuobject_t *wuobject, uint8_t property_number) {
+	wuclass_t *wuclass = wuobject->wuclass;
+	uint8_t offset = 0;
+	while(property_number > 0) {
+		offset += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[property_number--]);
+	}
+	return (wuobject_property_t *)&(wuobject->properties_store[offset]);
 }
+
