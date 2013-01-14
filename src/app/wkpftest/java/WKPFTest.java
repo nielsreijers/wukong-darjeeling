@@ -121,6 +121,21 @@ public class WKPFTest {
 		WKPF.loadLinkDefinitions(linkDefinitions);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting link definitions");
 
+		// byte[][] componentInstanceToWuObjectAddrMap = {
+		// 			new byte[]{ 6, 2 },
+		// 			new byte[]{ 6, 1 },
+		// 			new byte[]{ 6, 3 },
+		// 			new byte[]{ 4, 1,
+		// 						2, 1 },
+		// 			};
+		byte[] a = { 6, 2 };
+		byte[] b = { 6, 1 };
+		byte[] c = { 6, 3 };
+		byte[] d = { 4, 1, 2, 1 };
+		Object[] componentInstanceToWuObjectAddrMap = { a, b, c, d };
+		WKPF.loadComponentToWuObjectAddrMap((byte[][])componentInstanceToWuObjectAddrMap);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
+
 		System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
 		// while (true) {} // Need loop to prevent it from exiting the program
 	}

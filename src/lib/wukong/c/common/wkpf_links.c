@@ -10,21 +10,7 @@
 #include "wkpf_links.h"
 
 dj_int_array *wkpf_links = NULL;
-
-// typedef struct remote_endpoints_struct {
-//   uint16_t number_of_endpoints;
-//   remote_endpoint* endpoints;
-// } remote_endpoints;
-
-
-// #define MAX_NUMBER_OF_COMPONENTS 10
-// uint8_t number_of_components;
-// remote_endpoints component_to_wuobject_map[MAX_NUMBER_OF_COMPONENTS];
-
-// #define MAX_NUMBER_OF_LINKS 10
-// uint8_t number_of_links;
-// link_entry links[MAX_NUMBER_OF_LINKS];
-
+dj_ref_array *wkpf_component_map = NULL;
 
 // bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 //   for(int i=0; i<number_of_components; i++) {
@@ -50,40 +36,53 @@ dj_int_array *wkpf_links = NULL;
 //   return WKPF_ERR_LINK_NOT_FOUND;
 // }
 
-// uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
-//   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(heap_id_t);
+uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map) {
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %x components\n", map->array.length);
 
-//   DEBUGF_WKPF("WKPF: Registering %x components (%x bytes)\n\n", number_of_entries, array_length(map_heap_id));
+	wkpf_component_map = map;
+#ifdef DARJEELING_DEBUG
+	for (int i=0; i<map->array.length; i++) {
+		DEBUG_LOG(DBG_WKPF, "Component %d:");
+		dj_int_array *component = map->refs[i];
+		for (int j=0; j<component->array.length/2; j+=2) {
+			DEBUG_LOG(DBG_WKPF, " (node %d, port %d)", component->data.bytes[j], component->data.bytes[j+1]);
+		}
+		DEBUG_LOG(DBG_WKPF, "\n");
+	}
+#endif // DARJEELING_DEBUG
 
-//   if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
-//     return WKPF_ERR_OUT_OF_MEMORY;
 
-//   for(int i=0; i<number_of_entries; i++) {
-//     heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+(2*i));
-//     uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(remote_endpoint);
-//     remote_endpoint *nodes = (remote_endpoint *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
 
-//     component_to_wuobject_map[i] = (remote_endpoints){number_of_nodes, nodes};
-//     DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> at \n", i);
-//     for (int j=0; j<number_of_nodes; j++) {
-//       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
-// #ifdef NVM_USE_GROUP      
-//       if (nodes[j].node_id == nvmcomm_get_node_id()) {
-//         // Watchlist
-//         if (j == 0) {
-//           // Leader
-//           if (number_of_nodes > 1) {
-//             for (int k=1; k<number_of_nodes; k++) {
-//               group_add_node_to_watch(nodes[k].node_id);
-//             }
-//           }
-//         } else {
-//           group_add_node_to_watch(nodes[0].node_id);
-//         }
-//       }
+// 	if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
+// 		return WKPF_ERR_OUT_OF_MEMORY;
+
+// 	for(int i=0; i<number_of_entries; i++) {
+// 		heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+(2*i));
+// 		uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(remote_endpoint);
+// 		remote_endpoint *nodes = (remote_endpoint *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
+
+// 		component_to_wuobject_map[i] = (remote_endpoints){number_of_nodes, nodes};
+// 		DEBUG_LOG(DBG_WKPF, "WKPF: Registered component wuobject: component %x -> at \n", i);
+// 		for (int j=0; j<number_of_nodes; j++) {
+// 			DEBUG_LOG(DBG_WKPF, "\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
+// #ifdef NVM_USE_GROUP
+// 			if (nodes[j].node_id == nvmcomm_get_node_id()) {
+// 				// Watchlist
+// 				if (j == 0) {
+// 					// Leader
+// 					if (number_of_nodes > 1) {
+// 						for (int k=1; k<number_of_nodes; k++) {
+// 							group_add_node_to_watch(nodes[k].node_id);
+// 						}
+// 					}
+// 				} else {
+// 				group_add_node_to_watch(nodes[0].node_id);
+// 				}
+// 			}
 // #endif // NVM_USE_GROUP
-//     }
-//   }
+		// }
+	// }
+}
 
 //   /*
 //   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(remote_endpoint);

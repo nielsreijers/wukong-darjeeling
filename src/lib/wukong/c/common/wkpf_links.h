@@ -18,7 +18,7 @@ link_entry {
 	uint16_t dest_wuclass_id; // This is only here because there is an extra check on wuclass_id when remotely setting properties, but actually that's not strictly necessary. Not sure if it's worth the extra memory, but if we store this in flash it might be ok.
 } link_entry;
 
-// extern uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id);
+extern uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map);
 extern uint8_t wkpf_load_links(dj_int_array *links);
 // extern bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t property_number);
 // extern uint8_t wkpf_propagate_dirty_properties();

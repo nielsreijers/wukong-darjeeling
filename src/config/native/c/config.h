@@ -46,7 +46,7 @@ typedef int64_t dj_time_t;
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
 // #define DBG_DARJEELING true
-// #define DBG_WKPF true
+#define DBG_WKPF true
 // #define DBG_WKPFGC true
 // #define DBG_WKPFUPDATE true
 

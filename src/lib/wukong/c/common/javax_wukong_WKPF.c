@@ -195,9 +195,8 @@ void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
 }
 
 void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_byte____() {
-	// dj_object *map = REF_TO_VOIDP(dj_exec_stackPopRef());
- //    wkpf_error_code = wkpf_load_component_to_wuobject_map(map);
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	dj_int_array *map = REF_TO_VOIDP(dj_exec_stackPopRef());
+	wkpf_error_code = wkpf_load_component_to_wuobject_map(map);
 }
 
 void javax_wukong_WKPF_void_loadLinkDefinitions_byte__() {

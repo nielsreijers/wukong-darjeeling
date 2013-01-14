@@ -8,6 +8,7 @@ extern wuclass_t *wuclasses_list;
 extern wuobject_t *wuobjects_list;
 extern wuobject_t *last_updated_wuobject;
 extern dj_int_array *wkpf_links;
+extern dj_ref_array *wkpf_component_map;
 
 
 void wkpf_markRootSet(void *data) {
@@ -36,6 +37,10 @@ void wkpf_markRootSet(void *data) {
 	// Links
 	if (wkpf_links)
 		dj_mem_setChunkColor(wkpf_links, TCM_GRAY);
+
+	// Component map
+	if (wkpf_component_map)
+		dj_mem_setChunkColor(wkpf_component_map, TCM_GRAY);
 }
 
 void wkpf_updatePointers(void *data) {
@@ -78,5 +83,11 @@ void wkpf_updatePointers(void *data) {
 	if (wkpf_links) {
 	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for link table from %x to %x\n", wkpf_links, dj_mem_getUpdatedPointer(wkpf_links));
 	    wkpf_links = dj_mem_getUpdatedPointer(wkpf_links); // Then update the pointer to this wuclass
+	}
+
+	// Component map
+	if (wkpf_component_map) {
+	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for component map from %x to %x\n", wkpf_component_map, dj_mem_getUpdatedPointer(wkpf_component_map));
+	    wkpf_component_map = dj_mem_getUpdatedPointer(wkpf_component_map); // Then update the pointer to this wuclass
 	}
 }
