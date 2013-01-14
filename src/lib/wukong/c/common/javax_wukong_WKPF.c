@@ -33,7 +33,7 @@ void javax_wukong_WKPF_byte_getErrorCode()
 
 void javax_wukong_WKPF_void_registerWuClass_short_byte__()
 {
-	dj_int_array * byteArrayProperties = REF_TO_VOIDP(dj_exec_stackPopRef());
+	dj_int_array *byteArrayProperties = REF_TO_VOIDP(dj_exec_stackPopRef());
 	// check null
 	if (byteArrayProperties==nullref){
 		dj_exec_createAndThrow(BASE_CDEF_java_lang_NullPointerException);
@@ -105,46 +105,7 @@ void javax_wukong_WKPF_void_setPropertyBoolean_javax_wukong_VirtualWuObject_byte
 	}
 }
 
-void javax_wukong_WKPF_void_setPropertyShort_short_byte_short() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_void_setPropertyBoolean_short_byte_boolean() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_void_setPropertyRefreshRate_short_byte_short() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_byte____() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_void_loadLinkDefinitions_byte__() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_byte_getPortNumberForComponent_short() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_boolean_isLocalComponent_short() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); }
-
-
-
-
-
-
-
-//   if(mref == NATIVE_WKPF_METHOD_GETERRORCODE) {
-//   } else if(mref == NATIVE_WKPF_METHOD_REGISTER_WUCLASS) {
-
-//   } else if(mref == NATIVE_WKPF_METHOD_CREATE_WUOBJECT) {
-
-//   } else if(mref == NATIVE_WKPF_METHOD_REMOVE_WUOBJECT) {
-
-//   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYSHORT) {
-    
-//   } else if(mref == NATIVE_WKPF_METHOD_SETPROPERTYSHORT) {
-    
-//   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYBOOLEAN) {
-    
-//   } else if(mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN) {
-    
-//   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYSHORT_COMPONENT) {
+void javax_wukong_WKPF_void_setPropertyShort_short_byte_short() {
 //     int16_t value = (int16_t)stack_pop_int();
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     uint16_t component_id = (uint16_t)stack_pop_int();
@@ -163,8 +124,10 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //         }
 //       }
 //     }
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN_COMPONENT) {
+void javax_wukong_WKPF_void_setPropertyBoolean_short_byte_boolean() {
 //     bool value = (bool)stack_pop_int();
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     uint16_t component_id = (uint16_t)stack_pop_int();
@@ -183,8 +146,10 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //         }
 //       }
 //     }
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYREFRESHRATE_COMPONENT) {
+void javax_wukong_WKPF_void_setPropertyRefreshRate_short_byte_short() {
 //     int16_t value = (int16_t)stack_pop_int();
 //     uint8_t property_number = (uint8_t)stack_pop_int();
 //     uint16_t component_id = (uint16_t)stack_pop_int();
@@ -203,8 +168,10 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //         }
 //       }
 //     }
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
+void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
 //     wuobject_t *wuobject;
 //     while(true) {
 //       // Process any incoming messages
@@ -224,30 +191,40 @@ void javax_wukong_WKPF_short_getMyNodeId() { dj_panic(DJ_PANIC_UNIMPLEMENTED_FEA
 //         }
 //       }
 //     }
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_GETMYNODEID) {
-//     stack_push(nvmcomm_get_node_id());
+void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_byte____() {
+	// dj_object *map = REF_TO_VOIDP(dj_exec_stackPopRef());
+ //    wkpf_error_code = wkpf_load_component_to_wuobject_map(map);
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_LOAD_COMPONENT_MAP) {
-//     heap_id_t map_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wkpf_error_code = wkpf_load_component_to_wuobject_map(map_heap_id);
+void javax_wukong_WKPF_void_loadLinkDefinitions_byte__() {
+	dj_int_array *links = REF_TO_VOIDP(dj_exec_stackPopRef());
+	wkpf_error_code = wkpf_load_links(links);    
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_LOAD_LINK_DEFINITIONS) {
-//     heap_id_t links_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-//     wkpf_error_code = wkpf_load_links(links_heap_id);    
-
-//   } else if (mref == NATIVE_WKPF_METHOD_GET_PORT_NUMBER_FOR_COMPONENT) {
+void javax_wukong_WKPF_byte_getPortNumberForComponent_short() {
 //     uint16_t component_id = (uint16_t)stack_pop_int();
 //     address_t node_id;
 //     uint8_t port_number;
 //     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 //     stack_push(port_number);
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
 
-//   } else if (mref == NATIVE_WKPF_METHOD_IS_LOCAL_COMPONENT) {
+void javax_wukong_WKPF_boolean_isLocalComponent_short() {
 //     uint16_t component_id = (uint16_t)stack_pop_int();
 //     address_t node_id;
 //     uint8_t port_number;
 //     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 //     stack_push(node_id == nvmcomm_get_node_id());
 //   }
-// }
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}
+
+void javax_wukong_WKPF_short_getMyNodeId() {
+//     stack_push(nvmcomm_get_node_id());
+ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+}

@@ -1,18 +1,21 @@
 #include "heap.h"
 #include "debug.h"
+#include "array.h"
 #include "wkpf_wuclasses.h"
 #include "wkpf_wuobjects.h"
 
 extern wuclass_t *wuclasses_list;
 extern wuobject_t *wuobjects_list;
 extern wuobject_t *last_updated_wuobject;
+extern dj_int_array *wkpf_links;
+
 
 void wkpf_markRootSet(void *data) {
 #ifdef DARJEELING_DEBUG
 	dj_mem_dump();
 #endif // DARJEELING_DEBUG
 	// WuClasses
-	DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Marking wuclasses black.\n");
+	DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Marking wuclasses black.\n");
 	wuclass_t *wuclass = wuclasses_list;
 	while (wuclass) {
 		dj_mem_setChunkColor(wuclass, TCM_BLACK);
@@ -20,7 +23,7 @@ void wkpf_markRootSet(void *data) {
 	}
 
 	// WuObjects
-	DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Marking wuobjects black, and java instances gray.\n");
+	DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Marking wuobjects black, and java instances gray.\n");
 	wuobject_t *wuobject = wuobjects_list;
 	while (wuobject) {
 		dj_mem_setChunkColor(wuobject, TCM_BLACK);
@@ -30,34 +33,35 @@ void wkpf_markRootSet(void *data) {
 		wuobject = wuobject->next;
 	}
 
+	// Links
+	if (wkpf_links)
+		dj_mem_setChunkColor(wkpf_links, TCM_GRAY);
 }
 
 void wkpf_updatePointers(void *data) {
-	DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating references\n");
+	DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating references\n");
 
 	// WuClasses
 	wuclass_t **wuclass = &wuclasses_list;
 	while (*wuclass) {
 	    wuclass_t **next = &(*wuclass)->next; // Store a pointer to this wuclass' next pointer
-	    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer for wuclass %d from %x to %x\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
+	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuclass %d from %x to %x\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
 	    *wuclass = dj_mem_getUpdatedPointer(*wuclass); // Then update the pointer to this wuclass
 	    wuclass = next; // Continue from the previously stored next pointer, since we can't access the wuclass itself anymore
 	}
 
 	// WuObjects
 	if (last_updated_wuobject) {
-	    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer for wuobject on port %d from %x to %x\n", last_updated_wuobject->port_number, last_updated_wuobject, dj_mem_getUpdatedPointer(last_updated_wuobject));
+	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuobject on port %d from %x to %x\n", last_updated_wuobject->port_number, last_updated_wuobject, dj_mem_getUpdatedPointer(last_updated_wuobject));
 	    last_updated_wuobject = dj_mem_getUpdatedPointer(last_updated_wuobject); // Then update the pointer to this wuclass
-
 	}
-
 	wuobject_t **wuobject = &wuobjects_list;
 	while (*wuobject) {
 	    // Print some debug output
-	    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, *wuobject, dj_mem_getUpdatedPointer(*wuobject));
-	    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer to wuclass for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, (*wuobject)->wuclass, dj_mem_getUpdatedPointer((*wuobject)->wuclass));
+	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, *wuobject, dj_mem_getUpdatedPointer(*wuobject));
+	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer to wuclass for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, (*wuobject)->wuclass, dj_mem_getUpdatedPointer((*wuobject)->wuclass));
 	    if ((*wuobject)->java_instance_reference) {
-		    DEBUG_LOG(DBG_WKPF, "WKPF: (GC) Updating pointer to java instance for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, (*wuobject)->java_instance_reference, dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference));
+		    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer to java instance for wuobject on port %d from %x to %x\n", (*wuobject)->port_number, (*wuobject)->java_instance_reference, dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference));
 		}
 		// Store a pointer to this wuobject' next pointer
 	    wuobject_t **next = &(*wuobject)->next;
@@ -68,5 +72,11 @@ void wkpf_updatePointers(void *data) {
 	    *wuobject = dj_mem_getUpdatedPointer(*wuobject);
 	    // Continue from the previously stored next pointer, since we can't access the wuobject itself anymore
 		wuobject = next;
+	}
+
+	// Links
+	if (wkpf_links) {
+	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for link table from %x to %x\n", wkpf_links, dj_mem_getUpdatedPointer(wkpf_links));
+	    wkpf_links = dj_mem_getUpdatedPointer(wkpf_links); // Then update the pointer to this wuclass
 	}
 }

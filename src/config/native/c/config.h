@@ -34,7 +34,7 @@
 // 'Time slices' are 128 instructions
 #define RUNSIZE 32
 
-//#define PACK_STRUCTS
+// #define PACK_STRUCTS
 // #define ALIGN_16
 
 //Use 64-bit values to store time
@@ -46,7 +46,8 @@ typedef int64_t dj_time_t;
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
 // #define DBG_DARJEELING true
-//#define DBG_WKPF true
+// #define DBG_WKPF true
+// #define DBG_WKPFGC true
 // #define DBG_WKPFUPDATE true
 
 #define DARJEELING_PRINTF printf

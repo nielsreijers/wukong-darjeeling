@@ -1,13 +1,15 @@
 // #include "config.h"
 // #include "types.h"
-// #include "debug.h"
+#include "debug.h"
 // #include "nvmcomm.h"
 // #include "heap.h"
-// #include "array.h"
-// #include "wkpf.h"
+#include "array.h"
+#include "wkpf.h"
 // #include "group.h"
 // #include "wkpf_properties.h"
-// #include "wkpf_links.h"
+#include "wkpf_links.h"
+
+dj_int_array *wkpf_links = NULL;
 
 // typedef struct remote_endpoints_struct {
 //   uint16_t number_of_endpoints;
@@ -100,24 +102,22 @@
 //   return WKPF_OK;
 // }
 
-// uint8_t wkpf_load_links(heap_id_t links_heap_id) {
-//   uint16_t number_of_entries = array_length(links_heap_id)/sizeof(link_entry);
-//   link_entry *links_p = (link_entry *)((uint8_t *)heap_get_addr(links_heap_id)+1); // +1 to skip type byte
-
-//   DEBUGF_WKPF("WKPF: Registering %x links (%x bytes, %x each)\n\n", number_of_entries, array_length(links_heap_id), sizeof(link_entry));
-  
-//   if (number_of_entries>MAX_NUMBER_OF_LINKS)
-//     return WKPF_ERR_OUT_OF_MEMORY;
-//   for(int i=0; i<number_of_entries; i++) {
-//     links[i] = links_p[i];
-//     DEBUGF_WKPF("WKPF: Registered link: (component %x, property %x) -> (component %x, property %x, wuclass %x)\n",
-//                 links[i].src_component_id, links[i].src_property_number,
-//                 links[i].dest_component_id, links[i].dest_property_number,
-//                 links[i].dest_wuclass_id);
-//   }
-//   number_of_links = number_of_entries;
-//   return WKPF_OK;
-// }
+uint8_t wkpf_load_links(dj_int_array *links) {
+	// Taking a shortcut here by directly using the byte array we get from Java and using
+	// it as an array of link_entry structs.
+	// This works on AVR and x86 since they're both little endian. To port WKPF to a big endian
+	// platform we would need to do some swapping.
+	// Also, this relies on the gcc packed struct extension to make sure the compiler doesn't
+	// pad the struct, which would make it misaligned with the byte array in Java.
+	wkpf_links = links;
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %d links\n", links->array.length);
+#ifdef DARJEELING_DEBUG
+	link_entry *table = (link_entry *)links->data.bytes;
+	for (int i=0; i<(links->array.length)/8; i++)
+		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d), wuclass %d\n", table[i].src_component_id, table[i].src_property_number, table[i].dest_component_id, table[i].dest_property_number, table[i].dest_wuclass_id);
+#endif // DARJEELING_DEBUG
+	return WKPF_OK;
+}
 
 // bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t property_number) {
 //   uint16_t component_id;
