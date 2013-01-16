@@ -4,6 +4,7 @@
 #include "array.h"
 #include "hooks.h"
 #include "execution.h"
+#include "comm.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"
@@ -106,69 +107,66 @@ void javax_wukong_WKPF_void_setPropertyBoolean_javax_wukong_VirtualWuObject_byte
 }
 
 void javax_wukong_WKPF_void_setPropertyShort_short_byte_short() {
-//     int16_t value = (int16_t)stack_pop_int();
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     uint16_t component_id = (uint16_t)stack_pop_int();
-//     address_t node_id;
-//     uint8_t port_number;
-//     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-//     if (wkpf_error_code == WKPF_OK) {
-//       if (node_id != nvmcomm_get_node_id())
-//         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
-//       else {
-//         wuobject_t *wuobject;
-//         wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
-//         if (wkpf_error_code == WKPF_OK) {
-//           DEBUGF_WKPF("WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-//           wkpf_error_code = wkpf_external_write_property_int16(wuobject, property_number, value);
-//         }
-//       }
-//     }
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	int16_t value = (int16_t)dj_exec_stackPopShort();
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
+	address_t node_id;
+	uint8_t port_number;
+	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+	if (wkpf_error_code == WKPF_OK) {
+		if (node_id != nvmcomm_get_node_id())
+			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
+		else {
+			wuobject_t *wuobject;
+			wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
+			if (wkpf_error_code == WKPF_OK) {
+				DEBUG_LOG(DBG_WKPF, "WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
+				wkpf_error_code = wkpf_external_write_property_int16(wuobject, property_number, value);
+			}
+		}
+	}
 }
 
 void javax_wukong_WKPF_void_setPropertyBoolean_short_byte_boolean() {
-//     bool value = (bool)stack_pop_int();
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     uint16_t component_id = (uint16_t)stack_pop_int();
-//     address_t node_id;
-//     uint8_t port_number;
-//     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-//     if (wkpf_error_code == WKPF_OK) {
-//       if (node_id != nvmcomm_get_node_id())
-//         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
-//       else {
-//         wuobject_t *wuobject;
-//         wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
-//         if (wkpf_error_code == WKPF_OK) {
-//           DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-//           wkpf_error_code = wkpf_external_write_property_boolean(wuobject, property_number, value);
-//         }
-//       }
-//     }
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	bool value = (bool)dj_exec_stackPopShort();
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
+	address_t node_id;
+	uint8_t port_number;
+	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+	if (wkpf_error_code == WKPF_OK) {
+		if (node_id != nvmcomm_get_node_id())
+			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
+		else {
+			wuobject_t *wuobject;
+			wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
+			if (wkpf_error_code == WKPF_OK) {
+				DEBUG_LOG(DBG_WKPF, "WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
+				wkpf_error_code = wkpf_external_write_property_boolean(wuobject, property_number, value);
+			}
+		}
+	}
 }
 
 void javax_wukong_WKPF_void_setPropertyRefreshRate_short_byte_short() {
-//     int16_t value = (int16_t)stack_pop_int();
-//     uint8_t property_number = (uint8_t)stack_pop_int();
-//     uint16_t component_id = (uint16_t)stack_pop_int();
-//     address_t node_id;
-//     uint8_t port_number;
-//     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-//     if (wkpf_error_code == WKPF_OK) {
-//       if (node_id != nvmcomm_get_node_id())
-//         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
-//       else {
-//         wuobject_t *wuobject;
-//         wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
-//         if (wkpf_error_code == WKPF_OK) {
-//           DEBUGF_WKPF("WKPF: setPropertyRefreshRate (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-//           wkpf_error_code = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
-//         }
-//       }
-//     }
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	int16_t value = (int16_t)dj_exec_stackPopShort();
+	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
+	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
+	address_t node_id;
+	uint8_t port_number;
+	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+	if (wkpf_error_code == WKPF_OK) {
+		if (node_id != nvmcomm_get_node_id())
+			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
+		else {
+			wuobject_t *wuobject;
+			wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
+			if (wkpf_error_code == WKPF_OK) {
+				DEBUG_LOG(DBG_WKPF, "WKPF: setPropertyRefreshRate (local). Port %x, property %x, value %x\n", port_number, property_number, value);
+				wkpf_error_code = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
+			}
+		}
+	}
 }
 
 void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
@@ -215,13 +213,11 @@ void javax_wukong_WKPF_byte_getPortNumberForComponent_short() {
 }
 
 void javax_wukong_WKPF_boolean_isLocalComponent_short() {
-//     uint16_t component_id = (uint16_t)stack_pop_int();
-//     address_t node_id;
-//     uint8_t port_number;
-//     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-//     stack_push(node_id == nvmcomm_get_node_id());
-//   }
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	uint16_t component_id = (int16_t)dj_exec_stackPopShort();
+	address_t node_id;
+	uint8_t port_number;
+	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+	dj_exec_stackPushShort(wkpf_error_code == WKPF_OK && node_id == nvmcomm_get_node_id());
 }
 
 void javax_wukong_WKPF_short_getMyNodeId() {

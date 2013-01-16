@@ -4,6 +4,7 @@
 // #include "nvmcomm.h"
 // #include "heap.h"
 #include "array.h"
+#include "comm.h"
 #include "wkpf.h"
 // #include "group.h"
 // #include "wkpf_properties.h"
@@ -12,11 +13,11 @@
 dj_int_array *wkpf_links_store = NULL;
 dj_ref_array *wkpf_component_map_store = NULL;
 
+
+
 // TODONR: temporarily #define these to test the group code when loading the component map
 #define NVM_USE_GROUP
-#define nvmcomm_get_node_id()		6
 #define group_add_node_to_watch(i)	DEBUG_LOG(DBG_WKPF, "WKPF GROUPS: adding node to watch %d\n", i);
-
 
 
 
@@ -253,16 +254,16 @@ uint8_t wkpf_load_links(dj_int_array *links) {
 //   return WKPF_OK;
 // }
 
-// uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *node_id, uint8_t *port_number) {
-//   if (component_id > number_of_components)
-//     return WKPF_ERR_COMPONENT_NOT_FOUND;
-//   remote_endpoint endpoint;
-//   if (wkpf_local_endpoint_for_component(component_id, &endpoint) == WKPF_ERR_ENDPOINT_NOT_FOUND)
-//     return WKPF_ERR_ENDPOINT_NOT_FOUND;
-//   *node_id = endpoint.node_id;
-//   *port_number = endpoint.port_number;
-//   return WKPF_OK;
-// }
+// TODONR: proper definition for this function.
+uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *node_id, uint8_t *port_number) {
+	if (component_id > wkpf_number_of_components)
+		return WKPF_ERR_COMPONENT_NOT_FOUND;
+	wkpf_component_t *component = wkpf_get_component(component_id);
+	wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, 0); // Just using the first here, since I'm not sure what this function means when there's more than one node for a component...
+	*node_id = endpoint->node_id;
+	*port_number = endpoint->port_number;
+	return WKPF_OK;
+}
 
 // bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
 //   return component_to_wuobject_map[component_id].number_of_endpoints > 0

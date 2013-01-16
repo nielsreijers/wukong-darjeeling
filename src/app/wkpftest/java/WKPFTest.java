@@ -150,20 +150,20 @@ public class WKPFTest {
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for virtual Threshold wuclass at port 0x20.");
 
 		WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_GT);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties: operator=>");
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup properties: operator=>");
 		WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)1000);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties: threshold=1000");
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup properties: threshold=1000");
 		WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties: value=1200");
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup properties: value=1200");
 
 		wuclassInstanceThreshold.update();
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of virtual threshold wuclass, should be true.");
 
-		WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting: value=1200");
+		WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_VALUE, (short)800);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting: value=800");
 
 		wuclassInstanceThreshold.update();
-		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of virtual threshold wuclass, should be false.");
+		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), false, "Getting output of virtual threshold wuclass, should be false.");
 
 		byte[] linkDefinitions = {
 		    // Note: Component instance id and wuclass id are little endian
@@ -177,8 +177,8 @@ public class WKPFTest {
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting link definitions");
 
 		Object[] componentInstanceToWuObjectAddrMap = {
-					new byte[]{ 6, 2 },
-					new byte[]{ 6, 1 },
+					new byte[]{ 1, 0x10 }, // The test wuclass
+					new byte[]{ 1, 0x20 }, // The threshold
 					new byte[]{ 6, 3 },
 					new byte[]{ 4, 1,
 								2, 1,
@@ -186,6 +186,19 @@ public class WKPFTest {
 					};
 		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
+
+		assertEqualBoolean(WKPF.isLocalComponent((short)0), true, "Component 0 is local");
+		assertEqualBoolean(WKPF.isLocalComponent((short)1), true, "Component 1 is local");
+		assertEqualBoolean(WKPF.isLocalComponent((short)2), false, "Component 2 is not local");
+
+		// Update the threshold object through the initialisation functions (access by component id instead of java instance)
+		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Set threshold value=1200");
+		wuclassInstanceThreshold.update();
+		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of virtual threshold wuclass, should be true.");
+
+		WKPF.setPropertyShort((short)2, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
+		assertEqual(WKPF.getErrorCode(), WKPF.ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED, "Can't set properties for component 2 since it's not local.");
 
 		System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
 		// while (true) {} // Need loop to prevent it from exiting the program
