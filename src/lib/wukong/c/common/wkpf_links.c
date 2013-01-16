@@ -12,6 +12,13 @@
 dj_int_array *wkpf_links_store = NULL;
 dj_ref_array *wkpf_component_map_store = NULL;
 
+// TODONR: temporarily #define these to test the group code when loading the component map
+#define NVM_USE_GROUP
+#define nvmcomm_get_node_id()		6
+#define group_add_node_to_watch(i)	DEBUG_LOG(DBG_WKPF, "WKPF GROUPS: adding node to watch %d\n", i);
+
+
+
 
 // For now, we'll just use the Java array objects to store the link and component tables.
 // But through the rest of the code, after setting wkpf_links_store and wkpf_component_map_store,
@@ -66,35 +73,25 @@ uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map) {
 	}
 #endif // DARJEELING_DEBUG
 
-// // TODONR: nieuwe constante bedenken
-// #ifdef NVM_USE_GROUP
-// 	for (int i=0; i<map->array.length; i++) {
-// 		dj_int_array *component = REF_TO_VOIDP(map->refs[i]);
-// 		wkpf_endpoint_t *endpoints = (wkpf_endpoint_t *)component->data.bytes;
-// 		for (int j=0; j<component->array.length/2; j++) { // length/2 because an entry currently takes up 
-// 			if (component)
-// 			DEBUG_LOG(DBG_WKPF, "  (node %d, port %d)", component->data.bytes[j*2], component->data.bytes[j*2+1]);
-// 		}
-// 	}
-// 	for(int i=0; i<number_of_entries; i++) {
-// 		component_to_wuobject_map[i] = (remote_endpoints){number_of_nodes, nodes};
-// 		DEBUG_LOG(DBG_WKPF, "WKPF: Registered component wuobject: component %x -> at \n", i);
-// 		for (int j=0; j<number_of_nodes; j++) {
-// 			DEBUG_LOG(DBG_WKPF, "\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
-// 			if (nodes[j].node_id == nvmcomm_get_node_id()) {
-// 				// Watchlist
-// 				if (j == 0) {
-// 					// Leader
-// 					if (number_of_nodes > 1) {
-// 						for (int k=1; k<number_of_nodes; k++) {
-// 							group_add_node_to_watch(nodes[k].node_id);
-// 						}
-// 					}
-// 				} else {
-// 				group_add_node_to_watch(nodes[0].node_id);
-// 				}
-// 			}
-// #endif // NVM_USE_GROUP
+// TODONR: nieuwe constante bedenken en implementatie van group_add_node_to_watch en nvmcomm_get_node_id
+#ifdef NVM_USE_GROUP
+	for (int i=0; i<wkpf_number_of_components; i++) {
+		wkpf_component_t *component = wkpf_get_component(i);
+		for (int j=0; j<wkpf_number_of_endpoints(component); j++) {
+			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
+			if (endpoint->node_id == nvmcomm_get_node_id()) {
+				if (j == 0) {
+					// I'm the leader, so watch everyone
+					for (int k=1; k<wkpf_number_of_endpoints(component); k++)
+						group_add_node_to_watch(wkpf_get_endpoint_for_component(component, k)->node_id);
+				} else {
+					// Just watch the leader
+					group_add_node_to_watch(wkpf_get_endpoint_for_component(component, 0)->node_id);
+				}
+			}
+		}
+	}
+#endif // NVM_USE_GROUP
 	return WKPF_OK;
 }
 

@@ -181,7 +181,8 @@ public class WKPFTest {
 					new byte[]{ 6, 1 },
 					new byte[]{ 6, 3 },
 					new byte[]{ 4, 1,
-								2, 1 },
+								2, 1,
+								6, 42 }
 					};
 		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
