@@ -9,8 +9,22 @@
 // #include "wkpf_properties.h"
 #include "wkpf_links.h"
 
-dj_int_array *wkpf_links = NULL;
-dj_ref_array *wkpf_component_map = NULL;
+dj_int_array *wkpf_links_store = NULL;
+dj_ref_array *wkpf_component_map_store = NULL;
+
+
+// For now, we'll just use the Java array objects to store the link and component tables.
+// But through the rest of the code, after setting wkpf_links_store and wkpf_component_map_store,
+// use these constants so we can easily change that implementation later if we want to.
+typedef dj_int_array wkpf_component_t;
+
+#define wkpf_get_link(i) 								(&(((wkpf_link_t *)(wkpf_links_store->data.bytes))[i]))
+#define wkpf_get_component(i) 							((wkpf_component_t *)REF_TO_VOIDP((wkpf_component_map_store->refs)[i]))
+#define wkpf_get_endpoint_for_component(component, i)	(&(((wkpf_endpoint_t *)(component->data.bytes))[i]))
+
+#define wkpf_number_of_links							((wkpf_links_store->array.length)/sizeof(wkpf_link_t))
+#define wkpf_number_of_components						((wkpf_component_map_store->array.length))
+#define wkpf_number_of_endpoints(component)				((component->array.length)/sizeof(wkpf_endpoint_t))
 
 // bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 //   for(int i=0; i<number_of_components; i++) {
@@ -26,7 +40,7 @@ dj_ref_array *wkpf_component_map = NULL;
 //   return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
 // }
 
-// uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_number, uint16_t wuclass_id, link_entry *entry) {
+// uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_number, uint16_t wuclass_id, wkpf_link_t *entry) {
 //   for (int i=0; i<number_of_links; i++) {
 //     if (links[i].dest_property_number == property_number && links[i].dest_wuclass_id == wuclass_id) {
 //       *entry = links[i];
@@ -37,35 +51,36 @@ dj_ref_array *wkpf_component_map = NULL;
 // }
 
 uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map) {
-	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %x components\n", map->array.length);
-
-	wkpf_component_map = map;
+	wkpf_component_map_store = map;
+	// After storing the reference, only use the constants defined above to access it so that we may change the storage implementation later
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %x components\n", wkpf_number_of_components);
 #ifdef DARJEELING_DEBUG
-	for (int i=0; i<map->array.length; i++) {
-		DEBUG_LOG(DBG_WKPF, "Component %d:");
-		dj_int_array *component = map->refs[i];
-		for (int j=0; j<component->array.length/2; j+=2) {
-			DEBUG_LOG(DBG_WKPF, " (node %d, port %d)", component->data.bytes[j], component->data.bytes[j+1]);
+	for (int i=0; i<wkpf_number_of_components; i++) {
+		DEBUG_LOG(DBG_WKPF, "WKPF: Component %d -> ", i);
+		wkpf_component_t *component = wkpf_get_component(i);
+		for (int j=0; j<wkpf_number_of_endpoints(component); j++) {
+			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
+			DEBUG_LOG(DBG_WKPF, "  (node %d, port %d)", endpoint->node_id, endpoint->port_number);
 		}
 		DEBUG_LOG(DBG_WKPF, "\n");
 	}
 #endif // DARJEELING_DEBUG
 
-
-
-// 	if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
-// 		return WKPF_ERR_OUT_OF_MEMORY;
-
+// // TODONR: nieuwe constante bedenken
+// #ifdef NVM_USE_GROUP
+// 	for (int i=0; i<map->array.length; i++) {
+// 		dj_int_array *component = REF_TO_VOIDP(map->refs[i]);
+// 		wkpf_endpoint_t *endpoints = (wkpf_endpoint_t *)component->data.bytes;
+// 		for (int j=0; j<component->array.length/2; j++) { // length/2 because an entry currently takes up 
+// 			if (component)
+// 			DEBUG_LOG(DBG_WKPF, "  (node %d, port %d)", component->data.bytes[j*2], component->data.bytes[j*2+1]);
+// 		}
+// 	}
 // 	for(int i=0; i<number_of_entries; i++) {
-// 		heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+(2*i));
-// 		uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(remote_endpoint);
-// 		remote_endpoint *nodes = (remote_endpoint *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
-
 // 		component_to_wuobject_map[i] = (remote_endpoints){number_of_nodes, nodes};
 // 		DEBUG_LOG(DBG_WKPF, "WKPF: Registered component wuobject: component %x -> at \n", i);
 // 		for (int j=0; j<number_of_nodes; j++) {
 // 			DEBUG_LOG(DBG_WKPF, "\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
-// #ifdef NVM_USE_GROUP
 // 			if (nodes[j].node_id == nvmcomm_get_node_id()) {
 // 				// Watchlist
 // 				if (j == 0) {
@@ -80,8 +95,7 @@ uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map) {
 // 				}
 // 			}
 // #endif // NVM_USE_GROUP
-		// }
-	// }
+	return WKPF_OK;
 }
 
 //   /*
@@ -103,17 +117,21 @@ uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map) {
 
 uint8_t wkpf_load_links(dj_int_array *links) {
 	// Taking a shortcut here by directly using the byte array we get from Java and using
-	// it as an array of link_entry structs.
+	// it as an array of wkpf_link_t structs.
 	// This works on AVR and x86 since they're both little endian. To port WKPF to a big endian
 	// platform we would need to do some swapping.
 	// Also, this relies on the gcc packed struct extension to make sure the compiler doesn't
 	// pad the struct, which would make it misaligned with the byte array in Java.
-	wkpf_links = links;
-	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %d links\n", links->array.length);
+	wkpf_links_store = links;
+	// After storing the reference, only use the constants defined above to access it so that we may change the storage implementation later
+
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %d links\n", wkpf_number_of_links);
 #ifdef DARJEELING_DEBUG
-	link_entry *table = (link_entry *)links->data.bytes;
-	for (int i=0; i<(links->array.length)/8; i++)
-		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d), wuclass %d\n", table[i].src_component_id, table[i].src_property_number, table[i].dest_component_id, table[i].dest_property_number, table[i].dest_wuclass_id);
+	for (int i=0; i<wkpf_number_of_links; i++) {
+		// wkpf_link_t *link = wkpf_get_link(i);
+		wkpf_link_t *link =  wkpf_get_link(i);
+		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d), wuclass %d\n", link->src_component_id, link->src_property_number, link->dest_component_id, link->dest_property_number, link->dest_wuclass_id);
+	}
 #endif // DARJEELING_DEBUG
 	return WKPF_OK;
 }

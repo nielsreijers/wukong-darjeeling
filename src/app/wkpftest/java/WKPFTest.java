@@ -44,6 +44,61 @@ public class WKPFTest {
     }
   }
 
+	public static void main2(String[] args) {
+		Object[] objarray = new Object[4];
+		VirtualTestWuClass a = new VirtualTestWuClass();
+		VirtualTestWuClass b = new VirtualTestWuClass();
+		VirtualTestWuClass c = new VirtualTestWuClass();
+		VirtualTestWuClass d = new VirtualTestWuClass();
+
+		objarray[2] = c;
+		objarray[1] = b;
+		objarray[3] = d;
+		objarray[0] = a;
+
+		if (objarray[0]==a)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[1]==b)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[2]==c)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[3]==d)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[0]!=b)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[1]!=c)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[2]!=d)	System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[3]!=a)	System.out.println("OK"); else System.out.println("FAILED");
+		objarray[3] = a;
+		if (objarray[0] == objarray[3])	System.out.println("OK"); else System.out.println("FAILED");
+		if (a == objarray[3]) System.out.println("OK"); else System.out.println("FAILED");
+		if (objarray[3] != d) System.out.println("OK"); else System.out.println("FAILED");
+
+		short[] a_int = new short[1];
+		short[] b_int = new short[1];
+		short[] c_int = new short[1];
+		short[] d_int = new short[1];
+		objarray[0] = a_int;
+		objarray[1] = b_int;
+		objarray[2] = c_int;
+		objarray[3] = d_int;
+
+		((short[]) objarray[0])[0] = 3;
+		((short[]) objarray[1])[0] = 2;
+		((short[]) objarray[2])[0] = 1;
+		((short[]) objarray[3])[0] = 0;
+		if (((short[]) objarray[0])[0]==3)	System.out.println("OK"); else System.out.println("FAILED");
+		if (((short[]) objarray[1])[0]==2)	System.out.println("OK"); else System.out.println("FAILED");
+		if (((short[]) objarray[2])[0]==1)	System.out.println("OK"); else System.out.println("FAILED");
+		if (((short[]) objarray[3])[0]==0)	System.out.println("OK"); else System.out.println("FAILED");
+
+		objarray = new Object[] {
+			new byte[] {42},
+			new byte[] {43},
+			new byte[] {44},
+			new byte[] {45}
+		};
+		if (((byte[]) objarray[0])[0]==42)	System.out.println("OK"); else System.out.println("FAILED");
+		if (((byte[]) objarray[1])[0]==43)	System.out.println("OK"); else System.out.println("FAILED");
+		if (((byte[]) objarray[2])[0]==44)	System.out.println("OK"); else System.out.println("FAILED");
+		if (((byte[]) objarray[3])[0]==45)	System.out.println("OK"); else System.out.println("FAILED");
+	}
+
 	public static void main(String[] args) {
 		System.out.println("WuKong WuClass Framework test");
 
@@ -121,19 +176,14 @@ public class WKPFTest {
 		WKPF.loadLinkDefinitions(linkDefinitions);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting link definitions");
 
-		// byte[][] componentInstanceToWuObjectAddrMap = {
-		// 			new byte[]{ 6, 2 },
-		// 			new byte[]{ 6, 1 },
-		// 			new byte[]{ 6, 3 },
-		// 			new byte[]{ 4, 1,
-		// 						2, 1 },
-		// 			};
-		byte[] a = { 6, 2 };
-		byte[] b = { 6, 1 };
-		byte[] c = { 6, 3 };
-		byte[] d = { 4, 1, 2, 1 };
-		Object[] componentInstanceToWuObjectAddrMap = { a, b, c, d };
-		WKPF.loadComponentToWuObjectAddrMap((byte[][])componentInstanceToWuObjectAddrMap);
+		Object[] componentInstanceToWuObjectAddrMap = {
+					new byte[]{ 6, 2 },
+					new byte[]{ 6, 1 },
+					new byte[]{ 6, 3 },
+					new byte[]{ 4, 1,
+								2, 1 },
+					};
+		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
 
 		System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);

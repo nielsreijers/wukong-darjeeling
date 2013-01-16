@@ -38,6 +38,10 @@
 // common types
 typedef uint16_t runtime_id_t;
 
+// WuKong address. For now it's just a byte, but this will probably change.
+// When it does, we need to change the component-node map as well
+typedef uint8_t address_t;
+
 // keep this a multiple of 2, to keep the size of the blocks a multiple of 2 (for 16-bit architectures)
 #define MONITOR_BLOCK_SIZE 8
 

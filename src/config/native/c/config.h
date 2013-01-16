@@ -24,7 +24,7 @@
 #include <sys/types.h>
 
 // Allocate 4k heap for the VM
-#define MEMSIZE 4096
+#define MEMSIZE 409600
 
 // Program flash block size
 #define PROGFLASH_BLOCKSIZE 256

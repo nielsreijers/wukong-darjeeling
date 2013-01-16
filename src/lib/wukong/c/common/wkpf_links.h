@@ -3,20 +3,22 @@
 
 #include "array.h"
 
-// typedef struct remote_endpoint_struct {
-//   address_t node_id;
-//   uint8_t port_number;  
-// } remote_endpoint;
+typedef struct
+__attribute__ ((__packed__)) // This isn't optional through the PACK_STRUCT option like other struct since the current wkpf_load_links won't work with an unpacked struct.
+wkpf_endpoint_t {
+  address_t node_id;
+  uint8_t port_number;  
+} wkpf_endpoint_t;
 
 typedef struct
 __attribute__ ((__packed__)) // This isn't optional through the PACK_STRUCT option like other struct since the current wkpf_load_links won't work with an unpacked struct.
-link_entry {
+wkpf_link_t {
 	uint16_t src_component_id;
 	uint8_t src_property_number;
 	uint16_t dest_component_id;  
 	uint8_t dest_property_number;
 	uint16_t dest_wuclass_id; // This is only here because there is an extra check on wuclass_id when remotely setting properties, but actually that's not strictly necessary. Not sure if it's worth the extra memory, but if we store this in flash it might be ok.
-} link_entry;
+} wkpf_link_t;
 
 extern uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map);
 extern uint8_t wkpf_load_links(dj_int_array *links);
