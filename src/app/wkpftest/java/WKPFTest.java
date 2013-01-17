@@ -188,8 +188,12 @@ public class WKPFTest {
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
 
 		assertEqualBoolean(WKPF.isLocalComponent((short)0), true, "Component 0 is local");
+		assertEqual(WKPF.getPortNumberForComponent((short)0), 0x10, "Component 0 is on port 0x10");
 		assertEqualBoolean(WKPF.isLocalComponent((short)1), true, "Component 1 is local");
+		assertEqual(WKPF.getPortNumberForComponent((short)1), 0x20, "Component 1 is on port 0x20");
 		assertEqualBoolean(WKPF.isLocalComponent((short)2), false, "Component 2 is not local");
+		assertEqual(WKPF.getPortNumberForComponent((short)2), 0x03, "Component 2 is on port 0x03");
+
 
 		// Update the threshold object through the initialisation functions (access by component id instead of java instance)
 		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);

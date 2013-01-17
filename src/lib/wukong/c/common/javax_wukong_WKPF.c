@@ -192,7 +192,6 @@ void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
  dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
 }
 
-//void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_byte____() {
 void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_java_lang_Object__() {
 	dj_ref_array *map = REF_TO_VOIDP(dj_exec_stackPopRef());
 	wkpf_error_code = wkpf_load_component_to_wuobject_map(map);
@@ -204,12 +203,11 @@ void javax_wukong_WKPF_void_loadLinkDefinitions_byte__() {
 }
 
 void javax_wukong_WKPF_byte_getPortNumberForComponent_short() {
-//     uint16_t component_id = (uint16_t)stack_pop_int();
-//     address_t node_id;
-//     uint8_t port_number;
-//     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-//     stack_push(port_number);
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
+	address_t node_id;
+	uint8_t port_number;
+	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+	dj_exec_stackPushShort(port_number);
 }
 
 void javax_wukong_WKPF_boolean_isLocalComponent_short() {
