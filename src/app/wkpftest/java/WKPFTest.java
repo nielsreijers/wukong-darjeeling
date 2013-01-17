@@ -204,6 +204,8 @@ public class WKPFTest {
 		WKPF.setPropertyShort((short)2, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
 		assertEqual(WKPF.getErrorCode(), WKPF.ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED, "Can't set properties for component 2 since it's not local.");
 
+		assertEqual(WKPF.getMyNodeId(), 1, "My node id is 1");
+
 		System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
 		// while (true) {} // Need loop to prevent it from exiting the program
 	}

@@ -219,6 +219,5 @@ void javax_wukong_WKPF_boolean_isLocalComponent_short() {
 }
 
 void javax_wukong_WKPF_short_getMyNodeId() {
-//     stack_push(nvmcomm_get_node_id());
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	dj_exec_stackPushShort(nvmcomm_get_node_id());
 }
