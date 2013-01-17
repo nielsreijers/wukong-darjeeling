@@ -6,7 +6,6 @@
 
 extern wuclass_t *wuclasses_list;
 extern wuobject_t *wuobjects_list;
-extern wuobject_t *last_updated_wuobject;
 extern dj_int_array *wkpf_links_store;
 extern dj_ref_array *wkpf_component_map_store;
 
@@ -55,11 +54,6 @@ void wkpf_updatePointers(void *data) {
 	    wuclass = next; // Continue from the previously stored next pointer, since we can't access the wuclass itself anymore
 	}
 
-	// WuObjects
-	if (last_updated_wuobject) {
-	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuobject on port %d from %x to %x\n", last_updated_wuobject->port_number, last_updated_wuobject, dj_mem_getUpdatedPointer(last_updated_wuobject));
-	    last_updated_wuobject = dj_mem_getUpdatedPointer(last_updated_wuobject); // Then update the pointer to this wuclass
-	}
 	wuobject_t **wuobject = &wuobjects_list;
 	while (*wuobject) {
 	    // Print some debug output

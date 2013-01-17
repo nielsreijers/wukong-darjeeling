@@ -26,7 +26,6 @@ void javax_wukong_WKPF_void__init() {
 	dj_hook_add(&dj_mem_updateReferenceHook, &wkpf_updatePointersHook);
 }
 
-
 void javax_wukong_WKPF_byte_getErrorCode()
 {
 	dj_exec_stackPushShort(wkpf_error_code);
@@ -170,26 +169,29 @@ void javax_wukong_WKPF_void_setPropertyRefreshRate_short_byte_short() {
 }
 
 void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
-//     wuobject_t *wuobject;
-//     while(true) {
-//       // Process any incoming messages
-//       nvmcomm_poll();
+	wuobject_t *wuobject;
+	while(true) {
+
+// // TODONR: implement communication
+// 	// Process any incoming messages
+// 	nvmcomm_poll();
+// // TODONR: implement group stuff
 // #ifdef NVM_USE_GROUP
-//       // Send out a heartbeat message if it's due, and check for failed nodes.
-//       group_heartbeat();
+// 	// Send out a heartbeat message if it's due, and check for failed nodes.
+// 	group_heartbeat();
 // #endif // NVM_USE_GROUP
-//       if (nvm_runlevel == NVM_RUNLVL_VM) {
-//         // Propagate any dirty properties
-//         wkpf_propagate_dirty_properties();
-//         // Check if any wuobjects need updates
-//         while(wkpf_get_next_wuobject_to_update(&wuobject)) { // Will call update() for native profiles directly, and return true for virtual profiles requiring an update.
-//           stack_push(wuobject->virtual_wuclass_instance_heap_id | NVM_TYPE_MASK);
-//           DEBUGF_WKPF("WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
-//           return;
-//         }
-//       }
-//     }
- dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+// // TODONR: implement runlevels (needed when we start to do the bytecode upgrade)
+//		if (nvm_runlevel == NVM_RUNLVL_VM) {
+			// Propagate any dirty properties
+			wkpf_propagate_dirty_properties();
+			// Check if any wuobjects need updates
+			if(wkpf_get_next_wuobject_to_update(&wuobject)) { // Will call update() for native profiles directly, and return true for virtual profiles requiring an update.
+				dj_exec_stackPushRef(VOIDP_TO_REF(wuobject->java_instance_reference));
+				DEBUG_LOG(DBG_WKPF, "WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
+				return;
+			}
+		// }
+	}
 }
 
 void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_java_lang_Object__() {

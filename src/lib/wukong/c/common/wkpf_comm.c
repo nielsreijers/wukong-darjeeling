@@ -22,11 +22,11 @@
 
 // uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
 //   #ifdef DEBUG
-//   DEBUGF_WKPF("WKPF: sending property set command to %x:", dest_node_id);
+//   DEBUG_LOG(DBG_WKPF, "WKPF: sending property set command to %x:", dest_node_id);
 //   for(int i=0; i<length; i++) {
-//     DEBUGF_WKPF("[%x] ", message_buffer[i]);
+//     DEBUG_LOG(DBG_WKPF, "[%x] ", message_buffer[i]);
 //   }
-//   DEBUGF_WKPF("\n");
+//   DEBUG_LOG(DBG_WKPF, "\n");
 //   #endif
 //   // Send
 //   if(nvmcomm_send(dest_node_id, command, message_buffer, length) != 0)

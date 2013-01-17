@@ -6,7 +6,8 @@
 #include "wkpf_wuobjects.h"
 
 wuobject_t *wuobjects_list = NULL;
-wuobject_t *last_updated_wuobject = NULL;
+uint16_t *last_updated_wuobject_index = 0;
+uint16_t *last_propagated_property_wuobject_index = 0;
 
 // Careful: this needs to match the IDs for the datatypes as defined in wkpf.h!
 // The size is 1 for the status byte, plus the size of the property, so for instance a 16bit short takes up 3 bytes.
@@ -144,17 +145,23 @@ void wkpf_set_need_to_call_update_for_wuobject(wuobject_t *wuobject) {
 bool wkpf_get_next_wuobject_to_update(wuobject_t **virtual_wuobject) {
 	if (wuobjects_list == NULL)
 		return false;
-	if (last_updated_wuobject == NULL)
-		last_updated_wuobject = wuobjects_list;
-	wuobject_t *wuobject = last_updated_wuobject;
+	wuobject_t *wuobject;
+	if (wkpf_get_wuobject_by_index(last_updated_wuobject_index, &wuobject) == WKPF_ERR_WUOBJECT_NOT_FOUND) { // Could happen if objects were deleted
+		wuobject = wuobjects_list;
+		last_updated_wuobject_index = 0;
+	}
+	uint16_t current_index = last_updated_wuobject_index;
 
 	// wuobject is now pointing to the last updated object
 	do {
 		// Find the first next object that needs to be updated, or the same if there's no other.
 		// Find next object
 		wuobject = wuobject->next;
-		if (wuobject == NULL)
+		current_index++;
+		if (wuobject == NULL) {
 			wuobject = wuobjects_list; // Wrap around to the first object.
+			current_index = 0;
+		}
 
 		// Does it need to be updated?
 		if ((wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < dj_timer_getTimeMillis())
@@ -163,23 +170,22 @@ bool wkpf_get_next_wuobject_to_update(wuobject_t **virtual_wuobject) {
 			// Clear the flag if it was set
 			wuobject->need_to_call_update = false;
 			// If update has to be called because it's scheduled, schedule the next call
-		if (wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < dj_timer_getTimeMillis())
-			wkpf_schedule_next_update_for_wuobject(wuobject);
-			// Call update() directly for native wuobjects, or return virtual wuobject so WKPF.select() can return it to Java
-		if (WKPF_IS_NATIVE_WUOBJECT(wuobject)) {
-			// Mark wuobject as safe just in case the wuclass does something to trigger GC
-			dj_mem_addSafePointer((void**)&wuobject);
-			DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update native wuobject at port %x\n", wuobject->port_number);
-			wuobject->wuclass->update(wuobject);
-			dj_mem_removeSafePointer((void**)&wuobject);
-			} else { // 
+			if (wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < dj_timer_getTimeMillis())
+				wkpf_schedule_next_update_for_wuobject(wuobject);
+			if (WKPF_IS_NATIVE_WUOBJECT(wuobject)) { // For native wuobjects: call update() directly
+				// Mark wuobject as safe just in case the wuclass does something to trigger GC
+				dj_mem_addSafePointer((void**)&wuobject);
+				DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update native wuobject at port %x\n", wuobject->port_number);
+				wuobject->wuclass->update(wuobject);
+				dj_mem_removeSafePointer((void**)&wuobject);
+			} else { // For virtual wuobject: return it so WKPF.select() can return it to Java
 				*virtual_wuobject = wuobject;
-				last_updated_wuobject = wuobject;
+				last_updated_wuobject_index = current_index;
 				DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update virtual wuobject at port %x\n", wuobject->port_number);
 				return true;
 			}
 		}
-	} while(wuobject != last_updated_wuobject);
+	} while(current_index != last_updated_wuobject_index);
 	return false; // No Java wuobjects need to be updated
 }
 
@@ -198,11 +204,52 @@ void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject) {
 	}
 }
 
+// This is here instead of in wkpf_properties so we can directly access the wuobjects list.
+bool wkpf_get_next_dirty_property(wuobject_t **dirty_wuobject, uint8_t *dirty_property_number) {
+	if (wuobjects_list == NULL)
+		return false;
+	wuobject_t *wuobject;
+	if (wkpf_get_wuobject_by_index(last_propagated_property_wuobject_index, &wuobject) == WKPF_ERR_WUOBJECT_NOT_FOUND) { // Could happen if objects were deleted
+		wuobject = wuobjects_list;
+		last_propagated_property_wuobject_index = 0;
+	}
+	uint16_t current_index = last_propagated_property_wuobject_index;
+
+	// wuobject is now pointing to the last checked object
+	do {
+		// Find the first next object that needs to be checked for dirty properties, or the same if there's no other.
+		// Find next object
+		wuobject = wuobject->next;
+		current_index++;
+		if (wuobject == NULL) {
+			wuobject = wuobjects_list; // Wrap around to the first object.
+			current_index = 0;
+		}
+
+		// Check if any property is dirty for this wuobject
+		wuclass_t *wuclass = wuobject->wuclass;
+		uint8_t offset = 0;
+		for (int i=0; i<wuclass->number_of_properties; i++) {
+			wuobject_property_t *property = (wuobject_property_t *)&(wuobject->properties_store[offset]);
+			if (wkpf_property_status_is_dirty(property->status)) {
+				// Found a dirty property. Return it.
+				DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_get_next_dirty_property DIRTY: port %x property %x status %x\n", wuobject->port_number, i, property->status);
+				last_propagated_property_wuobject_index = current_index; // Next time continue from the next wuobject
+				*dirty_wuobject = wuobject;
+				*dirty_property_number = i;
+				return false;
+			}
+			offset += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[i]);
+		}
+	} while(current_index != last_propagated_property_wuobject_index);
+	return false; // No dirty properties found
+}
+
 wuobject_property_t* wkpf_get_property(wuobject_t *wuobject, uint8_t property_number) {
 	wuclass_t *wuclass = wuobject->wuclass;
 	uint8_t offset = 0;
 	while(property_number > 0) {
-		offset += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[property_number--]);
+		offset += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[--property_number]);
 	}
 	return (wuobject_property_t *)&(wuobject->properties_store[offset]);
 }

@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "wkpf_wuclasses.h"
+//#include "wkpf_properties.h"
 
 // TODONR: only works if heap id 0 isn't used.
 #define WKPF_IS_NATIVE_WUOBJECT(x)               (x->java_instance_reference == NULL)
@@ -19,7 +20,7 @@ typedef struct wuobject_t {
 } wuobject_t;
 
 typedef struct wuobject_property_t {
-	uint8_t property_status;
+	uint8_t status;
 	uint8_t value[];
 } wuobject_property_t;
 
@@ -36,6 +37,6 @@ extern void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject);
 
 // Access to the properties
 extern wuobject_property_t* wkpf_get_property(wuobject_t *wuobject, uint8_t property_number);
-
+extern bool wkpf_get_next_dirty_property(wuobject_t **dirty_wuobject, uint8_t *dirty_property_number);
 
 #endif // WKPF_WUOBJECTSH

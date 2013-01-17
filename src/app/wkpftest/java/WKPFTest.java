@@ -4,99 +4,44 @@ import javax.wukong.wuclasses.GENERATEDVirtualThresholdWuObject;
 import javax.wukong.wuclasses.VirtualThresholdWuObject;
 
 public class WKPFTest {
-  private static int passedCount=0;
-  private static int failedCount=0;
+	private static int passedCount=0;
+	private static int failedCount=0;
 
-  private static class VirtualTestWuClass extends VirtualWuObject {
-    public static final byte[] properties = new byte[] {
-      WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_READWRITE,
-      WKPF.PROPERTY_TYPE_BOOLEAN|WKPF.PROPERTY_ACCESS_READWRITE};
-
-    public void update() {}
-  }
-
-  public static void assertEqual(int value, int expected, String message) {
-    if (value == expected) {
-      System.out.println("OK: " + message);
-      passedCount++;
-    } else {
-      System.out.println("----------->FAIL: " + message);
-      System.out.println("Expected: " + expected + " Got: " + value);
-      failedCount++;
-    }
-  }
-  public static void assertEqualBoolean(boolean value, boolean expected, String message) {
-    if (value == expected) {
-      System.out.println("OK: " + message);
-      passedCount++;
-    } else {
-      System.out.println("----------->FAIL: " + message);
-      failedCount++;
-    }
-  }
-  public static void assertEqualObject(Object value, Object expected, String message) {
-    if (value == expected) {
-      System.out.println("OK: " + message);
-      passedCount++;
-    } else {
-      System.out.println("----------->FAIL: " + message);
-      failedCount++;
-    }
-  }
-
-	public static void main2(String[] args) {
-		Object[] objarray = new Object[4];
-		VirtualTestWuClass a = new VirtualTestWuClass();
-		VirtualTestWuClass b = new VirtualTestWuClass();
-		VirtualTestWuClass c = new VirtualTestWuClass();
-		VirtualTestWuClass d = new VirtualTestWuClass();
-
-		objarray[2] = c;
-		objarray[1] = b;
-		objarray[3] = d;
-		objarray[0] = a;
-
-		if (objarray[0]==a)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[1]==b)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[2]==c)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[3]==d)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[0]!=b)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[1]!=c)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[2]!=d)	System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[3]!=a)	System.out.println("OK"); else System.out.println("FAILED");
-		objarray[3] = a;
-		if (objarray[0] == objarray[3])	System.out.println("OK"); else System.out.println("FAILED");
-		if (a == objarray[3]) System.out.println("OK"); else System.out.println("FAILED");
-		if (objarray[3] != d) System.out.println("OK"); else System.out.println("FAILED");
-
-		short[] a_int = new short[1];
-		short[] b_int = new short[1];
-		short[] c_int = new short[1];
-		short[] d_int = new short[1];
-		objarray[0] = a_int;
-		objarray[1] = b_int;
-		objarray[2] = c_int;
-		objarray[3] = d_int;
-
-		((short[]) objarray[0])[0] = 3;
-		((short[]) objarray[1])[0] = 2;
-		((short[]) objarray[2])[0] = 1;
-		((short[]) objarray[3])[0] = 0;
-		if (((short[]) objarray[0])[0]==3)	System.out.println("OK"); else System.out.println("FAILED");
-		if (((short[]) objarray[1])[0]==2)	System.out.println("OK"); else System.out.println("FAILED");
-		if (((short[]) objarray[2])[0]==1)	System.out.println("OK"); else System.out.println("FAILED");
-		if (((short[]) objarray[3])[0]==0)	System.out.println("OK"); else System.out.println("FAILED");
-
-		objarray = new Object[] {
-			new byte[] {42},
-			new byte[] {43},
-			new byte[] {44},
-			new byte[] {45}
+	private static class VirtualTestWuClass extends VirtualWuObject {
+		public static final byte[] properties = new byte[] {
+			WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_READWRITE,
+			WKPF.PROPERTY_TYPE_BOOLEAN|WKPF.PROPERTY_ACCESS_READWRITE
 		};
-		if (((byte[]) objarray[0])[0]==42)	System.out.println("OK"); else System.out.println("FAILED");
-		if (((byte[]) objarray[1])[0]==43)	System.out.println("OK"); else System.out.println("FAILED");
-		if (((byte[]) objarray[2])[0]==44)	System.out.println("OK"); else System.out.println("FAILED");
-		if (((byte[]) objarray[3])[0]==45)	System.out.println("OK"); else System.out.println("FAILED");
+		public void update() {}
+	}
+
+	public static void assertEqual(int value, int expected, String message) {
+		if (value == expected) {
+			System.out.println("OK: " + message);
+			passedCount++;
+		} else {
+			System.out.println("----------->FAIL: " + message);
+			System.out.println("Expected: " + expected + " Got: " + value);
+			failedCount++;
+		}
+	}
+	public static void assertEqualBoolean(boolean value, boolean expected, String message) {
+		if (value == expected) {
+			System.out.println("OK: " + message);
+			passedCount++;
+		} else {
+			System.out.println("----------->FAIL: " + message);
+			failedCount++;
+		}
+	}
+	public static void assertEqualObject(Object value, Object expected, String message) {
+		if (value == expected) {
+			System.out.println("OK: " + message);
+			passedCount++;
+		} else {
+			System.out.println("----------->FAIL: " + message);
+			failedCount++;
+		}
 	}
 
 	public static void main(String[] args) {
@@ -165,13 +110,21 @@ public class WKPFTest {
 		wuclassInstanceThreshold.update();
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), false, "Getting output of virtual threshold wuclass, should be false.");
 
+		// Test application:
+		// Component 0: VirtualTestWuClass on node 1, port 0x10
+		// Component 1: Threshold          on node 1, port 0x20
+		// Component 2: VirtualTestWuClass on node 1, port 0x03
+		// Component 3: VirtualTestWuClass on node 2, port 0x10
+
+		// Links component 0, property 0 -> component 1, property 2 (short property in test wuclass to threshold.value)
+		//       component 1, property 3 -> component 2, property 1 (threshold.output to boolean property in test wuclass)
+
 		byte[] linkDefinitions = {
 		    // Note: Component instance id and wuclass id are little endian
 		    // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
 		    // Connect input controller to threshold
-		        (byte)0, (byte)0, (byte)0, (byte)2, (byte)0, (byte)2, (byte)1, (byte)0,
-		        (byte)1, (byte)0, (byte)0, (byte)2, (byte)0, (byte)1, (byte)1, (byte)0,
-		        (byte)2, (byte)0, (byte)3, (byte)3, (byte)0, (byte)0, (byte)4, (byte)0
+		        (byte)0, (byte)0, (byte)0, (byte)1, (byte)0, (byte)2, (byte)1, (byte)0,
+		        (byte)1, (byte)0, (byte)3, (byte)2, (byte)0, (byte)1, (byte)42, (byte)0
 		};
 		WKPF.loadLinkDefinitions(linkDefinitions);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting link definitions");
@@ -179,10 +132,8 @@ public class WKPFTest {
 		Object[] componentInstanceToWuObjectAddrMap = {
 					new byte[]{ 1, 0x10 }, // The test wuclass
 					new byte[]{ 1, 0x20 }, // The threshold
-					new byte[]{ 6, 3 },
-					new byte[]{ 4, 1,
-								2, 1,
-								6, 42 }
+					new byte[]{ 1, 0x03 },
+					new byte[]{ 2, 0x10 }
 					};
 		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
@@ -191,8 +142,10 @@ public class WKPFTest {
 		assertEqual(WKPF.getPortNumberForComponent((short)0), 0x10, "Component 0 is on port 0x10");
 		assertEqualBoolean(WKPF.isLocalComponent((short)1), true, "Component 1 is local");
 		assertEqual(WKPF.getPortNumberForComponent((short)1), 0x20, "Component 1 is on port 0x20");
-		assertEqualBoolean(WKPF.isLocalComponent((short)2), false, "Component 2 is not local");
+		assertEqualBoolean(WKPF.isLocalComponent((short)2), true, "Component 2 is local");
 		assertEqual(WKPF.getPortNumberForComponent((short)2), 0x03, "Component 2 is on port 0x03");
+		assertEqualBoolean(WKPF.isLocalComponent((short)3), false, "Component 3 is not local");
+		assertEqual(WKPF.getPortNumberForComponent((short)3), 0x10, "Component 3 is on port 0x10");
 
 
 		// Update the threshold object through the initialisation functions (access by component id instead of java instance)
@@ -201,10 +154,32 @@ public class WKPFTest {
 		wuclassInstanceThreshold.update();
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of virtual threshold wuclass, should be true.");
 
-		WKPF.setPropertyShort((short)2, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
+		WKPF.setPropertyShort((short)3, (byte)0, (short)1200);
 		assertEqual(WKPF.getErrorCode(), WKPF.ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED, "Can't set properties for component 2 since it's not local.");
 
 		assertEqual(WKPF.getMyNodeId(), 1, "My node id is 1");
+
+		// Test property propagation: set the value on component 0, should propagate through
+		// to the threshold, and then from the threshold's output to component 2's boolean property.
+		// First create component 2.
+		WKPF.createWuObject((short)0x42, (byte)0x03, wuclassInstanceB);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Test property propagation: First creating wuobject for component 2.");
+
+		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)798);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Set component 0, property 0 to 798.");
+
+		WKPF.select().update();
+		assertEqual(WKPF.getPropertyShort(wuclassInstanceThreshold, (byte)2), 798, "Propagated to threshold.");
+		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, (byte)3), false, "Threshold output is now false.");
+		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), false, "Threshold output propagated to component 2, port 1.");
+
+		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1500);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Set component 0, property 0 to 1500.");
+
+		WKPF.select().update();
+		assertEqual(WKPF.getPropertyShort(wuclassInstanceThreshold, (byte)2), 1500, "Propagated to threshold.");
+		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, (byte)3), true, "Threshold output is now true.");
+		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), true, "Threshold output propagated to component 2, port 1.");
 
 		System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
 		// while (true) {} // Need loop to prevent it from exiting the program

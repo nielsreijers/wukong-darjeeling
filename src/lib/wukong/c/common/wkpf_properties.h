@@ -47,7 +47,9 @@ extern uint8_t wkpf_write_property_refresh_rate(wuobject_t *wuobject, uint8_t pr
 extern uint8_t wkpf_get_property_status(wuobject_t *wuobject, uint8_t property_number, uint8_t *status);
 
 extern uint8_t wkpf_property_needs_initialisation_push(wuobject_t *wuobject, uint8_t property_number);
-extern bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number, int16_t *value, uint8_t *status);
-extern void wkpf_propagating_dirty_property_failed(uint8_t port_number, uint8_t property_number, uint8_t original_status);
+
+extern bool wkpf_property_status_is_dirty(uint8_t status);
+extern void wkpf_propagating_dirty_property_failed(wuobject_property_t *property);
+extern void wkpf_propagating_dirty_property_succeeded(wuobject_property_t *property);
 
 #endif // WKPF_PROPERTIESH
