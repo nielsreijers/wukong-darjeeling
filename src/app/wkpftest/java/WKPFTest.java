@@ -53,7 +53,6 @@ public class WKPFTest {
 		    // Note: Component instance id and wuclass id are little endian
 		    // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
 		    // Connect input controller to threshold
-		        (byte)3, (byte)0, (byte)0, (byte)0, (byte)0, (byte)2, (byte)1, (byte)0, // tmp to test pull
 		        (byte)0, (byte)0, (byte)0, (byte)1, (byte)0, (byte)2, (byte)1, (byte)0,
 		        (byte)1, (byte)0, (byte)3, (byte)2, (byte)0, (byte)1, (byte)42, (byte)0
 		};

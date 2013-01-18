@@ -122,12 +122,16 @@ bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t pr
 		if (link->dest_component_id == component_id
 				&& link->dest_property_number == property_number) {
 			// The property is the destination of this link. If the source is remote, we need to ask for an initial value
-			if (wkpf_node_is_leader(link->src_component_id, nvmcomm_get_node_id()))
+			if (wkpf_node_is_leader(link->src_component_id, nvmcomm_get_node_id())) {
+				DEBUG_LOG(DBG_WKPF, "%x, %x doesn't need pull: source is a local property\n", port_number, property_number);
 				return false; // Source link is local, so no need to pull initial value as it will come automatically.
-			else
+			} else {
+				DEBUG_LOG(DBG_WKPF, "%x, %x needs initialisation pull\n", port_number, property_number);
 				return true; // There is a link to this property, coming from another node. We need to ask it for the initial value.
-		} 
+			}
+		}
 	}
+	DEBUG_LOG(DBG_WKPF, "%x, %x doesn't need pull: not a destination property\n", port_number, property_number);
 	return false; // This wuobject isn't used in the application.
 }
 
