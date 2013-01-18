@@ -34,8 +34,9 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 
 	// Allocate memory for the new wuobject
 	uint8_t size_of_properties = 0;
-	for(int i=0; i<wuclass->number_of_properties; i++)
+	for(int i=0; i<wuclass->number_of_properties; i++) {
 		size_of_properties += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[i]);
+	}
 	uint16_t size = sizeof(wuobject_t) + size_of_properties; // TODO: add space for the properties;
 	dj_mem_addSafePointer((void**)&java_instance_reference); // dj_mem_alloc may cause GC to run, so the address of the wuclass and the virtual wuclass instance may change. this tells the GC to update our pointer if it does.
 	dj_mem_addSafePointer((void**)&wuclass); // dj_mem_alloc may cause GC to run, so the address of the wuclass and the virtual wuclass instance may change. this tells the GC to update our pointer if it does.
@@ -47,6 +48,14 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 		return WKPF_ERR_OUT_OF_MEMORY;
 	}
 
+	// Check if any properties need to pull their initial value from a remote node (properties that are the destination end of a link coming from another node)
+	for(int i=0; i<wuclass->number_of_properties; i++) {
+		if (wkpf_does_property_need_initialisation_pull(port_number, i)) {
+			wuobject_property_t *property = wkpf_get_property(wuobject, i);
+			wkpf_set_property_status_needs_pull(property);
+			DEBUG_LOG(DBG_WKPF, "WKPF: Setting needs pull bit for property %x at port %x\n", i, port_number);
+		}
+	}
 
 	wuobject->wuclass = wuclass;
 	wuobject->port_number = port_number;

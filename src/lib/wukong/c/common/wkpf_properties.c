@@ -147,3 +147,7 @@ void wkpf_propagating_dirty_property_succeeded(wuobject_property_t *property) {
 		property->status |= PROPERTY_STATUS_NEEDS_PULL_WAITING;
 	}
 }
+
+void wkpf_set_property_status_needs_pull(wuobject_property_t *property) {
+	property->status |= PROPERTY_STATUS_NEEDS_PULL;
+}

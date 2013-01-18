@@ -74,10 +74,11 @@ uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port
 dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
 }
 
-// uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
+uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
 //   set_message_header(port_number, property_number, 0, 0); // 0 because this message doesn't take a data type or wuclass ID
 //   return send_message(dest_node_id, NVMCOMM_WKPF_REQUEST_PROPERTY_INIT, 6);
-// }
+dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+}
 
 
 // void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {

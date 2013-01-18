@@ -49,6 +49,26 @@ public class WKPFTest {
 	public static void main(String[] args) {
 		System.out.println("WuKong WuClass Framework test");
 
+		byte[] linkDefinitions = {
+		    // Note: Component instance id and wuclass id are little endian
+		    // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
+		    // Connect input controller to threshold
+		        (byte)3, (byte)0, (byte)0, (byte)0, (byte)0, (byte)2, (byte)1, (byte)0, // tmp to test pull
+		        (byte)0, (byte)0, (byte)0, (byte)1, (byte)0, (byte)2, (byte)1, (byte)0,
+		        (byte)1, (byte)0, (byte)3, (byte)2, (byte)0, (byte)1, (byte)42, (byte)0
+		};
+		WKPF.loadLinkDefinitions(linkDefinitions);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting link definitions");
+
+		Object[] componentInstanceToWuObjectAddrMap = {
+					new byte[]{ 1, 0x10 }, // The test wuclass
+					new byte[]{ 1, 0x11 }, // The threshold
+					new byte[]{ 1, 0x12 },
+					new byte[]{ 2, 0x10 }
+					};
+		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
+
 		WKPF.registerWuClass((short)0x42, VirtualTestWuClass.properties);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualTestWuClass as id 0x42.");
 
@@ -120,25 +140,6 @@ public class WKPFTest {
 
 		// Links component 0, property 0 -> component 1, property 2 (short property in test wuclass to threshold.value)
 		//       component 1, property 3 -> component 2, property 1 (threshold.output to boolean property in test wuclass)
-
-		byte[] linkDefinitions = {
-		    // Note: Component instance id and wuclass id are little endian
-		    // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
-		    // Connect input controller to threshold
-		        (byte)0, (byte)0, (byte)0, (byte)1, (byte)0, (byte)2, (byte)1, (byte)0,
-		        (byte)1, (byte)0, (byte)3, (byte)2, (byte)0, (byte)1, (byte)42, (byte)0
-		};
-		WKPF.loadLinkDefinitions(linkDefinitions);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting link definitions");
-
-		Object[] componentInstanceToWuObjectAddrMap = {
-					new byte[]{ 1, 0x10 }, // The test wuclass
-					new byte[]{ 1, 0x11 }, // The threshold
-					new byte[]{ 1, 0x12 },
-					new byte[]{ 2, 0x10 }
-					};
-		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setting component-node map");
 
 		assertEqualBoolean(WKPF.isLocalComponent((short)0), true, "Component 0 is local");
 		assertEqual(WKPF.getPortNumberForComponent((short)0), 0x10, "Component 0 is on port 0x10");

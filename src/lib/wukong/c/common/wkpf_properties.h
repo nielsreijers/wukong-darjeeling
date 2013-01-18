@@ -51,5 +51,6 @@ extern uint8_t wkpf_property_needs_initialisation_push(wuobject_t *wuobject, uin
 extern bool wkpf_property_status_is_dirty(uint8_t status);
 extern void wkpf_propagating_dirty_property_failed(wuobject_property_t *property);
 extern void wkpf_propagating_dirty_property_succeeded(wuobject_property_t *property);
+extern void wkpf_set_property_status_needs_pull(wuobject_property_t *property);
 
 #endif // WKPF_PROPERTIESH
