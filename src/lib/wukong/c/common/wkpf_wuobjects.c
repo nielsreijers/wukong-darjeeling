@@ -237,7 +237,7 @@ bool wkpf_get_next_dirty_property(wuobject_t **dirty_wuobject, uint8_t *dirty_pr
 				last_propagated_property_wuobject_index = current_index; // Next time continue from the next wuobject
 				*dirty_wuobject = wuobject;
 				*dirty_property_number = i;
-				return false;
+				return true;
 			}
 			offset += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[i]);
 		}

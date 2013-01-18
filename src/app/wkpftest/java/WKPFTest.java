@@ -12,7 +12,9 @@ public class WKPFTest {
 			WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_READWRITE,
 			WKPF.PROPERTY_TYPE_BOOLEAN|WKPF.PROPERTY_ACCESS_READWRITE
 		};
-		public void update() {}
+		public void update() {
+			System.out.println("WKPFUPDATE(VirtualTestWuClass): noop");
+		}
 	}
 
 	public static void assertEqual(int value, int expected, String message) {
@@ -165,20 +167,23 @@ public class WKPFTest {
 		WKPF.createWuObject((short)0x42, (byte)0x12, wuclassInstanceB);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Test property propagation: First creating wuobject for component 2.");
 
-		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)798);
+		WKPF.setPropertyShort((short)0, (byte)0, (short)798);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Set component 0, property 0 to 798.");
 
 		WKPF.select().update();
-		assertEqual(WKPF.getPropertyShort(wuclassInstanceThreshold, (byte)2), 798, "Propagated to threshold.");
+		assertEqual(WKPF.getPropertyShort(wuclassInstanceThreshold, (byte)2), 798, "Propagated 798 value to threshold.");
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, (byte)3), false, "Threshold output is now false.");
+		WKPF.select().update();
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), false, "Threshold output propagated to component 2, port 1.");
 
-		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1500);
+		WKPF.setPropertyShort((short)0, (byte)0, (short)1500);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Set component 0, property 0 to 1500.");
 
 		WKPF.select().update();
-		assertEqual(WKPF.getPropertyShort(wuclassInstanceThreshold, (byte)2), 1500, "Propagated to threshold.");
+		assertEqual(WKPF.getPropertyShort(wuclassInstanceThreshold, (byte)2), 1500, "Propagated 1500 value to threshold.");
+		WKPF.select().update();
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, (byte)3), true, "Threshold output is now true.");
+		WKPF.select().update();
 		assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), true, "Threshold output propagated to component 2, port 1.");
 
 		System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);

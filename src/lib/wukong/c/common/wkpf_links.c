@@ -7,9 +7,10 @@
 #include "comm.h"
 #include "wkpf.h"
 // #include "group.h"
-#include "wkpf_properties.h"
-#include "wkpf_links.h"
 #include "wkpf_wuobjects.h"
+#include "wkpf_properties.h"
+#include "wkpf_comm.h"
+#include "wkpf_links.h"
 
 dj_int_array *wkpf_links_store = NULL;
 dj_ref_array *wkpf_component_map_store = NULL;
@@ -27,19 +28,21 @@ typedef dj_int_array wkpf_component_t;
 #define wkpf_number_of_components						((wkpf_component_map_store->array.length))
 #define wkpf_number_of_endpoints(component)				((component->array.length)/sizeof(wkpf_endpoint_t))
 
-// bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
-//   for(int i=0; i<number_of_components; i++) {
-//     uint16_t number_of_endpoints = component_to_wuobject_map[i].number_of_endpoints;
-//     for(int j=0; j<number_of_endpoints; j++) {
-//       if(component_to_wuobject_map[i].endpoints[j].node_id == nvmcomm_get_node_id()
-//           && component_to_wuobject_map[i].endpoints[j].port_number == port_number) {
-//         *component_id = i;
-//         return true; // Found
-//       }
-//     }
-//   }
-//   return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
-// }
+bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
+	for(int i=0; i<wkpf_number_of_components; i++) {
+		wkpf_component_t *component = wkpf_get_component(i);
+		uint16_t number_of_endpoints = wkpf_number_of_endpoints(component);
+		for(int j=0; j<number_of_endpoints; j++) {
+			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
+			if(endpoint->node_id == nvmcomm_get_node_id()
+					&& endpoint->port_number == port_number) {
+				*component_id = i;
+				return true; // Found
+			}
+		}
+	}
+	return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
+}
 
 // uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_number, uint16_t wuclass_id, wkpf_link_t *entry) {
 //   for (int i=0; i<number_of_links; i++) {
@@ -174,52 +177,52 @@ uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
 }
 
 uint8_t wkpf_propagate_property(wuobject_t *wuobject, uint8_t property_number, void *value) {
-	// uint8_t port_number = wuobject->port_number;
-	// uint16_t component_id;
-	// if (!wkpf_get_component_id(port_number, &component_id))
-	// 	return WKPF_OK; // WuObject isn't used in the application.
+	uint8_t port_number = wuobject->port_number;
+	uint16_t component_id;
+	if (!wkpf_get_component_id(port_number, &component_id))
+		return WKPF_OK; // WuObject isn't used in the application.
 
-	// wuobject_t *src_wuobject;
-	// uint8_t wkpf_error_code;
+	wuobject_t *src_wuobject;
+	uint8_t wkpf_error_code;
 
-	// DEBUG_LOG(DBG_WKPF, "WKPF: propagate property number %x of component %x on port %x (value %x)\n", property_number, component_id, port_number, value);
+	DEBUG_LOG(DBG_WKPF, "WKPF: propagate property number %x of component %x on port %x (value %x)\n", property_number, component_id, port_number, value);
 
-	// wkpf_get_wuobject_by_port(port_number, &src_wuobject);
-	// for(int i=0; i<wkpf_number_of_links; i++) {
-	// 	wkpf_link_t *link = wkpf_get_link(i);
-	// 	if(link->src_component_id == component_id
-	// 			&& link->src_property_number == property_number) {
-	// 		uint16_t dest_component_id = link->dest_component_id;
-	// 		uint8_t dest_property_number = link->dest_property_number;
-	// 		uint8_t dest_port_number = wkpf_leader_for_component(dest_component_id).port_number;
-	// 		address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
-	// 		if (dest_node_id == nvmcomm_get_node_id()) {
-	// 			// Local
-	// 			wuobject_t *dest_wuobject;
-	// 			wkpf_error_code = wkpf_get_wuobject_by_port(dest_port_number, &dest_wuobject);
-	// 			if (wkpf_error_code == WKPF_OK) {
-	// 				DEBUG_LOG(DBG_WKPF, "WKPF: propagate_property (local). (%x, %x)->(%x, %x), value %x\n", port_number, property_number, dest_port_number, dest_property_number, value);
-	// 				if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
-	// 					wkpf_error_code = wkpf_external_write_property_boolean(dest_wuobject, dest_property_number, *((bool *)value);
-	// 				else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
-	// 					wkpf_error_code = wkpf_external_write_property_int16(dest_wuobject, dest_property_number, *((uint16_t *)value);
-	// 				else
-	// 					wkpf_error_code = wkpf_external_write_property_refresh_rate(dest_wuobject, dest_property_number, *((uint16_t *)value);
-	// 			}
-	// 		} else {
-	// 			// Remote
-	// 			DEBUG_LOG(DBG_WKPF, "WKPF: propagate_property (remote). (%x, %x)->(%x, %x, %x), value %x\n", port_number, property_number, dest_node_id, dest_port_number, dest_property_number, value);
-	// 			if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
-	// 				wkpf_error_code = wkpf_send_set_property_boolean(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, *((bool *)value));
-	// 			else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
-	// 				wkpf_error_code = wkpf_send_set_property_int16(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, *((uint16_t *)value);
-	// 			else
-	// 				wkpf_error_code = wkpf_send_set_property_refresh_rate(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, *((uint16_t *)value);
-	// 		}
-	// 		if (wkpf_error_code != WKPF_OK)
-	// 			return wkpf_error_code;
-	// 	}
-	// }
+	wkpf_get_wuobject_by_port(port_number, &src_wuobject);
+	for(int i=0; i<wkpf_number_of_links; i++) {
+		wkpf_link_t *link = wkpf_get_link(i);
+		if(link->src_component_id == component_id
+				&& link->src_property_number == property_number) {
+			uint16_t dest_component_id = link->dest_component_id;
+			uint8_t dest_property_number = link->dest_property_number;
+			uint8_t dest_port_number = wkpf_leader_for_component(dest_component_id).port_number;
+			address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
+			if (dest_node_id == nvmcomm_get_node_id()) {
+				// Local
+				wuobject_t *dest_wuobject;
+				wkpf_error_code = wkpf_get_wuobject_by_port(dest_port_number, &dest_wuobject);
+				if (wkpf_error_code == WKPF_OK) {
+					DEBUG_LOG(DBG_WKPF, "WKPF: propagate_property (local). (%x, %x)->(%x, %x), value %x\n", port_number, property_number, dest_port_number, dest_property_number, value);
+					if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
+						wkpf_error_code = wkpf_external_write_property_boolean(dest_wuobject, dest_property_number, *((bool *)value));
+					else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
+						wkpf_error_code = wkpf_external_write_property_int16(dest_wuobject, dest_property_number, *((uint16_t *)value));
+					else
+						wkpf_error_code = wkpf_external_write_property_refresh_rate(dest_wuobject, dest_property_number, *((uint16_t *)value));
+				}
+			} else {
+				// Remote
+				DEBUG_LOG(DBG_WKPF, "WKPF: propagate_property (remote). (%x, %x)->(%x, %x, %x), value %x\n", port_number, property_number, dest_node_id, dest_port_number, dest_property_number, value);
+				if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
+					wkpf_error_code = wkpf_send_set_property_boolean(dest_node_id, dest_port_number, dest_property_number, link->dest_wuclass_id, *((bool *)value));
+				else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
+					wkpf_error_code = wkpf_send_set_property_int16(dest_node_id, dest_port_number, dest_property_number, link->dest_wuclass_id, *((uint16_t *)value));
+				else
+					wkpf_error_code = wkpf_send_set_property_refresh_rate(dest_node_id, dest_port_number, dest_property_number, link->dest_wuclass_id, *((uint16_t *)value));
+			}
+			if (wkpf_error_code != WKPF_OK)
+				return wkpf_error_code;
+		}
+	}
 	return WKPF_OK;
 }
 
@@ -233,7 +236,7 @@ uint8_t wkpf_propagate_dirty_properties() {
 		// nvmcomm_poll(); // Process incoming messages
 		wuobject_property_t *dirty_property = wkpf_get_property(dirty_wuobject, dirty_property_number);
 		if (dirty_property->status & PROPERTY_STATUS_NEEDS_PUSH) {
-			wkpf_error_code = wkpf_propagate_property(dirty_wuobject->port_number, dirty_property_number, &(dirty_property->value));
+			wkpf_error_code = wkpf_propagate_property(dirty_wuobject, dirty_property_number, &(dirty_property->value));
 		} else { // PROPERTY_STATUS_NEEDS_PULL
 			DEBUG_LOG(DBG_WKPF, "WKPF: (pull) requesting initial value for property %x at port %x\n", dirty_property_number, dirty_wuobject->port_number);
 			wkpf_error_code = wkpf_pull_property(dirty_wuobject->port_number, dirty_property_number);

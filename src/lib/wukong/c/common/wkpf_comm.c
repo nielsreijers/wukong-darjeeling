@@ -1,3 +1,7 @@
+#include "execution.h"
+#include "comm.h"
+#include "panic.h"
+#include "wkpf.h"
 // #include <string.h>
 // #include "types.h"
 // #include "nvmcomm.h"
@@ -47,25 +51,28 @@
 //   return WKPF_ERR_NVMCOMM_NO_REPLY; // Give up
 // }
 
-// uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
+uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
 //   set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_SHORT);
 //   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
 //   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
 //   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
-// }
+dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+}
 
-// uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value) {
+uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value) {
 //   set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_BOOLEAN);
 //   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value);
 //   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+1);
-// }
+dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+}
 
-// uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
+uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
 //   set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_REFRESH_RATE);
 //   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
 //   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
 //   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
-// }
+dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+}
 
 // uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
 //   set_message_header(port_number, property_number, 0, 0); // 0 because this message doesn't take a data type or wuclass ID
