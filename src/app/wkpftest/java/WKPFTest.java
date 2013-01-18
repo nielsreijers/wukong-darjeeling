@@ -91,8 +91,8 @@ public class WKPFTest {
 		WKPF.registerWuClass(WKPF.WUCLASS_THRESHOLD, GENERATEDVirtualThresholdWuObject.properties);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualThresholdWuObject.");
 
-		WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, (byte)0x20, wuclassInstanceThreshold);
-		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for virtual Threshold wuclass at port 0x20.");
+		WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, (byte)0x11, wuclassInstanceThreshold);
+		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for virtual Threshold wuclass at port 0x11.");
 
 		WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_GT);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup properties: operator=>");
@@ -112,8 +112,8 @@ public class WKPFTest {
 
 		// Test application:
 		// Component 0: VirtualTestWuClass on node 1, port 0x10
-		// Component 1: Threshold          on node 1, port 0x20
-		// Component 2: VirtualTestWuClass on node 1, port 0x03
+		// Component 1: Threshold          on node 1, port 0x11
+		// Component 2: VirtualTestWuClass on node 1, port 0x12
 		// Component 3: VirtualTestWuClass on node 2, port 0x10
 
 		// Links component 0, property 0 -> component 1, property 2 (short property in test wuclass to threshold.value)
@@ -131,8 +131,8 @@ public class WKPFTest {
 
 		Object[] componentInstanceToWuObjectAddrMap = {
 					new byte[]{ 1, 0x10 }, // The test wuclass
-					new byte[]{ 1, 0x20 }, // The threshold
-					new byte[]{ 1, 0x03 },
+					new byte[]{ 1, 0x11 }, // The threshold
+					new byte[]{ 1, 0x12 },
 					new byte[]{ 2, 0x10 }
 					};
 		WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
@@ -141,9 +141,9 @@ public class WKPFTest {
 		assertEqualBoolean(WKPF.isLocalComponent((short)0), true, "Component 0 is local");
 		assertEqual(WKPF.getPortNumberForComponent((short)0), 0x10, "Component 0 is on port 0x10");
 		assertEqualBoolean(WKPF.isLocalComponent((short)1), true, "Component 1 is local");
-		assertEqual(WKPF.getPortNumberForComponent((short)1), 0x20, "Component 1 is on port 0x20");
+		assertEqual(WKPF.getPortNumberForComponent((short)1), 0x11, "Component 1 is on port 0x11");
 		assertEqualBoolean(WKPF.isLocalComponent((short)2), true, "Component 2 is local");
-		assertEqual(WKPF.getPortNumberForComponent((short)2), 0x03, "Component 2 is on port 0x03");
+		assertEqual(WKPF.getPortNumberForComponent((short)2), 0x12, "Component 2 is on port 0x12");
 		assertEqualBoolean(WKPF.isLocalComponent((short)3), false, "Component 3 is not local");
 		assertEqual(WKPF.getPortNumberForComponent((short)3), 0x10, "Component 3 is on port 0x10");
 
@@ -162,7 +162,7 @@ public class WKPFTest {
 		// Test property propagation: set the value on component 0, should propagate through
 		// to the threshold, and then from the threshold's output to component 2's boolean property.
 		// First create component 2.
-		WKPF.createWuObject((short)0x42, (byte)0x03, wuclassInstanceB);
+		WKPF.createWuObject((short)0x42, (byte)0x12, wuclassInstanceB);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Test property propagation: First creating wuobject for component 2.");
 
 		WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)798);
