@@ -134,12 +134,12 @@ static inline void INVOKEVIRTUAL()
 
 	dj_global_id resolvedMethodDefId = dj_global_id_resolve(dj_exec_getCurrentInfusion(), dj_local_id);
 
-	DEBUG_LOG(DBG_DARJEELING, ">>>>> invokevirtual METHOD DEF %x.%d\n", resolvedMethodDefId.infusion, resolvedMethodDefId.entity_id);
+	DEBUG_LOG(DBG_DARJEELING, ">>>>> invokevirtual METHOD DEF %p.%d\n", resolvedMethodDefId.infusion, resolvedMethodDefId.entity_id);
 
 	// lookup the virtual method
 	dj_global_id methodImplId = dj_global_id_lookupVirtualMethod(resolvedMethodDefId, object);
 
-	DEBUG_LOG(DBG_DARJEELING, ">>>>> invokevirtual METHOD IMPL %x.%d\n", methodImplId.infusion, methodImplId.entity_id);
+	DEBUG_LOG(DBG_DARJEELING, ">>>>> invokevirtual METHOD IMPL %p.%d\n", methodImplId.infusion, methodImplId.entity_id);
 
 	// check if method not found, and throw an error if this is the case. else, invoke the method
 	if (methodImplId.infusion==NULL)

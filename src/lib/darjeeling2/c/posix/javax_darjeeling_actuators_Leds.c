@@ -39,7 +39,7 @@ void javax_darjeeling_actuators_Leds_short_getNrLeds()
 void javax_darjeeling_actuators_Leds_void_set_short_boolean()
 {
 	uint16_t on = dj_exec_stackPopShort();
-	uint16_t nr = dj_exec_stackPopShort();
+	int16_t nr = dj_exec_stackPopShort();
 
 	// Check for out-of-bounds
 	if (nr>=0 && nr<NUM_VIRTUAL_LEDS)

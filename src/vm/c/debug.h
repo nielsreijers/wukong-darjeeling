@@ -160,7 +160,7 @@
                                                                         )
 
 #define DEBUG_LOG_WHEREAMI(type) if (type) do { \
-        DEBUG_LOG("%s\n",DEBUG_WHEREAMI);       \
+        DEBUG_LOG(type, "%s\n", DEBUG_WHEREAMI);       \
     }while(0)
 
 

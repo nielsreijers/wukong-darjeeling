@@ -911,7 +911,7 @@ static inline void callMethod(dj_global_id methodImplId, int virtualCall)
 
 			// If the method is non-static (virtual), pop the object reference
 			if (virtualCall) {
-				ref_t *refData = popRef();
+				ref_t refData = popRef();
 				// If the method returns a reference, we have to peel it off
 				if(isReturnReference) {
 					// ... now, pop-off the object reference ...

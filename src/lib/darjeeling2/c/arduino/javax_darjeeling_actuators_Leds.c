@@ -39,7 +39,7 @@ void javax_darjeeling_actuators_Leds_void_set_short_boolean()
 	uint16_t on = dj_exec_stackPopShort();
 
 	// Discard the led index argument
-	uint16_t nr = dj_exec_stackPopShort();
+	dj_exec_stackPopShort();
 
 	// set port B pin 7 to output
 	DDRB |= 128;

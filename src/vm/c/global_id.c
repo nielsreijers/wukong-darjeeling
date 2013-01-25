@@ -387,7 +387,7 @@ dj_global_id dj_global_id_lookupVirtualMethod(dj_global_id resolvedMethodDefId, 
 		// parent classes
 		if (ret.infusion!=NULL) break;
 
-		DEBUG_LOG(DBG_DARJEELING, "Checking parent ... \n", ret, ret.infusion);
+		DEBUG_LOG(DBG_DARJEELING, "Checking parent ... (ret.entity_id %d, ret.infusion %p)\n", ret.entity_id, ret.infusion);
 
 		// go into the parent class
 		if (dj_global_id_isJavaLangObject(classId))

@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "jlib_base.h"
 #include "jlib_darjeeling2.h"
@@ -51,7 +52,7 @@ void init_progflash()
 	if (!progflashFile)
 	{
 		printf("Unable to open the program flash file.\n");
-		return -1;
+		return;
 	}
 
 	// Check the program flash file length.

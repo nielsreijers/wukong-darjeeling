@@ -618,7 +618,7 @@ void dj_mem_dump()
 
 	int total = 0;
 
-	while ( (char*)finger < left_pointer )
+	while ( (void *)finger < left_pointer )
     {
         char pretty_printing_buffer[5];
         char *chunk_type_pretty_print;

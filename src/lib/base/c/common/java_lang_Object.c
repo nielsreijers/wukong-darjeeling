@@ -111,5 +111,5 @@ void java_lang_Object_int_hashCode()
 	// because it's cleared by the VM's frame management.
 	dj_object * object = (dj_object*)REF_TO_VOIDP(dj_exec_stackPeekRef());
 
-	dj_exec_stackPushInt((int)object);
+	dj_exec_stackPushInt((int32_t)(intptr_t)object); // NR 20130125 added casts here to get rid of warnings. I suppose losing the upper 32 bits on a 64 bit system here won't matter since we the function produces a hash.
 }

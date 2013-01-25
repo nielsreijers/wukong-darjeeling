@@ -24,7 +24,7 @@
 #include <sys/types.h>
 
 // Allocate 4k heap for the VM
-#define MEMSIZE 409600
+#define MEMSIZE 4096
 
 // Program flash block size
 #define PROGFLASH_BLOCKSIZE 256
@@ -47,8 +47,8 @@ typedef int64_t dj_time_t;
 // #define DARJEELING_DEBUG_PERFILE
 // #define DBG_DARJEELING true
 #define DBG_WKPF true
-// #define DBG_WKPFGC true
-// #define DBG_WKPFUPDATE true
+#define DBG_WKPFGC true
+#define DBG_WKPFUPDATE true
 
 #define DARJEELING_PRINTF printf
 #define DARJEELING_PRINTD(x) printf("%d", x)
