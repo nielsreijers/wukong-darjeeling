@@ -204,7 +204,7 @@ void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject) {
 	for (int i=0; i<wuobject->wuclass->number_of_properties; i++) {
 		if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[i]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
 			wkpf_refresh_rate_t refresh_rate;
-			// TODONR			wkpf_internal_read_property_refresh_rate(wuobject, i, &refresh_rate);
+			wkpf_internal_read_property_refresh_rate(wuobject, i, &refresh_rate);
 			if (refresh_rate == 0) // 0 means turned off
 				wuobject->next_scheduled_update = 0;
 			else
