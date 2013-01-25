@@ -22,11 +22,17 @@ typedef dj_int_array wkpf_component_t;
 
 #define wkpf_get_link(i) 								(&(((wkpf_link_t *)(wkpf_links_store->data.bytes))[i]))
 #define wkpf_get_component(i) 							((wkpf_component_t *)REF_TO_VOIDP((wkpf_component_map_store->refs)[i]))
-#define wkpf_get_endpoint_for_component(component, i)	(&(((wkpf_endpoint_t *)(component->data.bytes))[i]))
+//#define wkpf_get_endpoint_for_component(component, i)	(&(((wkpf_endpoint_t *)(component->data.bytes))[i]))
 
 #define wkpf_number_of_links							(wkpf_links_store ? ((wkpf_links_store->array.length)/sizeof(wkpf_link_t)) : 0)
 #define wkpf_number_of_components						(wkpf_component_map_store ? ((wkpf_component_map_store->array.length)) : 0)
 #define wkpf_number_of_endpoints(component)				((component->array.length)/sizeof(wkpf_endpoint_t))
+
+// Original this was a #define, but the compiler complains about strict aliasing on AVR.
+static inline wkpf_endpoint_t* wkpf_get_endpoint_for_component(wkpf_component_t *component, uint16_t i) {
+	wkpf_endpoint_t *endpoints = (wkpf_endpoint_t *)component->data.bytes;
+	return &(endpoints[i]);
+}
 
 bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 	for(int i=0; i<wkpf_number_of_components; i++) {

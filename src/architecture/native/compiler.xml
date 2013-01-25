@@ -18,8 +18,9 @@
 				>
 				<compiler>
 					<compilerarg value="-gdwarf-2"/>
-					<compilerarg value="-g3"/>
+					<compilerarg value="-ggdb"/>
 					<compilerarg value="-Wall"/>
+					<compilerarg value="-Werror"/>
 					<compilerarg value="-std=c99"/>
 					<compiler-args/>
 				</compiler>
