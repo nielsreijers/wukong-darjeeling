@@ -33,10 +33,12 @@ public class PrintStream extends OutputStream {
 
 	public void println(String string) {
 		write(string.getBytes());
+		write((int)'\r');
 		write((int)'\n');
 	}
 
 	public void println() {
+		write((int)'\r');
 		write((int)'\n');
 	}	
 }
