@@ -54,6 +54,7 @@
 			bootclasspath="${bootclasspath}"
             includes="${java-src-include}"
 			excludes="${java-src-exclude}"
+			includeantruntime="false"
 		>
 			<classpath>
 				<filelist files="${javac-classpath}" dir="${apppath}/../lib/"/>

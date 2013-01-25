@@ -21,6 +21,7 @@
 			source="1.5"
 			debug="true"
 			encoding="iso-8859-1"		
+			includeantruntime="false"
 		>
 		</javac>
 	</target>

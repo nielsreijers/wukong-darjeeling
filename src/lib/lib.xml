@@ -79,6 +79,7 @@
 			debug="true"
 			encoding="iso-8859-1"		
 			bootclasspath="${bootclasspath}"
+			includeantruntime="false"
 		>
 			<classpath>
 				<fileset includes="javac-classpath" dir="${libpath}"/>
