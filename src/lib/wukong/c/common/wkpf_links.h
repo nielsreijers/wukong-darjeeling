@@ -1,6 +1,7 @@
 #ifndef WKPF_LINKSH
 #define WKPF_LINKSH
 
+#include "comm.h"
 #include "array.h"
 
 typedef struct

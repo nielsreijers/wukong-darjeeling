@@ -4,10 +4,12 @@
 #include "djtimer.h"
 #include "wkpf.h"
 #include "wkpf_wuobjects.h"
+#include "wkpf_properties.h"
+#include "wkpf_links.h"
 
 wuobject_t *wuobjects_list = NULL;
-uint16_t *last_updated_wuobject_index = 0;
-uint16_t *last_propagated_property_wuobject_index = 0;
+uint16_t last_updated_wuobject_index = 0;
+uint16_t last_propagated_property_wuobject_index = 0;
 
 // Careful: this needs to match the IDs for the datatypes as defined in wkpf.h!
 // The size is 1 for the status byte, plus the size of the property, so for instance a 16bit short takes up 3 bytes.
@@ -128,7 +130,7 @@ uint8_t wkpf_get_wuobject_by_java_instance_reference(dj_object *java_instance_re
 		}
 		*wuobject = (*wuobject)->next;
 	}
-	DEBUG_LOG(DBG_WKPF, "WKPF: no wuobject for java object at %x found: FAILED\n", java_instance_reference);
+	DEBUG_LOG(DBG_WKPF, "WKPF: no wuobject for java object at %p found: FAILED\n", java_instance_reference);
 	return WKPF_ERR_WUOBJECT_NOT_FOUND;
 }
 
@@ -207,7 +209,7 @@ void wkpf_schedule_next_update_for_wuobject(wuobject_t *wuobject) {
 				wuobject->next_scheduled_update = 0;
 			else
 				wuobject->next_scheduled_update = dj_timer_getTimeMillis() + refresh_rate;
-			DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Scheduled next update for object at port %x. Refresh rate:%x Current time:%08lx Next update at:%08lx\n", wuobject->port_number, refresh_rate, dj_timer_getTimeMillis(), wuobject->next_scheduled_update);
+			DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Scheduled next update for object at port %d. Refresh rate:%d Current time:%lu Next update at:%lu\n", wuobject->port_number, refresh_rate, (unsigned long)dj_timer_getTimeMillis(), (unsigned long)wuobject->next_scheduled_update);
 			return;
 		}
 	}
