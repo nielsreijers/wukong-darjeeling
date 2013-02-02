@@ -23,6 +23,8 @@
 #ifndef __panic_h
 #define __panic_h
 
+#include "types.h"
+
 #define DJ_PANIC_OUT_OF_MEMORY              42
 #define DJ_PANIC_ILLEGAL_INTERNAL_STATE     43
 #define DJ_PANIC_UNIMPLEMENTED_FEATURE      44
