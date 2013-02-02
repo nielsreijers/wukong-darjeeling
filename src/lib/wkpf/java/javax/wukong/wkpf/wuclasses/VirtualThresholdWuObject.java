@@ -1,7 +1,7 @@
-package javax.wukong.wuclasses;
+package javax.wukong.wkpf.wuclasses;
 
-import javax.wukong.WKPF;
-import javax.wukong.VirtualWuObject;
+import javax.wukong.wkpf.WKPF;
+import javax.wukong.wkpf.VirtualWuObject;
 
 public class VirtualThresholdWuObject extends GENERATEDVirtualThresholdWuObject {
     public void update() {

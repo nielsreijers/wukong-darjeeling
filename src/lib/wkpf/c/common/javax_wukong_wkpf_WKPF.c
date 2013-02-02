@@ -19,7 +19,7 @@ uint8_t wkpf_error_code = WKPF_OK;
 dj_hook wkpf_markRootSetHook;
 dj_hook wkpf_updatePointersHook;
 
-void javax_wukong_WKPF_void__init() {
+void javax_wukong_wkpf_WKPF_void__init() {
 	wkpf_markRootSetHook.function = wkpf_markRootSet;
 	dj_hook_add(&dj_vm_markRootSetHook, &wkpf_markRootSetHook);
 
@@ -27,12 +27,12 @@ void javax_wukong_WKPF_void__init() {
 	dj_hook_add(&dj_mem_updateReferenceHook, &wkpf_updatePointersHook);
 }
 
-void javax_wukong_WKPF_byte_getErrorCode()
+void javax_wukong_wkpf_WKPF_byte_getErrorCode()
 {
 	dj_exec_stackPushShort(wkpf_error_code);
 }
 
-void javax_wukong_WKPF_void_registerWuClass_short_byte__()
+void javax_wukong_wkpf_WKPF_void_registerWuClass_short_byte__()
 {
 	dj_int_array *byteArrayProperties = REF_TO_VOIDP(dj_exec_stackPopRef());
 	// check null
@@ -44,7 +44,7 @@ void javax_wukong_WKPF_void_registerWuClass_short_byte__()
 	wkpf_error_code = wkpf_register_wuclass(wuclass_id, NULL, byteArrayProperties->array.length, (uint8_t *)byteArrayProperties->data.bytes);
 }
 
-void javax_wukong_WKPF_void_createWuObject_short_byte_javax_wukong_VirtualWuObject()
+void javax_wukong_wkpf_WKPF_void_createWuObject_short_byte_javax_wukong_wkpf_VirtualWuObject()
 {
 	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
 	uint8_t port_number = (uint8_t)dj_exec_stackPopShort();
@@ -53,14 +53,14 @@ void javax_wukong_WKPF_void_createWuObject_short_byte_javax_wukong_VirtualWuObje
 	wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, java_instance_reference);
 }
 
-void javax_wukong_WKPF_void_destroyWuObject_byte()
+void javax_wukong_wkpf_WKPF_void_destroyWuObject_byte()
 {
 	uint8_t port_number = (uint8_t)dj_exec_stackPopShort();
 	DEBUG_LOG(DBG_WKPF, "WKPF: Removing wuobject at port %x\n", port_number);
 	wkpf_error_code = wkpf_remove_wuobject(port_number);
 }
 
-void javax_wukong_WKPF_short_getPropertyShort_javax_wukong_VirtualWuObject_byte()
+void javax_wukong_wkpf_WKPF_short_getPropertyShort_javax_wukong_wkpf_VirtualWuObject_byte()
 {
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
@@ -73,7 +73,7 @@ void javax_wukong_WKPF_short_getPropertyShort_javax_wukong_VirtualWuObject_byte(
 	}
 }
 
-void javax_wukong_WKPF_void_setPropertyShort_javax_wukong_VirtualWuObject_byte_short() {
+void javax_wukong_wkpf_WKPF_void_setPropertyShort_javax_wukong_wkpf_VirtualWuObject_byte_short() {
 	int16_t value = (int16_t)dj_exec_stackPopShort();
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
@@ -84,7 +84,7 @@ void javax_wukong_WKPF_void_setPropertyShort_javax_wukong_VirtualWuObject_byte_s
 	}
 }
 
-void javax_wukong_WKPF_boolean_getPropertyBoolean_javax_wukong_VirtualWuObject_byte() {
+void javax_wukong_wkpf_WKPF_boolean_getPropertyBoolean_javax_wukong_wkpf_VirtualWuObject_byte() {
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
 	wuobject_t *wuobject;
@@ -95,7 +95,7 @@ void javax_wukong_WKPF_boolean_getPropertyBoolean_javax_wukong_VirtualWuObject_b
 		dj_exec_stackPushShort(value);
 	}
 }
-void javax_wukong_WKPF_void_setPropertyBoolean_javax_wukong_VirtualWuObject_byte_boolean() {
+void javax_wukong_wkpf_WKPF_void_setPropertyBoolean_javax_wukong_wkpf_VirtualWuObject_byte_boolean() {
 	bool value = (int16_t)dj_exec_stackPopShort();
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	dj_object *java_instance_reference = REF_TO_VOIDP(dj_exec_stackPopRef());
@@ -106,7 +106,7 @@ void javax_wukong_WKPF_void_setPropertyBoolean_javax_wukong_VirtualWuObject_byte
 	}
 }
 
-void javax_wukong_WKPF_void_setPropertyShort_short_byte_short() {
+void javax_wukong_wkpf_WKPF_void_setPropertyShort_short_byte_short() {
 	int16_t value = (int16_t)dj_exec_stackPopShort();
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
@@ -127,7 +127,7 @@ void javax_wukong_WKPF_void_setPropertyShort_short_byte_short() {
 	}
 }
 
-void javax_wukong_WKPF_void_setPropertyBoolean_short_byte_boolean() {
+void javax_wukong_wkpf_WKPF_void_setPropertyBoolean_short_byte_boolean() {
 	bool value = (bool)dj_exec_stackPopShort();
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
@@ -148,7 +148,7 @@ void javax_wukong_WKPF_void_setPropertyBoolean_short_byte_boolean() {
 	}
 }
 
-void javax_wukong_WKPF_void_setPropertyRefreshRate_short_byte_short() {
+void javax_wukong_wkpf_WKPF_void_setPropertyRefreshRate_short_byte_short() {
 	int16_t value = (int16_t)dj_exec_stackPopShort();
 	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
 	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
@@ -169,7 +169,7 @@ void javax_wukong_WKPF_void_setPropertyRefreshRate_short_byte_short() {
 	}
 }
 
-void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
+void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 	wuobject_t *wuobject;
 	while(true) {
 
@@ -195,17 +195,17 @@ void javax_wukong_WKPF_javax_wukong_VirtualWuObject_select() {
 	}
 }
 
-void javax_wukong_WKPF_void_loadComponentToWuObjectAddrMap_java_lang_Object__() {
+void javax_wukong_wkpf_WKPF_void_loadComponentToWuObjectAddrMap_java_lang_Object__() {
 	dj_ref_array *map = REF_TO_VOIDP(dj_exec_stackPopRef());
 	wkpf_error_code = wkpf_load_component_to_wuobject_map(map);
 }
 
-void javax_wukong_WKPF_void_loadLinkDefinitions_byte__() {
+void javax_wukong_wkpf_WKPF_void_loadLinkDefinitions_byte__() {
 	dj_int_array *links = REF_TO_VOIDP(dj_exec_stackPopRef());
 	wkpf_error_code = wkpf_load_links(links);    
 }
 
-void javax_wukong_WKPF_byte_getPortNumberForComponent_short() {
+void javax_wukong_wkpf_WKPF_byte_getPortNumberForComponent_short() {
 	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
 	address_t node_id;
 	uint8_t port_number;
@@ -213,7 +213,7 @@ void javax_wukong_WKPF_byte_getPortNumberForComponent_short() {
 	dj_exec_stackPushShort(port_number);
 }
 
-void javax_wukong_WKPF_boolean_isLocalComponent_short() {
+void javax_wukong_wkpf_WKPF_boolean_isLocalComponent_short() {
 	uint16_t component_id = (int16_t)dj_exec_stackPopShort();
 	address_t node_id;
 	uint8_t port_number;
@@ -221,6 +221,6 @@ void javax_wukong_WKPF_boolean_isLocalComponent_short() {
 	dj_exec_stackPushShort(wkpf_error_code == WKPF_OK && node_id == nvmcomm_get_node_id());
 }
 
-void javax_wukong_WKPF_short_getMyNodeId() {
+void javax_wukong_wkpf_WKPF_short_getMyNodeId() {
 	dj_exec_stackPushShort(nvmcomm_get_node_id());
 }

@@ -1,4 +1,4 @@
-import javax.wukong.WuNodeLeds;
+import javax.wukong.wknode.WuNodeLeds;
 
 public class WuNodeTest
 {

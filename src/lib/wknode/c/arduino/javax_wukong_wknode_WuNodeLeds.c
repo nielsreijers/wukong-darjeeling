@@ -6,7 +6,7 @@
 #define set_input(portdir,pin) portdir &= ~(1<<pin)
 #define set_output(portdir,pin) portdir |= (1<<pin)
 
-void javax_wukong_WuNodeLeds_void__setLed_int_boolean()
+void javax_wukong_wknode_WuNodeLeds_void__setLed_int_boolean()
 {
 	unsigned char on = dj_exec_stackPopShort();
 	unsigned int nr = dj_exec_stackPopInt();
@@ -17,7 +17,7 @@ void javax_wukong_WuNodeLeds_void__setLed_int_boolean()
 		output_high(PORTK, nr);
 }
 
-void javax_wukong_WuNodeLeds_void__init()
+void javax_wukong_wknode_WuNodeLeds_void__init()
 {
 	set_output(DDRK, 0);
 	set_output(DDRK, 1);

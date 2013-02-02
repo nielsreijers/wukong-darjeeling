@@ -1,4 +1,4 @@
-package javax.wukong;
+package javax.wukong.wkpf;
 
 public abstract class VirtualWuObject {
     public void update() {} // TODO: this should be abstract, but nanovmtool chokes on abstract methods :-(

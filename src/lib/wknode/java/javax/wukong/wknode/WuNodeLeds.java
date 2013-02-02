@@ -1,4 +1,4 @@
-package javax.wukong;
+package javax.wukong.wknode;
 
 public class WuNodeLeds
 {

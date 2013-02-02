@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "execution.h"
 
-void javax_wukong_WuNodeLeds_void__setLed_int_boolean()
+void javax_wukong_wknode_WuNodeLeds_void__setLed_int_boolean()
 {
 	unsigned char on = dj_exec_stackPopShort();
 	unsigned int nr = dj_exec_stackPopInt();
@@ -9,6 +9,6 @@ void javax_wukong_WuNodeLeds_void__setLed_int_boolean()
 	printf("Turning LED %d %s\n", nr, on ? "on" : "off");
 }
 
-void javax_wukong_WuNodeLeds_void__init()
+void javax_wukong_wknode_WuNodeLeds_void__init()
 {
 }

@@ -1,7 +1,7 @@
-import javax.wukong.WKPF;
-import javax.wukong.VirtualWuObject;
-import javax.wukong.wuclasses.GENERATEDVirtualThresholdWuObject;
-import javax.wukong.wuclasses.VirtualThresholdWuObject;
+import javax.wukong.wkpf.WKPF;
+import javax.wukong.wkpf.VirtualWuObject;
+import javax.wukong.wkpf.wuclasses.GENERATEDVirtualThresholdWuObject;
+import javax.wukong.wkpf.wuclasses.VirtualThresholdWuObject;
 
 public class WKPFTest {
 	private static int passedCount=0;

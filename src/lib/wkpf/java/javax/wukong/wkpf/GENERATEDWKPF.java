@@ -1,4 +1,4 @@
-package javax.wukong;
+package javax.wukong.wkpf;
 
         public class GENERATEDWKPF {
     public static final short ENUM_THRESHOLD_OPERATOR_LT = 0;

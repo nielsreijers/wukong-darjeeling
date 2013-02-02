@@ -1,7 +1,7 @@
 <project default="all">
 
 	<!-- set the name of the library -->
-	<property name="name" value="wukong"/>
+	<property name="name" value="wkpf"/>
 	
 	<!-- list of libraries this library depends on -->
 	<property name="lib-depends" value="base, wkcomm"/>
