@@ -67,7 +67,7 @@
 	</pathconvert>
 	
 	<!-- Meta-target -->
-	<target name="all" depends="compile-java, package, infuse, compile-c, ar"/>
+	<target name="all" depends="compile-java, package, infuse, compile-c, ar, copy-public-headerfile"/>
 
 	<!-- compile the java sources -->
 	<target name="compile-java">
@@ -163,6 +163,15 @@
 			classpath="${bcelpath}"
 		>
 		</javadoc>
+	</target>
+
+	<target name="copy-public-headerfile">
+		<copy todir="${build}" overwrite="true" flatten="true">
+			<fileset dir="${csrc}">
+				<include name="common/**/${public-headerfile}"/>
+				<include name="${platform}/**/${public-headerfile}"/>
+			</fileset>
+		</copy>
 	</target>
 
 	<!-- clean -->
