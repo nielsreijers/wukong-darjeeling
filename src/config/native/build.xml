@@ -1,11 +1,12 @@
 <project default="all">
 
 	<!-- include native code for libraries -->
-	<property name="libs" value="base, util, darjeeling2, wknode"/>
+	<!-- note that libraries should come after libraries they depend on
+		 (wkcomm first, the wkpf), or else loading the archive will fail -->
+	<property name="libs" value="base, util, darjeeling2, wkcomm, wkpf"/>
 
 	<!-- Compile these applications -->
-	<!-- <property name="apps" value="wkpftest"/> -->
-	<property name="apps" value="wunodetest"/>
+	<property name="apps" value="wkpftest"/>
 
 	<!-- Platform and architecture selection -->
 	<property name="platform" value="posix"/>
