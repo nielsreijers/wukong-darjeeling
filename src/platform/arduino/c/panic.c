@@ -48,13 +48,30 @@ void dj_panic(int32_t panictype)
 #ifdef DEBUG
         	avr_serialPrint("PANIC: uncaught exception!\n");
 #endif
+        case DJ_PANIC_UNSATISFIED_LINK:
+#ifdef DEBUG
+            avr_serialPrint("PANIC: unsatisfied link!\n");
+#endif
             break;
         case DJ_PANIC_MALFORMED_INFUSION:
 #ifdef DEBUG
         	avr_serialPrint("PANIC: malformed infusion!\n");
 #endif
             break;
+        case DJ_PANIC_ASSERTION_FAILURE:
+#ifdef DEBUG
+            avr_serialPrint("PANIC: assertion failed!\n");
+#endif
+            break;
+        case DJ_PANIC_SAFE_POINTER_OVERFLOW:
+#ifdef DEBUG
+            avr_serialPrint("PANIC: safe pointer overflow!\n");
+#endif
+            break;
         default:
+#ifdef DEBUG
+            avr_serialPrint("PANIC: unknown panic type!\n");
+#endif
             break;
     }
     exit(-1);

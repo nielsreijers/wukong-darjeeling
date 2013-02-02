@@ -41,12 +41,18 @@ void dj_panic(int32_t panictype)
         case DJ_PANIC_UNCAUGHT_EXCEPTION:
             printf("Darjeeling panic: uncaught exception\n");
             break;
+        case DJ_PANIC_UNSATISFIED_LINK:
+            printf("Darjeeling panic: unsatisfied link\n");
+            break;
         case DJ_PANIC_MALFORMED_INFUSION:
             printf("Darjeeling panic: malformed infusion\n");
             break;
         case DJ_PANIC_ASSERTION_FAILURE:
-        	printf("Darjeeling panic: Assertion failed\n");
-        	break;
+            printf("Darjeeling panic: assertion failed\n");
+            break;
+        case DJ_PANIC_SAFE_POINTER_OVERFLOW:
+            printf("Darjeeling panic: safe pointer overflow\n");
+            break;
         default:
             printf("Darjeeling panic: unknown panic type\n");
             break;
