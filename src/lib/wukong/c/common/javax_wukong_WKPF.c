@@ -4,7 +4,7 @@
 #include "array.h"
 #include "hooks.h"
 #include "execution.h"
-#include "comm.h"
+#include "wkcomm.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"

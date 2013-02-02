@@ -4,7 +4,7 @@
 // #include "nvmcomm.h"
 // #include "heap.h"
 #include "array.h"
-#include "comm.h"
+#include "wkcomm.h"
 #include "wkpf.h"
 // #include "group.h"
 #include "wkpf_wuobjects.h"
