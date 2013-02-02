@@ -8,3 +8,7 @@ darjeeling-avr.map
 build
 infusions
 programflash.data
+.tags
+.tags_sorted_by_file
+darjeeling.sublime-project
+darjeeling.sublime-workspace
