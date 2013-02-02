@@ -7,10 +7,10 @@
 // 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
 // }
 
-// // Get my own node id
-// address_t wkcomm_get_node_id() {
-// 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
-// }
+// Get my own node id
+address_t wkcomm_get_node_id() {
+	return 1;
+}
 
 // // Call this periodically to receive data
 // void wkcomm_poll(void) {

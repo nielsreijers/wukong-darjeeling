@@ -114,7 +114,7 @@ void javax_wukong_wkpf_WKPF_void_setPropertyShort_short_byte_short() {
 	uint8_t port_number;
 	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 	if (wkpf_error_code == WKPF_OK) {
-		if (node_id != nvmcomm_get_node_id())
+		if (node_id != wkcomm_get_node_id())
 			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
 		else {
 			wuobject_t *wuobject;
@@ -135,7 +135,7 @@ void javax_wukong_wkpf_WKPF_void_setPropertyBoolean_short_byte_boolean() {
 	uint8_t port_number;
 	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 	if (wkpf_error_code == WKPF_OK) {
-		if (node_id != nvmcomm_get_node_id())
+		if (node_id != wkcomm_get_node_id())
 			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
 		else {
 			wuobject_t *wuobject;
@@ -156,7 +156,7 @@ void javax_wukong_wkpf_WKPF_void_setPropertyRefreshRate_short_byte_short() {
 	uint8_t port_number;
 	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 	if (wkpf_error_code == WKPF_OK) {
-		if (node_id != nvmcomm_get_node_id())
+		if (node_id != wkcomm_get_node_id())
 			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
 		else {
 			wuobject_t *wuobject;
@@ -218,9 +218,9 @@ void javax_wukong_wkpf_WKPF_boolean_isLocalComponent_short() {
 	address_t node_id;
 	uint8_t port_number;
 	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-	dj_exec_stackPushShort(wkpf_error_code == WKPF_OK && node_id == nvmcomm_get_node_id());
+	dj_exec_stackPushShort(wkpf_error_code == WKPF_OK && node_id == wkcomm_get_node_id());
 }
 
 void javax_wukong_wkpf_WKPF_short_getMyNodeId() {
-	dj_exec_stackPushShort(nvmcomm_get_node_id());
+	dj_exec_stackPushShort(wkcomm_get_node_id());
 }

@@ -40,7 +40,7 @@ bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 		uint16_t number_of_endpoints = wkpf_number_of_endpoints(component);
 		for(int j=0; j<number_of_endpoints; j++) {
 			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
-			if(endpoint->node_id == nvmcomm_get_node_id()
+			if(endpoint->node_id == wkcomm_get_node_id()
 					&& endpoint->port_number == port_number) {
 				*component_id = i;
 				return true; // Found
@@ -76,13 +76,13 @@ uint8_t wkpf_load_component_to_wuobject_map(dj_ref_array *map) {
 	}
 #endif // DARJEELING_DEBUG
 
-// TODONR: nieuwe constante bedenken en implementatie van group_add_node_to_watch en nvmcomm_get_node_id
+// TODONR: nieuwe constante bedenken en implementatie van group_add_node_to_watch en wkcomm_get_node_id
 #ifdef NVM_USE_GROUP
 	for (int i=0; i<wkpf_number_of_components; i++) {
 		wkpf_component_t *component = wkpf_get_component(i);
 		for (int j=0; j<wkpf_number_of_endpoints(component); j++) {
 			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
-			if (endpoint->node_id == nvmcomm_get_node_id()) {
+			if (endpoint->node_id == wkcomm_get_node_id()) {
 				if (j == 0) {
 					// I'm the leader, so watch everyone
 					for (int k=1; k<wkpf_number_of_endpoints(component); k++)
@@ -128,7 +128,7 @@ bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t pr
 		if (link->dest_component_id == component_id
 				&& link->dest_property_number == property_number) {
 			// The property is the destination of this link. If the source is remote, we need to ask for an initial value
-			if (wkpf_node_is_leader(link->src_component_id, nvmcomm_get_node_id())) {
+			if (wkpf_node_is_leader(link->src_component_id, wkcomm_get_node_id())) {
 				DEBUG_LOG(DBG_WKPF, "%x, %x doesn't need pull: source is a local property\n", port_number, property_number);
 				return false; // Source link is local, so no need to pull initial value as it will come automatically.
 			} else {
@@ -151,7 +151,7 @@ uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
 			uint16_t src_component_id = link->src_component_id;
 			wkpf_endpoint_t src_endpoint = wkpf_leader_for_component(src_component_id);
 			uint8_t src_property_number = link->src_property_number;
-			if (src_endpoint.node_id != nvmcomm_get_node_id()) {
+			if (src_endpoint.node_id != wkcomm_get_node_id()) {
 				// Properties with local sources will be initialised eventually, so we only need to send a message
 				// to ask for initial values coming from remote nodes
 				return wkpf_send_request_property_init(src_endpoint.node_id, src_endpoint.port_number, src_property_number);      
@@ -181,7 +181,7 @@ uint8_t wkpf_propagate_property(wuobject_t *wuobject, uint8_t property_number, v
 			uint8_t dest_property_number = link->dest_property_number;
 			uint8_t dest_port_number = wkpf_leader_for_component(dest_component_id).port_number;
 			address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
-			if (dest_node_id == nvmcomm_get_node_id()) {
+			if (dest_node_id == wkcomm_get_node_id()) {
 				// Local
 				wuobject_t *dest_wuobject;
 				wkpf_error_code = wkpf_get_wuobject_by_port(dest_port_number, &dest_wuobject);
@@ -259,7 +259,7 @@ wkpf_endpoint_t wkpf_leader_for_component(uint16_t component_id) {
 
 // uint8_t wkpf_local_endpoint_for_component(uint16_t component_id, remote_endpoint* endpoint) {
 //   for (int i=0; i<component_to_wuobject_map[component_id].number_of_endpoints; i++) {
-//     if (component_to_wuobject_map[component_id].endpoints[i].node_id == nvmcomm_get_node_id())
+//     if (component_to_wuobject_map[component_id].endpoints[i].node_id == wkcomm_get_node_id())
 //       *endpoint = component_to_wuobject_map[component_id].endpoints[i];
 //       return WKPF_OK;
 //   }
