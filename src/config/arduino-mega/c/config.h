@@ -47,4 +47,8 @@ void avr_serialPrintf(char * format, ...);
 // #define DARJEELING_PRINTF
 #define DARJEELING_PGMSPACE_MACRO
 
+// Radios
+#define RADIO_USE_ZWAVE
+// #define RADIO_USE_XBEE
+
 #endif

@@ -58,4 +58,8 @@ typedef int64_t dj_time_t;
 #define DARJEELING_PGMSPACE_MACRO
 #define IS_SIMULATOR
 
+// Radios
+#define RADIO_USE_ZWAVE
+// #define RADIO_USE_XBEE
+
 #endif
