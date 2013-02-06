@@ -5,17 +5,22 @@
 
 #define WKCOMM_MESSAGE_SIZE   0x20
 
+#define WKCOMM_SEND_OK					 0
+#define WKCOMM_SEND_ERR_NOT_HANDLED		 2 // None of the available protocols (XBee/ZWave) could send this message
+#define WKCOMM_SEND_ERR_TOO_LONG		 3
+#define WKCOMM_SEND_ERR_NO_REPLY		 4
+
 // WuKong address. For now it's just a byte, but this will probably change.
 // When it does, we need to change the component-node map as well
 typedef uint8_t address_t;
 
-typedef struct wkcomm_message {
-  address_t from;
-  address_t to;
-  uint8_t command;
-  uint8_t *payload;
-  uint8_t payload_length;
-} wkcomm_message;
+typedef struct wkcomm_received_msg {
+	address_t src;
+	uint16_t seqnr;
+	uint8_t command;
+	uint8_t *payload;
+	uint8_t length;
+} wkcomm_received_msg;
 
 // Initialise wkcomm and whatever protocols are enabled.
 extern void wkcomm_init(void);
@@ -29,7 +34,7 @@ extern void wkcomm_poll(void);
 // Send length bytes to dest
 extern int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length);
 
-// Wait for a message of a specific type, while still handling messages of other types
-extern wkcomm_message *wkcomm_wait(uint16_t wait_msec, uint8_t *commands, uint8_t number_of_commands);
+// Send length bytes to dest and wait for a specific reply (and matching sequence nr)
+extern int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t wait_msec, uint8_t *commands, uint8_t number_of_commands, wkcomm_received_msg **reply);
 
 #endif // WKCOMMH

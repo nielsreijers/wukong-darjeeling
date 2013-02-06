@@ -1,9 +1,24 @@
 #include "panic.h"
 #include "debug.h"
 #include "config.h"
+#include "hooks.h"
+#include "djtimer.h"
+
 #include "wkcomm.h"
 #include "wkcomm_zwave.h"
 #include "wkcomm_xbee.h"
+
+// Keep track of sequence numbers
+uint16_t wkcomm_last_seqnr = 0;
+
+// Some variables to wait for a reply
+uint8_t *wkcomm_wait_reply_commands;
+uint8_t wkcomm_wait_reply_number_of_commands;
+uint16_t wkcomm_wait_reply_seqnr;
+wkcomm_received_msg wkcomm_received_reply;
+
+// To allow other libraries to listen to received messages
+dj_hook *wkcomm_handle_message = NULL;
 
 // Initialise wkcomm and whatever protocols are enabled.
 void wkcomm_init(void) {
@@ -38,30 +53,91 @@ void wkcomm_poll(void) {
 }
 
 // Send length bytes to dest
-int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length) {
+int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, bool store_seqnr) {
 	if (length > WKCOMM_MESSAGE_SIZE) {
 		DEBUG_LOG(DBG_COMM, "message oversized\n");
-		return -2; // Message too large
+		return WKCOMM_SEND_ERR_TOO_LONG; // Message too large
 	}
-	int retval = -1;
+	int retval = WKCOMM_SEND_ERR_NOT_HANDLED;
 	DEBUG_LOG(DBG_COMM, "wkcomm_send\n");
 	#ifdef RADIO_USE_ZWAVE
-		retval = wkcomm_zwave_send(dest, command, payload, length);
+		retval = wkcomm_zwave_send(dest, command, payload, length, ++wkcomm_last_seqnr);
 		if (retval == 0)
 			return retval;
 	#endif
 	#ifdef RADIO_USE_XBEE
-		retval = wkcomm_xbee_send(dest, command, payload, length);
+		retval = wkcomm_xbee_send(dest, command, payload, length, ++wkcomm_last_seqnr);
 		if (retval == 0)
 			return retval;
 	#endif
+	if (store_seqnr) {
+		// Called from wkcomm_send_and_wait_for_reply.
+		// Need to store the current sequence nr because other messages might be sent while
+		// waiting for the reply, so we can't use wkcomm_last_seqnr to check the incoming replies.
+		wkcomm_wait_reply_seqnr = wkcomm_last_seqnr;
+	}
+
 	return retval;
 }
 
-// Wait for a message of a specific type, while still handling messages of other types
-wkcomm_message *wkcomm_wait(uint16_t wait_msec, uint8_t *commands, uint8_t number_of_commands) {
-	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
-	return NULL; // To keep the compiler happy.
+int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length) {
+	// Just send, but don't store the seqnr
+	return wkcomm_do_send(dest, command, payload, length, false);
 }
 
+// Send length bytes to dest and wait for a specific reply (and matching sequence nr)
+int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length,
+							uint16_t wait_msec, uint8_t *reply_commands, uint8_t number_of_reply_commands, wkcomm_received_msg **reply) {
+	// Set global variables to wait for the required message types
+	wkcomm_wait_reply_commands = reply_commands;
+	wkcomm_wait_reply_number_of_commands = number_of_reply_commands;
+	wkcomm_received_reply.command = 0; // command will be != 0 once a reply has been received.
+
+	// Do the send, and store the seqnr so handle_message can check for a match
+	int8_t retval = wkcomm_do_send(dest, command, payload, length, true);
+	if (retval != 0)
+		return retval; // Something went wrong during send.
+
+	dj_time_t deadline = dj_timer_getTimeMillis() + wait_msec;
+	do {
+		wkcomm_poll();
+		if (wkcomm_received_reply.command != 0) {
+			// Reply received
+			*reply = &wkcomm_received_reply;
+			wkcomm_wait_reply_number_of_commands = 0;
+			return 0;
+		}
+	} while(wkcomm_wait_reply_number_of_commands == 0
+			&& deadline > dj_timer_getTimeMillis());
+	return WKCOMM_SEND_ERR_NO_REPLY;
+}
+
+// Message handling. This function is called from the radio code (wkcomm_zwave_poll or wkcomm_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
+void handle_message(wkcomm_received_msg *message) {
+#ifdef DEBUG
+	DEBUG_LOG(DBG_COMM, "Handling command "DBG8" from "DBG8", length "DBG8":\n", message->command, message->src, message->length);
+	for (int8_t i=0; i<message->length; ++i) {
+		DEBUG_LOG(DBG_COMM, " "DBG8"", message->payload[i]);
+	}
+	DEBUG_LOG(DBG_COMM, "\n");
+#endif
+
+	if (wkcomm_wait_reply_number_of_commands > 0) {
+		// nvmcomm_wait is waiting for a particular type of message. probably a response to a message sent earlier.
+		// if this message is of that type, store it in nvmcomm_wait_received_message so nvmcomm_wait can return it.
+		// if not, handle it as a normal message
+		if (wkcomm_wait_reply_number_of_commands != 0
+				&& message->seqnr == wkcomm_last_seqnr) {
+			for (int i=0; i<wkcomm_wait_reply_number_of_commands; i++) {
+				if (message->command == wkcomm_wait_reply_commands[i]) {
+					wkcomm_received_reply = *message; // Struct, so values are copied. Radio libs need to provide a pointer to a global payload buffer.
+					wkcomm_wait_reply_number_of_commands = 0; // Signal we're no longer waiting for the reply.
+				}
+			}
+		}
+	}
+
+	// Pass on to other libs. Could have a system here were libraries register for specific commands, but this seems simpler, and only a bit slower if handlers return quickly when the message isn't meant for them.
+	dj_hook_call(wkcomm_handle_message, message);
+}
 

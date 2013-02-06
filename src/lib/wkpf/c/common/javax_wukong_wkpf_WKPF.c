@@ -5,6 +5,7 @@
 #include "hooks.h"
 #include "execution.h"
 #include "wkcomm.h"
+#include "heap.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"
