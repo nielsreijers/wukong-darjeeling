@@ -24,7 +24,11 @@
 
 #include "config.h"
 #include "types.h"
+#include "hooks.h"
 
+// To let other libraries hook into the garbage collector.
+extern dj_hook *dj_vm_markRootSetHook;
+extern dj_hook *dj_mem_updateReferenceHook;
 
 #define SAFE_POINTER_POOL_SIZE 4
 

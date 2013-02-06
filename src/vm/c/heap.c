@@ -97,6 +97,10 @@ static void *left_pointer, *right_pointer;
 static int nrTrace = 0;
 #endif
 
+// To let other libraries hook into the garbage collector.
+dj_hook *dj_vm_markRootSetHook = NULL;
+dj_hook *dj_mem_updateReferenceHook = NULL;
+
 /**
  * Initialises the memory manager. A call to this function may trigger garbage collection.
  * @param mem_pointer pointer to where Darjeeling can manage its heap
