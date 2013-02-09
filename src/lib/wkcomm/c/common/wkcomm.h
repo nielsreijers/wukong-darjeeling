@@ -22,7 +22,7 @@ typedef struct wkcomm_received_msg {
 	uint8_t length;
 } wkcomm_received_msg;
 
-// Initialise wkcomm and whatever protocols are enabled.
+// Initialise wkcomm and whatever protocols are enabled. Called from javax_wukong_wkcomm_WKComm_void__init()
 extern void wkcomm_init(void);
 
 // Get my own node id

@@ -4,7 +4,7 @@
 	<property name="name" value="wkcomm"/>
 	
 	<!-- list of libraries this library depends on -->
-	<property name="lib-depends" value="base"/>
+	<property name="lib-depends" value="base, uart"/>
 	
 	<!-- include the library build template -->
 	<import file="../lib.xml"/>

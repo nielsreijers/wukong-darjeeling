@@ -7,7 +7,7 @@
 #include "wkcomm.h"
 
 void wkcomm_zwave_init(void) {
-	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	// NOOP
 }
 
 address_t wkcomm_zwave_get_node_id() {
