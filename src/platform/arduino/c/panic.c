@@ -71,7 +71,7 @@ void dj_panic(int32_t panictype)
             break;
         default:
 #ifdef DARJEELING_DEBUG
-            avr_serialPrint("PANIC: unknown panic type!\n");
+            avr_serialPrint("PANIC: unknown panic type %d!\n", panictype);
 #endif
             break;
     }

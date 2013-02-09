@@ -54,7 +54,7 @@ void dj_panic(int32_t panictype)
             printf("Darjeeling panic: safe pointer overflow\n");
             break;
         default:
-            printf("Darjeeling panic: unknown panic type\n");
+            printf("Darjeeling panic: unknown panic type %d\n", panictype);
             break;
     }
     exit(-1);
