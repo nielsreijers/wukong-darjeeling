@@ -18,4 +18,23 @@
 	<!-- Import the rest from config.xml (magic) -->
 	<import file="../config.xml"/>
 	
+
+	<target name="avrdude-jtag" depends="executable">
+		<exec executable="avrdude">
+			<arg line="-p atmega2560 -P usb -c dragon_jtag -U flash:w:darjeeling.ihex"/>
+		</exec>
+	</target>
+
+	<target name="avrdude" depends="executable">
+		<exec executable="avrdude">
+			<arg line="-p atmega2560 -P /dev/cu.usbmodem1411 -c stk500v2 -U flash:w:darjeeling.ihex"/>
+		</exec>
+	</target>
+
+	<target name="avarice">
+		<exec executable="avarice">
+			<arg line="-g -j usb -B 4000000 :4242"/>
+		</exec>
+	</target>
+
 </project>
