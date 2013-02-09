@@ -191,7 +191,6 @@ static dj_frame *getCurrentFrame() {
 	dj_frame *ret = NULL;
 	dj_thread *thread = dj_exec_getCurrentThread();
 	if( thread==NULL ) {
-		DEBUG_LOG_WHEREAMI(DBG_DARJEELING);
 		DEBUG_LOG(DBG_DARJEELING, "Thread is NULL. Couldn't determine current frame.\n");
 	} else {
 		ret = thread->frameStack;

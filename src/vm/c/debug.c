@@ -35,7 +35,6 @@
 
 int  darjeeling_debug_nesting_level=0;
 int  darjeeling_debug_indent_index=0;
-char darjeeling_debug_char_buffer[256];
 
 
 // dumps the  stack frame, and  calls itself recursively to  print the

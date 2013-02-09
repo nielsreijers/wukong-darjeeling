@@ -104,7 +104,6 @@
 
 /*extern*/ int  darjeeling_debug_nesting_level;
 /*extern*/ int  darjeeling_debug_indent_index;
-/*extern*/ char darjeeling_debug_char_buffer[256];
 
 #define DEBUG_LOG(type, format, args...) if (type) do {                 \
         DEBUG_PRINT_INDENT;                                             \
@@ -151,17 +150,6 @@
         DEBUG_LOG(type, "<< ");                                         \
         DEBUG_LOG(type, format,##args);                                 \
     } while(0)
-
-
-
-#define DEBUG_WHEREAMI (                                                \
-        snprintf(darjeeling_debug_char_buffer,256,"%s:%d",__FILE__,__LINE__), \
-        darjeeling_debug_char_buffer                                    \
-                                                                        )
-
-#define DEBUG_LOG_WHEREAMI(type) if (type) do { \
-        DEBUG_LOG(type, "%s\n", DEBUG_WHEREAMI);       \
-    }while(0)
 
 
 #endif// DARJEELING_DEBUG
