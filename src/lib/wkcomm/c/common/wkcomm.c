@@ -55,11 +55,11 @@ void wkcomm_poll(void) {
 // Send length bytes to dest
 int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, bool store_seqnr) {
 	if (length > WKCOMM_MESSAGE_SIZE) {
-		DEBUG_LOG(DBG_COMM, "message oversized\n");
+		DEBUG_LOG(DBG_WKCOMM, "message oversized\n");
 		return WKCOMM_SEND_ERR_TOO_LONG; // Message too large
 	}
 	int retval = WKCOMM_SEND_ERR_NOT_HANDLED;
-	DEBUG_LOG(DBG_COMM, "wkcomm_send\n");
+	DEBUG_LOG(DBG_WKCOMM, "wkcomm_send\n");
 	#ifdef RADIO_USE_ZWAVE
 		retval = wkcomm_zwave_send(dest, command, payload, length, ++wkcomm_last_seqnr);
 		if (retval == 0)
@@ -115,11 +115,11 @@ int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *pay
 // Message handling. This function is called from the radio code (wkcomm_zwave_poll or wkcomm_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
 void handle_message(wkcomm_received_msg *message) {
 #ifdef DEBUG
-	DEBUG_LOG(DBG_COMM, "Handling command "DBG8" from "DBG8", length "DBG8":\n", message->command, message->src, message->length);
+	DEBUG_LOG(DBG_WKCOMM, "Handling command "DBG8" from "DBG8", length "DBG8":\n", message->command, message->src, message->length);
 	for (int8_t i=0; i<message->length; ++i) {
-		DEBUG_LOG(DBG_COMM, " "DBG8"", message->payload[i]);
+		DEBUG_LOG(DBG_WKCOMM, " "DBG8"", message->payload[i]);
 	}
-	DEBUG_LOG(DBG_COMM, "\n");
+	DEBUG_LOG(DBG_WKCOMM, "\n");
 #endif
 
 	if (wkcomm_wait_reply_number_of_commands > 0) {

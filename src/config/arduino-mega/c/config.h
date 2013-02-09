@@ -42,6 +42,7 @@ void avr_serialPrintf(char * format, ...);
 #define DBG_WKPF true
 #define DBG_WKPFGC true
 #define DBG_WKPFUPDATE true
+#define DBG_WKCOMM true
 
 #define DARJEELING_PRINTF avr_serialPrintf
 // #define DARJEELING_PRINTF

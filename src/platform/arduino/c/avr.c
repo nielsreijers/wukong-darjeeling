@@ -131,8 +131,11 @@ void avr_serialInit(uint32_t baud)
 void avr_serialPrint(char * str)
 {
 	int i;
-	for (i=0; str[i]!=0; i++)
+	for (i=0; str[i]!=0; i++) {
+		if (str[i] == '\n')
+			avr_serialWrite('\r');
 		avr_serialWrite(str[i]);
+	}
 }
 void avr_serialVPrint(char * format, va_list arg)
 {
