@@ -24,6 +24,7 @@
 
 #include "execution.h"
 #include "panic.h"
+#include "debug.h"
 #include "avr.h"
 
 void dj_panic(int32_t panictype)
@@ -32,46 +33,46 @@ void dj_panic(int32_t panictype)
     {
         case DJ_PANIC_OUT_OF_MEMORY:
 #ifdef DARJEELING_DEBUG
-        	avr_serialPrint("PANIC: out of memory!\n");
+        	DEBUG_LOG(true, "PANIC: out of memory!\n");
 #endif
             break;
         case DJ_PANIC_ILLEGAL_INTERNAL_STATE:
 #ifdef DARJEELING_DEBUG
-        	avr_serialPrint("PANIC: illegal internal state!\n");
+        	DEBUG_LOG(true, "PANIC: illegal internal state!\n");
 #endif
             break;
         case DJ_PANIC_UNIMPLEMENTED_FEATURE:
 #ifdef DARJEELING_DEBUG
-        	avr_serialPrint("PANIC: unimplemented feature!\n");
+        	DEBUG_LOG(true, "PANIC: unimplemented feature!\n");
 #endif
             break;
         case DJ_PANIC_UNCAUGHT_EXCEPTION:
 #ifdef DARJEELING_DEBUG
-        	avr_serialPrint("PANIC: uncaught exception!\n");
+        	DEBUG_LOG(true, "PANIC: uncaught exception!\n");
 #endif
         case DJ_PANIC_UNSATISFIED_LINK:
 #ifdef DARJEELING_DEBUG
-            avr_serialPrint("PANIC: unsatisfied link!\n");
+            DEBUG_LOG(true, "PANIC: unsatisfied link!\n");
 #endif
             break;
         case DJ_PANIC_MALFORMED_INFUSION:
 #ifdef DARJEELING_DEBUG
-        	avr_serialPrint("PANIC: malformed infusion!\n");
+        	DEBUG_LOG(true, "PANIC: malformed infusion!\n");
 #endif
             break;
         case DJ_PANIC_ASSERTION_FAILURE:
 #ifdef DARJEELING_DEBUG
-            avr_serialPrint("PANIC: assertion failed!\n");
+            DEBUG_LOG(true, "PANIC: assertion failed!\n");
 #endif
             break;
         case DJ_PANIC_SAFE_POINTER_OVERFLOW:
 #ifdef DARJEELING_DEBUG
-            avr_serialPrint("PANIC: safe pointer overflow!\n");
+            DEBUG_LOG(true, "PANIC: safe pointer overflow!\n");
 #endif
             break;
         default:
 #ifdef DARJEELING_DEBUG
-            avr_serialPrint("PANIC: unknown panic type %d!\n", panictype);
+            DEBUG_LOG(true, "PANIC: unknown panic type %d!\n", panictype);
 #endif
             break;
     }
