@@ -22,8 +22,9 @@ address_t wkcomm_zwave_get_node_id() {
 	return wkcomm_zwave_my_address;
 }
 
+void nvmcomm_zwave_poll(); // Refactor this later
 void wkcomm_zwave_poll(void) {
-
+    nvmcomm_zwave_poll();
 }
 
 uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
@@ -41,7 +42,7 @@ uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uin
 void delay(uint32_t msec) {
 	dj_time_t start = dj_timer_getTimeMillis();
 	while (dj_timer_getTimeMillis() < start+msec) {
-		// NOOP
+        nvmcomm_zwave_poll();
 	}
 }
 
@@ -128,7 +129,7 @@ void nvmcomm_zwave_receive(int processmessages) {
     while (uart_available(ZWAVE_UART)) {
         // TODO    expire = now + 1000;
         uint8_t c = uart_read_byte(ZWAVE_UART);
-        DEBUG_LOG(DBG_ZWAVETRACE, "c="DBG8" state="DBG8"\n\r", c, state);
+        DEBUG_LOG(DBG_ZWAVETRACE, "c=%d state=%d\n\r", c, state);
         if (state == ZWAVE_STATUS_WAIT_ACK) {
             if (c == ZWAVE_ACK) {
                 state = ZWAVE_STATUS_WAIT_SOF;
@@ -316,9 +317,9 @@ void nvmcomm_zwave_poll(void) {
 // two nodes. It has no assumption of the payload sent between them.
 int nvmcomm_zwave_send(address_t dest, uint8_t nvc3_command, uint8_t *data, uint8_t len, uint8_t txoptions) {
 #ifdef DEBUG
-    DEBUG_LOG(DBG_WKCOMM, "Sending command "DBG8" to "DBG8", length "DBG8": ", nvc3_command, dest, len);
+    DEBUG_LOG(DBG_WKCOMM, "Sending command %d to %d, length %d: ", nvc3_command, dest, len);
     for (size8_t i=0; i<len; ++i) {
-        DEBUG_LOG(DBG_WKCOMM, " "DBG8"", data[i]);
+        DEBUG_LOG(DBG_WKCOMM, " %d", data[i]);
     }
     DEBUG_LOG(DBG_WKCOMM, "\n");
 #endif
@@ -358,7 +359,7 @@ void nvmcomm_zwave_learn() {
             uart_write_byte(ZWAVE_UART, b[k]);
         }
     }
-    //DEBUG_LOG(DBG_WKCOMM, "current:"DBG32" start:"DBG32", zwave_learn_block:"DBG8": ", dj_timer_getTimeMillis(), zwave_learn_startT, zwave_learn_block);
+    //DEBUG_LOG(DBG_WKCOMM, "current:"DBG32" start:"DBG32", zwave_learn_block:%d: ", dj_timer_getTimeMillis(), zwave_learn_startT, zwave_learn_block);
     if(dj_timer_getTimeMillis()-zwave_learn_startT>10000 && !zwave_learn_block) { //time out learn off
         // DEBUG_LOG(DBG_WKCOMM, "turn off!!!!!!!!!!!!!!!!");
         onoff=0;
@@ -399,7 +400,7 @@ int SerialAPI_request(unsigned char *buf, int len)
         if (uart_available(ZWAVE_UART))
             nvmcomm_zwave_receive(0); // Don't process received messages
         if (state != ZWAVE_STATUS_WAIT_SOF) {	// wait for WAIT_SOF state (idle state)
-            DEBUG_LOG(DBG_WKCOMM, "SerialAPI is not in ready state!!!!!!!!!! zstate="DBG8"\n", state);
+            DEBUG_LOG(DBG_WKCOMM, "SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", state);
             DEBUG_LOG(DBG_WKCOMM, "Try to send SerialAPI command in a wrong state......\n");
             delay(100);
             //continue;
@@ -417,12 +418,12 @@ int SerialAPI_request(unsigned char *buf, int len)
             uart_write_byte(ZWAVE_UART, buf[i]); // REQ, cmd, data
         }
         uart_write_byte(ZWAVE_UART, crc); // LRC checksum
-#ifdef DEBUG
-        DEBUG_LOG(DBG_WKCOMM, "Send len="DBG8" ", len+1);
+#ifdef DBG_WKCOMM
+        DEBUG_LOG(DBG_WKCOMM, "Send len=%d ", len+1);
         for(i=0;i<len;i++) {
-            DEBUG_LOG(DBG_WKCOMM, ""DBG8" ", buf[i]);
+            DEBUG_LOG(DBG_WKCOMM, "%d ", buf[i]);
         }
-        DEBUG_LOG(DBG_WKCOMM, "CRC="DBG8"\n", crc);
+        DEBUG_LOG(DBG_WKCOMM, "CRC=%d\n", crc);
         ;
 #endif
         state = ZWAVE_STATUS_WAIT_ACK;
@@ -437,7 +438,7 @@ int SerialAPI_request(unsigned char *buf, int len)
             if (ack_got == 1) {
                 return 0;
             } else {
-                DEBUG_LOG(DBG_WKCOMM, "Ack error!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
+                DEBUG_LOG(DBG_WKCOMM, "Ack error!!! zstate=%d ack_got=%d\n", state, ack_got);
             }
         } 
         if (state == ZWAVE_STATUS_WAIT_ACK) {
@@ -447,7 +448,7 @@ int SerialAPI_request(unsigned char *buf, int len)
         if (!retry--) {
             DEBUG_LOG(DBG_WKCOMM, "SerialAPI request:\n");
             for (i=0; i<len; i++) {
-                DEBUG_LOG(DBG_WKCOMM, ""DBG8" ", buf[i]);
+                DEBUG_LOG(DBG_WKCOMM, "%d ", buf[i]);
             }
             DEBUG_LOG(DBG_WKCOMM, "\n");
             DEBUG_LOG(DBG_WKCOMM, "error!!!\n", __FUNCTION__);
