@@ -240,7 +240,7 @@
 #define JVM_S2L 217
 #define JVM_LCMP 218
 
-#ifdef DARJEELING_DEBUG
+#if defined(DARJEELING_DEBUG) && defined(DARJEELING_DEBUG_TRACE)
 
 const char *jvm_opcodes[] = {
 "nop",
@@ -463,4 +463,4 @@ const char *jvm_opcodes[] = {
 "s2l",
 "lcmp"
 };
-#endif
+#endif // defined(DARJEELING_DEBUG) && defined(DARJEELING_DEBUG_TRACE)

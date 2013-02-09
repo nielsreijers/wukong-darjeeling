@@ -1601,7 +1601,7 @@ int dj_exec_run(int nrOpcodes)
 		case JVM_NOP: /* do nothing :3 */ break;
 
 		default:
-			DEBUG_LOG(DBG_DARJEELING, "Unimplemented opcode %d at pc=%d: %s\n", opcode, oldPc, jvm_opcodes[opcode]);
+			DEBUG_LOG(DBG_DARJEELING, "Unimplemented opcode %d at pc=%d\n", opcode, oldPc);
 			dj_exec_createAndThrow(BASE_CDEF_java_lang_VirtualMachineError);
 		}
 
