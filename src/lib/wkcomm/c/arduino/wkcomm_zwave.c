@@ -45,7 +45,7 @@
 // wkcomm_zwave data
 address_t wkcomm_zwave_my_address;
 bool wkcomm_zwave_my_address_loaded = false;
-uint8_t wkcomm_zwave_received_payload[WKCOMM_MESSAGE_SIZE+5];
+uint8_t wkcomm_zwave_receive_buffer[WKCOMM_MESSAGE_SIZE+5];
 
 // zwave protocol data
 uint8_t state;        // Current state
@@ -53,7 +53,7 @@ uint8_t seq;          // Sequence number which is used to match the callback fun
 
 // Low level ZWave functions originally from testrtt.c
 int SerialAPI_request(unsigned char *buf, int len);
-int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions);
+int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr);
 
 
 bool addr_wkcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
@@ -143,7 +143,7 @@ uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uin
 
     uint8_t zwave_addr;
     if (addr_wkcomm_to_zwave(dest, &zwave_addr))
-        return ZW_sendData(zwave_addr, command, payload, length, txoptions);
+        return ZW_sendData(zwave_addr, command, payload, length, txoptions, seqnr);
     else
         return -1; // Not a ZWave address
 }
@@ -159,12 +159,12 @@ uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uin
 
 
 // u16_t g_seq = 0;
-uint8_t len;          // Length of the returned wkcomm_zwave_received_payload
+uint8_t len;          // Length of the returned wkcomm_zwave_receive_buffer
 uint8_t type;         // 0: request 1: response 2: timeout
-uint8_t cmd;          // the serial api command number of the current wkcomm_zwave_received_payload
+uint8_t cmd;          // the serial api command number of the current wkcomm_zwave_receive_buffer
 // 4 bytes protocol overhead (see nvmcomm_zwave_receive),
-// 1 byte for the nvc3_command, which is the first byte in the buffer.
-uint8_t payload_length;  // Length of the wkcomm_zwave_received_payload while reading a packet
+// 1 byte for the nvc3_command, which is the first byte in the message.
+uint8_t payload_length;  // Length of the wkcomm_zwave_receive_buffer while reading a packet
 // TODO: used?
 uint8_t last_node = 0;
 uint8_t ack_got = 0;
@@ -241,7 +241,7 @@ void nvmcomm_zwave_receive(int processmessages) {
             state = ZWAVE_STATUS_WAIT_DATA;
             payload_length = 0;
         } else if (state == ZWAVE_STATUS_WAIT_DATA) {
-            wkcomm_zwave_received_payload[payload_length++] = c;
+            wkcomm_zwave_receive_buffer[payload_length++] = c;
             len--;
             if (len == 0) {
                 state = ZWAVE_STATUS_WAIT_CRC;
@@ -250,15 +250,15 @@ void nvmcomm_zwave_receive(int processmessages) {
             uart_write_byte(ZWAVE_UART, 6);
             state = ZWAVE_STATUS_WAIT_SOF;
             if (type == ZWAVE_TYPE_REQ && cmd == 0x13) {
-                zwsend_ack_got = wkcomm_zwave_received_payload[1];
+                zwsend_ack_got = wkcomm_zwave_receive_buffer[1];
             }
             if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER) {
                 wkcomm_received_msg msg;
 
-                if (addr_zwave_to_wkcomm(&msg.src, wkcomm_zwave_received_payload[1]) && processmessages==1) {
-                    msg.command = wkcomm_zwave_received_payload[4];
-                    msg.seqnr = *((uint16_t *)wkcomm_zwave_received_payload+5);
-                    msg.payload = wkcomm_zwave_received_payload+7;
+                if (addr_zwave_to_wkcomm(&msg.src, wkcomm_zwave_receive_buffer[1]) && processmessages==1) {
+                    msg.command = wkcomm_zwave_receive_buffer[4];
+                    msg.seqnr = *((uint16_t *)wkcomm_zwave_receive_buffer+5);
+                    msg.payload = wkcomm_zwave_receive_buffer+7;
                     msg.length = payload_length-7;
 
                     wkcomm_handle_message(&msg);
@@ -266,22 +266,22 @@ void nvmcomm_zwave_receive(int processmessages) {
                 // Old nanovm code:
                 // if (f!=NULL) {
                 //     address_t nvmcomm_addr;
-                //     if (addr_zwave_to_wkcomm(&nvmcomm_addr, wkcomm_zwave_received_payload[1]) && processmessages==1)
-                //         f(nvmcomm_addr, wkcomm_zwave_received_payload[4], wkcomm_zwave_received_payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
+                //     if (addr_zwave_to_wkcomm(&nvmcomm_addr, wkcomm_zwave_receive_buffer[1]) && processmessages==1)
+                //         f(nvmcomm_addr, wkcomm_zwave_receive_buffer[4], wkcomm_zwave_receive_buffer+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
                 // }
             }
             if (cmd == FUNC_ID_MEMORY_GET_ID) {
-                wkcomm_zwave_my_address = wkcomm_zwave_received_payload[4];
+                wkcomm_zwave_my_address = wkcomm_zwave_receive_buffer[4];
                 wkcomm_zwave_my_address_loaded = true;
             }
             // if (cmd == 0x49 && f_nodeinfo)
-            //     f_nodeinfo(wkcomm_zwave_received_payload, payload_length);
+            //     f_nodeinfo(wkcomm_zwave_receive_buffer, payload_length);
             if (cmd == 0x50) {
-                if(wkcomm_zwave_received_payload[1]==0x01) {
+                if(wkcomm_zwave_receive_buffer[1]==0x01) {
                     zwave_learn_block = 1;
-                    //	   DEBUG_LOG(DBG_WKCOMM, "zwave wkcomm_zwave_received_payload block !!!!!!!!!!!!!!!!");
+                    //	   DEBUG_LOG(DBG_WKCOMM, "zwave wkcomm_zwave_receive_buffer block !!!!!!!!!!!!!!!!");
                 }
-                else if(wkcomm_zwave_received_payload[1]==6) {//network stop, learn off
+                else if(wkcomm_zwave_receive_buffer[1]==6) {//network stop, learn off
                     unsigned char b[10];
                     unsigned char onoff=0;
                     int k;
@@ -293,7 +293,7 @@ void nvmcomm_zwave_receive(int processmessages) {
                     b[5] = seq;
                     b[6] = 0xff^5^0^0x50^onoff^seq;
                     seq++;
-                    //DEBUG_LOG(DBG_WKCOMM, "zwave wkcomm_zwave_received_payload learnoff !!!!!!!!!!!!!!!!");
+                    //DEBUG_LOG(DBG_WKCOMM, "zwave wkcomm_zwave_receive_buffer learnoff !!!!!!!!!!!!!!!!");
                     for(k=0;k<7;k++)
                     {
                         //Serial1.write(b[k]);
@@ -318,7 +318,7 @@ void nvmcomm_zwave_poll(void) {
     //   expire = 0;
     //   type = 2;
     //   state = ZWAVE_STATUS_WAIT_SOF;
-    //   if (f!=NULL) f(wkcomm_zwave_received_payload,i);
+    //   if (f!=NULL) f(wkcomm_zwave_receive_buffer,i);
     //   Serial.write("timeout...\n");
     //   return true;
     // }
@@ -473,9 +473,9 @@ int ZW_GetRoutingInformation(uint8_t id)
 }
 */
 
-int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions)
+int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr)
 {
-    unsigned char buf[WKCOMM_MESSAGE_SIZE+8];
+    unsigned char buf[WKCOMM_MESSAGE_SIZE+10];
     int i;
     int timeout = 1000;
     zwsend_ack_got = -1;
@@ -483,13 +483,15 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint
     buf[0] = ZWAVE_TYPE_REQ;
     buf[1] = ZWAVE_REQ_SENDDATA;
     buf[2] = id;
-    buf[3] = len+2;
+    buf[3] = len+4;
     buf[4] = COMMAND_CLASS_PROPRIETARY;
-    buf[5] = nvc3_command; // See nvmcomm.h
+    buf[5] = seqnr / 256;
+    buf[6] = seqnr % 256;
+    buf[7] = nvc3_command; // See nvmcomm.h
     for(i=0; i<len; i++)
-        buf[i+6] = in[i];
-    buf[6+len] = txoptions;
-    buf[7+len] = seq++;
+        buf[i+8] = in[i];
+    buf[8+len] = txoptions;
+    buf[9+len] = seq++;
     if (SerialAPI_request(buf, len + 8) != 0)
         return -1;
     while (zwsend_ack_got == -1 && timeout-->0) {
@@ -516,7 +518,7 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint
 //   void DisplayNodeInfo() {
 //     char buf[128];
 //     
-//     snprintf(buf,64,"Status=%d Node=%d Device=%d:%d:%d\n", wkcomm_zwave_received_payload[0],wkcomm_zwave_received_payload[1],wkcomm_zwave_received_payload[3],wkcomm_zwave_received_payload[4],wkcomm_zwave_received_payload[5]);
+//     snprintf(buf,64,"Status=%d Node=%d Device=%d:%d:%d\n", wkcomm_zwave_receive_buffer[0],wkcomm_zwave_receive_buffer[1],wkcomm_zwave_receive_buffer[3],wkcomm_zwave_receive_buffer[4],wkcomm_zwave_receive_buffer[5]);
 //     Serial.write(buf);
 //   }
 //   
