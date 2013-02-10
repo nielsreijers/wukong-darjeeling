@@ -3,15 +3,6 @@
 #include "wkpf.h"
 #include "wkpf_comm.h"
 
-// #include <string.h>
-// #include "types.h"
-// #include "nvmcomm.h"
-// #include "wkpf.h"
-// #include "debug.h"
-// #include "delay.h"
-// #include "vm.h"
-// #include "wkpf_config.h"
-
 uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
 	// Print some debug info
 #ifdef DEBUG
@@ -79,7 +70,6 @@ uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_num
 	message_buffer[1] = property_number;
 	return send_message(dest_node_id, WKPF_COMM_CMD_REQUEST_PROPERTY_INIT, message_buffer, 2);
 }
-
 
 // void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
 //   uint8_t number_of_wuclasses;
