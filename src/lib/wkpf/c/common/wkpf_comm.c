@@ -12,19 +12,6 @@
 // #include "vm.h"
 // #include "wkpf_config.h"
 
-// #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
-
-// uint8_t message_buffer[NVMCOMM_MESSAGE_SIZE];
-
-// void set_message_header(uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, uint8_t datatype) {
-//   set_message_sequence_number(message_buffer, NULL);
-//   message_buffer[2] = port_number;
-//   message_buffer[3] = (uint8_t)(wuclass_id >> 8);
-//   message_buffer[4] = (uint8_t)(wuclass_id);
-//   message_buffer[5] = property_number;
-//   message_buffer[6] = datatype;
-// }
-
 uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
 	// Print some debug info
 #ifdef DEBUG
@@ -52,32 +39,45 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, 
 }
 
 uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
-//   set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_SHORT);
-//   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
-//   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
-//   return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
-dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+	uint8_t message_buffer[7];
+	message_buffer[0] = port_number;
+	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+	message_buffer[2] = (uint8_t)(wuclass_id);
+	message_buffer[3] = property_number;
+	message_buffer[4] = WKPF_PROPERTY_TYPE_SHORT;
+	message_buffer[5] = (uint8_t)(value >> 8);
+	message_buffer[6] = (uint8_t)(value);
+	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
 }
 
 uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value) {
-//   set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_BOOLEAN);
-//   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value);
-//   return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+1);
-dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+	uint8_t message_buffer[6];
+	message_buffer[0] = port_number;
+	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+	message_buffer[2] = (uint8_t)(wuclass_id);
+	message_buffer[3] = property_number;
+	message_buffer[4] = WKPF_PROPERTY_TYPE_BOOLEAN;
+	message_buffer[5] = (uint8_t)(value);
+	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 6);
 }
 
 uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
-//   set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_REFRESH_RATE);
-//   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
-//   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
-//   return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
-dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+	uint8_t message_buffer[7];
+	message_buffer[0] = port_number;
+	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+	message_buffer[2] = (uint8_t)(wuclass_id);
+	message_buffer[3] = property_number;
+	message_buffer[4] = WKPF_PROPERTY_TYPE_REFRESH_RATE;
+	message_buffer[5] = (uint8_t)(value >> 8);
+	message_buffer[6] = (uint8_t)(value);
+	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
 }
 
 uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
-//   set_message_header(port_number, property_number, 0, 0); // 0 because this message doesn't take a data type or wuclass ID
-//   return send_message(dest_node_id, WKPF_COMM_CMD_REQUEST_PROPERTY_INIT, 6);
-dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
+	uint8_t message_buffer[2];
+	message_buffer[0] = port_number;
+	message_buffer[1] = property_number;
+	return send_message(dest_node_id, WKPF_COMM_CMD_REQUEST_PROPERTY_INIT, message_buffer, 2);
 }
 
 
@@ -266,8 +266,7 @@ dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE); return WKPF_OK;
 //     break;
 //     case WKPF_COMM_CMD_REQUEST_PROPERTY_INIT:
 //       port_number = payload[2];
-//       // TODONR: wuclass_id = (uint16_t)(payload[3]<<8)+(uint16_t)(payload[4]);
-//       property_number = payload[5];
+//       property_number = payload[3];
 //       retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
 //       if (retval == WKPF_OK) {
 //         retval = wkpf_property_needs_initialisation_push(wuobject, property_number);
