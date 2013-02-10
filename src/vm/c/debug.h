@@ -79,7 +79,12 @@
 #ifndef DBG_WKPFGC
 #define DBG_WKPFGC 0
 #endif
-
+#ifndef DBG_WKCOMM
+#define DBG_WKCOMM 0
+#endif
+#ifndef DBG_ZWAVETRACE
+#define DBG_ZWAVETRACE 0
+#endif
 
 #ifndef DARJEELING_DEBUG
 
