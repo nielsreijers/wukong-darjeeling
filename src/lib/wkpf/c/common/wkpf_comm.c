@@ -1,7 +1,9 @@
 #include "wkcomm.h"
 #include "panic.h"
+#include "debug.h"
 #include "wkpf.h"
 #include "wkpf_comm.h"
+#include "wkpf_config.h"
 
 uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
 	// Print some debug info
@@ -72,65 +74,91 @@ uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_num
 }
 
 
-//void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
+//void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t response_size, u08_t response_cmd) {
 void wkpf_comm_handle_message(void *data) {
 	wkcomm_received_msg *msg = (wkcomm_received_msg *)data;
-  // uint8_t number_of_wuclasses;
-  // uint8_t number_of_wuobjects;
-  // uint8_t port_number;
-  // uint8_t property_number;
-  // uint8_t retval;
-  // wuobject_t *wuobject;
+	uint8_t *payload = msg->payload;
+	uint8_t response_size = 0, response_cmd = 0;
+	uint8_t retval;
 
-  // TODONR: stop processing messages during reprogramming
-  // if (nvm_runlevel != NVM_RUNLVL_VM)
-  //   return;
+	// uint8_t number_of_wuclasses;
+	// uint8_t number_of_wuobjects;
+	// uint8_t port_number;
+	// uint8_t property_number;
+	// wuobject_t *wuobject;
 
-  switch (msg->command) {
-    // case WKPF_COMM_CMD_GET_LOCATION:
-    //   {
-    //     char* location_in_message_payload = (char*)payload+3;
-    //     uint8_t* length_in_message_payload = (uint8_t *)&payload[2];
-    //     wkpf_config_get_location_string(location_in_message_payload, length_in_message_payload);
-    //     *response_cmd = WKPF_COMM_CMD_GET_LOCATION_R;
-    //     *response_size = 3 + *length_in_message_payload;
-    //   }
-    // break;
-    // case WKPF_COMM_CMD_SET_LOCATION:
-    //   retval = wkpf_config_set_location_string((char*) payload+3, payload[2]);
-    //   if (retval == WKPF_OK) {
-    //     *response_cmd = WKPF_COMM_CMD_SET_LOCATION_R;
-    //     *response_size = 2;//payload size
-    //   } else {
-    //     payload[2] = retval;       
-    //     *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     *response_size = 3;//payload size
-    //   }
-    // break;
-    // case WKPF_COMM_CMD_GET_FEATURES:
-    //   {
-    //     int count = 0;
-    //     for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) { // Needs to be changed if we have more features than fits in a single message, but for now it will work fine.
-    //       if (wkpf_config_get_feature_enabled(i)) {
-    //         payload[3+count++] = i;
-    //       }
-    //     }
-    //     payload[2] = count;
-    //     *response_cmd = WKPF_COMM_CMD_GET_FEATURES_R;
-    //     *response_size = 3+count;//payload size
-    //   }
-    // break;
-    // case WKPF_COMM_CMD_SET_FEATURE:
-    //   retval = wkpf_config_set_feature_enabled(payload[2], payload[3]);
-    //   if (retval == WKPF_OK) {
-    //       *response_cmd = WKPF_COMM_CMD_SET_FEATURE_R;
-    //       *response_size = 2;//payload size
-    //     } else {
-    //       payload[2] = retval;       
-    //       *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //       *response_size = 3;//payload size
-    //     }
-    // break;
+	// TODONR: stop processing messages during reprogramming
+	// if (nvm_runlevel != NVM_RUNLVL_VM)
+	//   return;
+
+	switch (msg->command) {
+		case WKPF_COMM_CMD_GET_LOCATION: {
+			// Format of get_location request messages: payload[0] offset of the first byte requested
+			// Format of get_location return messages: payload[0..] the part of the location string
+
+			// The length of the location is stored by the master as the first byte of the string.
+
+			// Get the offset of the requested data within the location string
+			uint8_t requested_offset = payload[0];
+
+			// Read the EEPROM
+			uint8_t length = wkpf_config_get_part_of_location_string((char *)payload, requested_offset, WKCOMM_MESSAGE_SIZE);
+
+			DEBUG_LOG(DBG_WKPF, "WKPF_COMM_CMD_GET_LOCATION: Reading %d bytes at offset %d\n", length, requested_offset);
+
+			response_cmd = WKPF_COMM_CMD_GET_LOCATION_R;
+			response_size = length;
+		}
+		break;
+		case WKPF_COMM_CMD_SET_LOCATION: {
+			// Format of set_location request messages: payload[0] offset of part of the location string being sent
+			// Format of set_location request messages: payload[1] the length of part of the location string being sent
+			// Format of set_location request messages: payload[2..] the part of the location string
+			// Format of set_location return messages: payload[0] the wkpf return code
+
+			uint8_t written_offset = payload[0];
+			uint8_t length = payload[1];
+
+			DEBUG_LOG(DBG_WKPF, "WKPF_COMM_CMD_SET_LOCATION: Writing %d bytes at offset %d\n", length, written_offset);
+
+			// Read the EEPROM
+			retval = wkpf_config_set_part_of_location_string((char*) payload+2, written_offset, length);
+
+			// Send response
+			if (retval == WKPF_OK) {
+				response_cmd = WKPF_COMM_CMD_SET_LOCATION_R;
+			} else {
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+			}
+			payload[0] = retval;       
+			response_size = 1;
+		}
+		break;
+		case WKPF_COMM_CMD_GET_FEATURES: {
+			int count = 0;
+			for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) { // Needs to be changed if we have more features than fits in a single message, but for now it will work fine.
+				if (wkpf_config_get_feature_enabled(i)) {
+					payload[1+count++] = i;
+				}
+			}
+			payload[0] = count;
+			response_cmd = WKPF_COMM_CMD_GET_FEATURES_R;
+			response_size = 1+count;
+		}
+		break;
+		case WKPF_COMM_CMD_SET_FEATURE: {
+			retval = wkpf_config_set_feature_enabled(payload[2], payload[3]);
+			if (retval == WKPF_OK) {
+				response_cmd = WKPF_COMM_CMD_SET_FEATURE_R;
+				response_size = 0;
+			} else {
+				payload[2] = retval;       
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+				response_size = 1;
+			}
+		}
+		break;
+
     // case WKPF_COMM_CMD_GET_WUCLASS_LIST:
     //   number_of_wuclasses = wkpf_get_number_of_wuclasses();
     //   payload[2] = number_of_wuclasses;
@@ -141,8 +169,8 @@ void wkpf_comm_handle_message(void *data) {
     //     payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
     //     payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
     //   }
-    //   *response_size = 3*number_of_wuclasses + 3;//payload size 2*wuclasses + 2 bytes seqnr + 1 byte number of wuclasses
-    //   *response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
+    //   response_size = 3*number_of_wuclasses + 3; 2*wuclasses + 2 bytes seqnr + 1 byte number of wuclasses
+    //   response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
     // break;
     // case WKPF_COMM_CMD_GET_WUOBJECT_LIST:
     //   number_of_wuobjects = wkpf_get_number_of_wuobjects();
@@ -154,8 +182,8 @@ void wkpf_comm_handle_message(void *data) {
     //     payload[3*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
     //     payload[3*i + 5] = (uint8_t)(wuobject->wuclass->wuclass_id);
     //   }
-    //   *response_size = 3*number_of_wuobjects + 3;//payload size 3*wuobjects + 2 bytes seqnr + 1 byte number of wuclasses
-    //   *response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
+    //   response_size = 3*number_of_wuobjects + 3; 3*wuobjects + 2 bytes seqnr + 1 byte number of wuclasses
+    //   response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
     // break;
     // case WKPF_COMM_CMD_READ_PROPERTY: // TODONR: check wuclassid
     //   port_number = payload[2];
@@ -164,8 +192,8 @@ void wkpf_comm_handle_message(void *data) {
     //   retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
     //   if (retval != WKPF_OK) {
     //     payload [2] = retval;
-    //     *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     *response_size = 3;//payload size
+    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
+    //     response_size = 3;
     //     break;
     //   }
     //   uint8_t property_status;
@@ -177,16 +205,16 @@ void wkpf_comm_handle_message(void *data) {
     //     payload[7] = property_status;
     //     payload[8] = (uint8_t)(value>>8);
     //     payload[9] = (uint8_t)(value);
-    //     *response_size = 10;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
+    //     response_size = 10;
+    //     response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
     //   } else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN) {
     //     bool value;
     //     retval = wkpf_external_read_property_boolean(wuobject, property_number, &value);
     //     payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
     //     payload[7] = property_status;
     //     payload[8] = (uint8_t)(value);
-    //     *response_size = 9;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;                
+    //     response_size = 9;
+    //     response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;                
     //   } else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
     //     wkpf_refresh_rate_t value;
     //     retval = wkpf_external_read_property_refresh_rate(wuobject, property_number, &value);
@@ -194,14 +222,14 @@ void wkpf_comm_handle_message(void *data) {
     //     payload[7] = property_status;
     //     payload[8] = (uint8_t)(value>>8);
     //     payload[9] = (uint8_t)(value);
-    //     *response_size = 10;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
+    //     response_size = 10;
+    //     response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
     //   } else
     //     retval = WKPF_ERR_SHOULDNT_HAPPEN;
     //   if (retval != WKPF_OK) {
     //     payload [2] = retval;
-    //     *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     *response_size = 3;//payload size
+    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
+    //     response_size = 3;
     //   }
     // break;
     // case WKPF_COMM_CMD_WRITE_PROPERTY:
@@ -217,16 +245,16 @@ void wkpf_comm_handle_message(void *data) {
     //   // TODO: should we do that now?
     //   // If the sender is not a leader
     //   if (!wkpf_node_is_leader(link.src_component_id, src)) {
-    //     /**response_cmd = WKPF_COMM_CMD_ERROR_R;*/
-    //     /**response_size = 3;//payload size*/
+    //     /*response_cmd = WKPF_COMM_CMD_ERROR_R;*/
+    //     /*response_size = 3;*/
     //     /*break;*/
     //   }
 
     //   retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
     //   if (retval != WKPF_OK) {
     //     payload [2] = retval;
-    //     *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     *response_size = 3;//payload size
+    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
+    //     response_size = 3;
     //     break;
     //   }
     //   if (payload[6] == WKPF_PROPERTY_TYPE_SHORT) {
@@ -234,27 +262,27 @@ void wkpf_comm_handle_message(void *data) {
     //     value = (int16_t)(payload[7]);
     //     value = (int16_t)(value<<8) + (int16_t)(payload[8]);
     //     retval = wkpf_external_write_property_int16(wuobject, property_number, value);
-    //     *response_size = 6;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;        
+    //     response_size = 6;
+    //     response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;        
     //   } else if (payload[6] == WKPF_PROPERTY_TYPE_BOOLEAN) {
     //     bool value;
     //     value = (bool)(payload[7]);
     //     retval = wkpf_external_write_property_boolean(wuobject, property_number, value);
-    //     *response_size = 6;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;                
+    //     response_size = 6;
+    //     response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;                
     //   } else if (payload[6] == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
     //     int16_t value;
     //     value = (int16_t)(payload[7]);
     //     value = (int16_t)(value<<8) + (int16_t)(payload[8]);
     //     retval = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
-    //     *response_size = 6;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;
+    //     response_size = 6;
+    //     response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;
     //   } else
     //     retval = WKPF_ERR_SHOULDNT_HAPPEN;
     //   if (retval != WKPF_OK) {
     //     payload [2] = retval;
-    //     *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     *response_size = 3;//payload size
+    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
+    //     response_size = 3;
     //   }
     // break;
     // case WKPF_COMM_CMD_REQUEST_PROPERTY_INIT:
@@ -266,12 +294,14 @@ void wkpf_comm_handle_message(void *data) {
     //   }
     //   if (retval != WKPF_OK) {
     //     payload [2] = retval;
-    //     *response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     *response_size = 3;//payload size
+    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
+    //     response_size = 3;
     //   } else {
-    //     *response_size = 6;//payload size
-    //     *response_cmd = WKPF_COMM_CMD_REQUEST_PROPERTY_INIT_R;                
+    //     response_size = 6;
+    //     response_cmd = WKPF_COMM_CMD_REQUEST_PROPERTY_INIT_R;                
     //   }
     // break;
-  }
+	}
+	if (response_cmd != 0)
+		wkcomm_send_reply(msg, response_cmd, payload, response_size);
 }
