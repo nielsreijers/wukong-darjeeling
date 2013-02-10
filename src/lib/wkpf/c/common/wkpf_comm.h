@@ -7,7 +7,7 @@ extern uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port
 extern uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value);
 extern uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value);
 extern uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number);
-extern void wkpf_comm_handle_message(address_t src, uint8_t command, uint8_t *payload, uint8_t *response_size, uint8_t *response_cmd);
+extern void wkpf_comm_handle_message(void *msg); // Will be called with a pointer to a wkcomm_received_msg
 
 // Message types
 #define WKPF_COMM_CMD_GET_WUCLASS_LIST            0x90

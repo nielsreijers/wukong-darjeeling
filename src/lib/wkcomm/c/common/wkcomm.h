@@ -2,6 +2,7 @@
 #define WKCOMMH
 
 #include "types.h"
+#include "hooks.h"
 
 #define WKCOMM_MESSAGE_SIZE   0x20
 
@@ -22,6 +23,8 @@ typedef struct wkcomm_received_msg {
 	uint8_t length;
 } wkcomm_received_msg;
 
+// To allow other libraries to listen to received messages
+extern dj_hook *wkcomm_handle_message_hook;
 
 // Message handling. This function is called from the radio code (wkcomm_zwave_poll or wkcomm_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
 extern void wkcomm_handle_message(wkcomm_received_msg *message);

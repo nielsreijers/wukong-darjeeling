@@ -14,11 +14,13 @@
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
+#include "wkpf_comm.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
 
 dj_hook wkpf_markRootSetHook;
 dj_hook wkpf_updatePointersHook;
+dj_hook wkpf_comm_handleMessageHook;
 
 void javax_wukong_wkpf_WKPF_void__init() {
 	wkpf_markRootSetHook.function = wkpf_markRootSet;
@@ -26,6 +28,9 @@ void javax_wukong_wkpf_WKPF_void__init() {
 
 	wkpf_updatePointersHook.function = wkpf_updatePointers;
 	dj_hook_add(&dj_mem_updateReferenceHook, &wkpf_updatePointersHook);
+
+	wkpf_comm_handleMessageHook.function = wkpf_comm_handle_message;
+	dj_hook_add(&wkcomm_handle_message_hook, &wkpf_comm_handleMessageHook);
 }
 
 void javax_wukong_wkpf_WKPF_byte_getErrorCode()
