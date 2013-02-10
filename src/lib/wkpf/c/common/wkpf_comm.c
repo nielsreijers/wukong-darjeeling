@@ -4,6 +4,9 @@
 #include "wkpf.h"
 #include "wkpf_comm.h"
 #include "wkpf_config.h"
+#include "wkpf_wuclasses.h"
+#include "wkpf_wuobjects.h"
+#include "wkpf_properties.h"
 
 uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
 	// Print some debug info
@@ -81,12 +84,6 @@ void wkpf_comm_handle_message(void *data) {
 	uint8_t response_size = 0, response_cmd = 0;
 	uint8_t retval;
 
-	// uint8_t number_of_wuclasses;
-	// uint8_t number_of_wuobjects;
-	// uint8_t port_number;
-	// uint8_t property_number;
-	// wuobject_t *wuobject;
-
 	// TODONR: stop processing messages during reprogramming
 	// if (nvm_runlevel != NVM_RUNLVL_VM)
 	//   return;
@@ -158,133 +155,138 @@ void wkpf_comm_handle_message(void *data) {
 			}
 		}
 		break;
+		case WKPF_COMM_CMD_GET_WUCLASS_LIST: {
+			uint8_t number_of_wuclasses = wkpf_get_number_of_wuclasses();
+			payload[0] = number_of_wuclasses;
+			for (uint8_t i=0; i<number_of_wuclasses && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
+				wuclass_t *wuclass;
+				wkpf_get_wuclass_by_index(i, &wuclass);
+				payload[3*i + 1] = (uint8_t)(wuclass->wuclass_id >> 8);
+				payload[3*i + 2] = (uint8_t)(wuclass->wuclass_id);
+				payload[3*i + 3] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+			}
+			response_size = 3*number_of_wuclasses + 1; // 3*wuclasses + 1 byte number of wuclasses
+			response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
+		}
+		break;
+		case WKPF_COMM_CMD_GET_WUOBJECT_LIST: {
+			uint8_t number_of_wuobjects = wkpf_get_number_of_wuobjects();
+			payload[0] = number_of_wuobjects;
+			for (uint8_t i=0; i<number_of_wuobjects && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
+				wuobject_t *wuobject;
+				wkpf_get_wuobject_by_index(i, &wuobject);
+				payload[3*i + 1] = (uint8_t)(wuobject->port_number);
+				payload[3*i + 2] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
+				payload[3*i + 3] = (uint8_t)(wuobject->wuclass->wuclass_id);
+			}
+			response_size = 3*number_of_wuobjects + 1; // 3*wuobjects + 1 byte number of wuclasses
+			response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
+		}
+		break;
+		case WKPF_COMM_CMD_READ_PROPERTY: { // TODONR: check wuclassid
+			uint8_t port_number = payload[0];
+			// TODONR: uint16_t wuclass_id = (uint16_t)(payload[1]<<8)+(uint16_t)(payload[2]);
+			uint8_t property_number = payload[3];
+			wuobject_t *wuobject;
+			retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
+			if (retval != WKPF_OK) {
+				payload [2] = retval;
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+				response_size = 1;
+				break;
+			}
+			uint8_t property_status;
+			wkpf_get_property_status(wuobject, property_number, &property_status);
+			if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT) {
+				int16_t value;
+				retval = wkpf_external_read_property_int16(wuobject, property_number, &value);
+				payload[4] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
+				payload[5] = property_status;
+				payload[6] = (uint8_t)(value>>8);
+				payload[7] = (uint8_t)(value);
+				response_size = 8;
+				response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
+			} else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN) {
+				bool value;
+				retval = wkpf_external_read_property_boolean(wuobject, property_number, &value);
+				payload[4] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
+				payload[5] = property_status;
+				payload[6] = (uint8_t)(value);
+				response_size = 7;
+				response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;                
+			} else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
+				wkpf_refresh_rate_t value;
+				retval = wkpf_external_read_property_refresh_rate(wuobject, property_number, &value);
+				payload[4] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
+				payload[5] = property_status;
+				payload[6] = (uint8_t)(value>>8);
+				payload[7] = (uint8_t)(value);
+				response_size = 8;
+				response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
+			} else
+				retval = WKPF_ERR_SHOULDNT_HAPPEN;
+				if (retval != WKPF_OK) {
+				payload [0] = retval;
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+				response_size = 1;
+			}
+		}
+		break;
+		case WKPF_COMM_CMD_WRITE_PROPERTY: {
+			uint8_t port_number = payload[0];
+			// TODONR: uint16_t wuclass_id = (uint16_t)(payload[1]<<8)+(uint16_t)(payload[2]);
+			uint8_t property_number = payload[3];
+			wuobject_t *wuobject;
 
-    // case WKPF_COMM_CMD_GET_WUCLASS_LIST:
-    //   number_of_wuclasses = wkpf_get_number_of_wuclasses();
-    //   payload[2] = number_of_wuclasses;
-    //   for (int i=0; i<number_of_wuclasses && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-    //     wuclass_t *wuclass;
-    //     wkpf_get_wuclass_by_index(i, &wuclass);
-    //     payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
-    //     payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
-    //     payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
-    //   }
-    //   response_size = 3*number_of_wuclasses + 3; 2*wuclasses + 2 bytes seqnr + 1 byte number of wuclasses
-    //   response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
-    // break;
-    // case WKPF_COMM_CMD_GET_WUOBJECT_LIST:
-    //   number_of_wuobjects = wkpf_get_number_of_wuobjects();
-    //   payload[2] = number_of_wuobjects;
-    //   for (int i=0; i<number_of_wuobjects && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-    //     wuobject_t *wuobject;
-    //     wkpf_get_wuobject_by_index(i, &wuobject);
-    //     payload[3*i + 3] = (uint8_t)(wuobject->port_number);
-    //     payload[3*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
-    //     payload[3*i + 5] = (uint8_t)(wuobject->wuclass->wuclass_id);
-    //   }
-    //   response_size = 3*number_of_wuobjects + 3; 3*wuobjects + 2 bytes seqnr + 1 byte number of wuclasses
-    //   response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
-    // break;
-    // case WKPF_COMM_CMD_READ_PROPERTY: // TODONR: check wuclassid
-    //   port_number = payload[2];
-    //   // TODONR: wuclass_id = (uint16_t)(payload[3]<<8)+(uint16_t)(payload[4]);
-    //   property_number = payload[5];
-    //   retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
-    //   if (retval != WKPF_OK) {
-    //     payload [2] = retval;
-    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     response_size = 3;
-    //     break;
-    //   }
-    //   uint8_t property_status;
-    //   wkpf_get_property_status(wuobject, property_number, &property_status);
-    //   if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT) {
-    //     int16_t value;
-    //     retval = wkpf_external_read_property_int16(wuobject, property_number, &value);
-    //     payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
-    //     payload[7] = property_status;
-    //     payload[8] = (uint8_t)(value>>8);
-    //     payload[9] = (uint8_t)(value);
-    //     response_size = 10;
-    //     response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
-    //   } else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN) {
-    //     bool value;
-    //     retval = wkpf_external_read_property_boolean(wuobject, property_number, &value);
-    //     payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
-    //     payload[7] = property_status;
-    //     payload[8] = (uint8_t)(value);
-    //     response_size = 9;
-    //     response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;                
-    //   } else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
-    //     wkpf_refresh_rate_t value;
-    //     retval = wkpf_external_read_property_refresh_rate(wuobject, property_number, &value);
-    //     payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
-    //     payload[7] = property_status;
-    //     payload[8] = (uint8_t)(value>>8);
-    //     payload[9] = (uint8_t)(value);
-    //     response_size = 10;
-    //     response_cmd = WKPF_COMM_CMD_READ_PROPERTY_R;        
-    //   } else
-    //     retval = WKPF_ERR_SHOULDNT_HAPPEN;
-    //   if (retval != WKPF_OK) {
-    //     payload [2] = retval;
-    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     response_size = 3;
-    //   }
-    // break;
-    // case WKPF_COMM_CMD_WRITE_PROPERTY:
-    //   port_number = payload[2];
-    //   // TODONR: wuclass_id = (uint16_t)(payload[3]<<8)+(uint16_t)(payload[4]);
-    //   property_number = payload[5];
-    //   uint16_t wuclass_id;
-    //   link_entry link;
-    //   wuclass_id = (int16_t)(payload[3]);
-    //   wuclass_id = (int16_t)(wuclass_id<<8) + (int16_t)(payload[4]);
-    //   wkpf_get_link_by_dest_property_and_dest_wuclass_id(property_number, wuclass_id, &link);
+			// link_entry link;
+			// wkpf_get_link_by_dest_property_and_dest_wuclass_id(property_number, wuclass_id, &link);
 
-    //   // TODO: should we do that now?
-    //   // If the sender is not a leader
-    //   if (!wkpf_node_is_leader(link.src_component_id, src)) {
-    //     /*response_cmd = WKPF_COMM_CMD_ERROR_R;*/
-    //     /*response_size = 3;*/
-    //     /*break;*/
-    //   }
+			// // TODO: should we do that now?
+			// // If the sender is not a leader
+			// if (!wkpf_node_is_leader(link.src_component_id, src)) {
+			// 	/*response_cmd = WKPF_COMM_CMD_ERROR_R;*/
+			// 	/*response_size = 3;*/
+			// 	/*break;*/
+			// }
 
-    //   retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
-    //   if (retval != WKPF_OK) {
-    //     payload [2] = retval;
-    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     response_size = 3;
-    //     break;
-    //   }
-    //   if (payload[6] == WKPF_PROPERTY_TYPE_SHORT) {
-    //     int16_t value;
-    //     value = (int16_t)(payload[7]);
-    //     value = (int16_t)(value<<8) + (int16_t)(payload[8]);
-    //     retval = wkpf_external_write_property_int16(wuobject, property_number, value);
-    //     response_size = 6;
-    //     response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;        
-    //   } else if (payload[6] == WKPF_PROPERTY_TYPE_BOOLEAN) {
-    //     bool value;
-    //     value = (bool)(payload[7]);
-    //     retval = wkpf_external_write_property_boolean(wuobject, property_number, value);
-    //     response_size = 6;
-    //     response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;                
-    //   } else if (payload[6] == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
-    //     int16_t value;
-    //     value = (int16_t)(payload[7]);
-    //     value = (int16_t)(value<<8) + (int16_t)(payload[8]);
-    //     retval = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
-    //     response_size = 6;
-    //     response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;
-    //   } else
-    //     retval = WKPF_ERR_SHOULDNT_HAPPEN;
-    //   if (retval != WKPF_OK) {
-    //     payload [2] = retval;
-    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     response_size = 3;
-    //   }
-    // break;
+			retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
+			if (retval != WKPF_OK) {
+				payload[0] = retval;
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+				response_size = 1;
+				break;
+			}
+			if (payload[4] == WKPF_PROPERTY_TYPE_SHORT) {
+				int16_t value;
+				value = (int16_t)(payload[5]);
+				value = (int16_t)(value<<8) + (int16_t)(payload[6]);
+				retval = wkpf_external_write_property_int16(wuobject, property_number, value);
+				response_size = 4;
+				response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;        
+			} else if (payload[4] == WKPF_PROPERTY_TYPE_BOOLEAN) {
+				bool value;
+				value = (bool)(payload[5]);
+				retval = wkpf_external_write_property_boolean(wuobject, property_number, value);
+				response_size = 4;
+				response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;                
+			} else if (payload[4] == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
+				int16_t value;
+				value = (int16_t)(payload[5]);
+				value = (int16_t)(value<<8) + (int16_t)(payload[6]);
+				retval = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
+				response_size = 4;
+				response_cmd = WKPF_COMM_CMD_WRITE_PROPERTY_R;
+			} else
+				retval = WKPF_ERR_SHOULDNT_HAPPEN;
+				if (retval != WKPF_OK) {
+				payload [0] = retval;
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+				response_size = 1;
+			}
+		}
+		break;
+
+
     // case WKPF_COMM_CMD_REQUEST_PROPERTY_INIT:
     //   port_number = payload[2];
     //   property_number = payload[3];
