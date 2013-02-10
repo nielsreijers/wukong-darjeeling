@@ -18,7 +18,7 @@ uint16_t wkcomm_wait_reply_seqnr;
 wkcomm_received_msg wkcomm_received_reply;
 
 // To allow other libraries to listen to received messages
-dj_hook *wkcomm_handle_message = NULL;
+dj_hook *wkcomm_handle_message_hook = NULL;
 
 // Initialise wkcomm and whatever protocols are enabled.
 void wkcomm_init(void) {
@@ -93,7 +93,7 @@ int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *pay
 	wkcomm_wait_reply_number_of_commands = number_of_reply_commands;
 	wkcomm_received_reply.command = 0; // command will be != 0 once a reply has been received.
 
-	// Do the send, and store the seqnr so handle_message can check for a match
+	// Do the send, and store the seqnr so wkcomm_handle_message can check for a match
 	int8_t retval = wkcomm_do_send(dest, command, payload, length, true);
 	if (retval != 0)
 		return retval; // Something went wrong during send.
@@ -113,7 +113,7 @@ int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *pay
 }
 
 // Message handling. This function is called from the radio code (wkcomm_zwave_poll or wkcomm_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
-void handle_message(wkcomm_received_msg *message) {
+void wkcomm_handle_message(wkcomm_received_msg *message) {
 #ifdef DEBUG
 	DEBUG_LOG(DBG_WKCOMM, "Handling command "DBG8" from "DBG8", length "DBG8":\n", message->command, message->src, message->length);
 	for (int8_t i=0; i<message->length; ++i) {
@@ -138,6 +138,6 @@ void handle_message(wkcomm_received_msg *message) {
 	}
 
 	// Pass on to other libs. Could have a system here were libraries register for specific commands, but this seems simpler, and only a bit slower if handlers return quickly when the message isn't meant for them.
-	dj_hook_call(wkcomm_handle_message, message);
+	dj_hook_call(wkcomm_handle_message_hook, message);
 }
 
