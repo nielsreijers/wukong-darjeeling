@@ -78,8 +78,8 @@ int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t lengt
 	return wkcomm_do_send(dest, command, payload, length, ++wkcomm_last_seqnr);
 }
 
-int wkcomm_send_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, wkcomm_received_msg *received_msg) {
-	return wkcomm_do_send(dest, command, payload, length, received_msg->seqnr);
+int wkcomm_send_reply(wkcomm_received_msg *received_msg, uint8_t command, uint8_t *payload, uint8_t length) {
+	return wkcomm_do_send(received_msg->src, command, payload, length, received_msg->seqnr);
 }
 
 // Send length bytes to dest and wait for a specific reply (and matching sequence nr)

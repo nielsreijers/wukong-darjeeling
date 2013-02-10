@@ -42,7 +42,7 @@ extern void wkcomm_poll(void);
 extern int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length);
 
 // Send length bytes to dest
-extern int wkcomm_send_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, wkcomm_received_msg *received_msg);
+extern int wkcomm_send_reply(wkcomm_received_msg *received_msg, uint8_t command, uint8_t *payload, uint8_t length);
 
 // Send length bytes to dest and wait for a specific reply (and matching sequence nr)
 extern int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t wait_msec, uint8_t *commands, uint8_t number_of_commands, wkcomm_received_msg **reply);
