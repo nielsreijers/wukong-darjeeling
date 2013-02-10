@@ -54,6 +54,7 @@ uint8_t seq;          // Sequence number which is used to match the callback fun
 // Low level ZWave functions originally from testrtt.c
 int SerialAPI_request(unsigned char *buf, int len);
 int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr);
+void Zwave_receive(int processmessages);
 
 
 bool addr_wkcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
@@ -80,6 +81,14 @@ void delay(uint32_t msec) {
     }
 }
 
+void wkcomm_zwave_poll(void) {
+    if (uart_available(ZWAVE_UART))
+    {    
+        DEBUG_LOG(DBG_ZWAVETRACE, "data_available\n");
+        Zwave_receive(1);
+    }
+}
+
 void wkcomm_zwave_init(void) {
     // Clear existing queue on Zwave
     DEBUG_LOG(DBG_WKCOMM, "Clearing leftovers\n");
@@ -101,7 +110,7 @@ void wkcomm_zwave_init(void) {
     // expire = 0;
 
     unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
-    wkcomm_poll();
+    wkcomm_zwave_poll();
     uint8_t retries = 10;
     address_t previous_received_address = 0;
 
@@ -119,11 +128,6 @@ void wkcomm_zwave_init(void) {
         }
     }
     DEBUG_LOG(DBG_WKCOMM, "My Zwave node_id: %x\n", wkcomm_zwave_my_address);
-}
-
-void nvmcomm_zwave_poll(); // Refactor this later
-void wkcomm_zwave_poll(void) {
-    nvmcomm_zwave_poll();
 }
 
 address_t wkcomm_zwave_get_node_id() {
@@ -162,7 +166,7 @@ uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uin
 uint8_t len;          // Length of the returned wkcomm_zwave_receive_buffer
 uint8_t type;         // 0: request 1: response 2: timeout
 uint8_t cmd;          // the serial api command number of the current wkcomm_zwave_receive_buffer
-// 4 bytes protocol overhead (see nvmcomm_zwave_receive),
+// 4 bytes protocol overhead (see Zwave_receive),
 // 1 byte for the nvc3_command, which is the first byte in the message.
 uint8_t payload_length;  // Length of the wkcomm_zwave_receive_buffer while reading a packet
 // TODO: used?
@@ -179,13 +183,10 @@ uint8_t zwave_learn_mode;
 
 int ZW_GetRoutingInformation(uint8_t id);
 
-
-
-
 // Blocking receive.
 // Returns the Z-Wave cmd of the received message.
 // Calls the callback for .... messages?
-void nvmcomm_zwave_receive(int processmessages) {
+void Zwave_receive(int processmessages) {
     //DEBUG_LOG(DBG_ZWAVETRACE, "zwave receive!!!!!!!!!!!");
     while (!uart_available(ZWAVE_UART)) { }
     while (uart_available(ZWAVE_UART)) {
@@ -308,36 +309,6 @@ void nvmcomm_zwave_receive(int processmessages) {
     }
 }
 
-
-
-void nvmcomm_zwave_poll(void) {
-    // TODO
-    // unsigned long now = millis();
-    // 
-    // if (expire && (now > expire)) {
-    //   expire = 0;
-    //   type = 2;
-    //   state = ZWAVE_STATUS_WAIT_SOF;
-    //   if (f!=NULL) f(wkcomm_zwave_receive_buffer,i);
-    //   Serial.write("timeout...\n");
-    //   return true;
-    // }
-    if (uart_available(ZWAVE_UART))
-    {    
-        DEBUG_LOG(DBG_ZWAVETRACE, "data_available\n");
-        nvmcomm_zwave_receive(1);
-        /*nvmcomm_zwaveLastByteTime = dj_timer_getTimeMillis();*/
-    } else {
-        /*DEBUG_LOG(DBG_ZWAVETRACE, "data_not_available\n");*/
-        // This will confuse Zwave state and make it stop running, so don't use it
-        /*if (dj_timer_getTimeMillis() > nvmcomm_zwaveLastByteTime + 600) {*/
-            /*state = ZWAVE_STATUS_WAIT_SOF;*/
-            /*nvmcomm_zwaveLastByteTime = dj_timer_getTimeMillis();*/
-            /*nvmcomm_zwave_receive(0);*/
-        /*}*/
-    }
-}
-
 void nvmcomm_zwave_learn() {
     unsigned char b[10];
     unsigned char onoff=1;
@@ -399,7 +370,7 @@ int SerialAPI_request(unsigned char *buf, int len)
     while (1) {
         // read out pending request from Z-Wave
         if (uart_available(ZWAVE_UART))
-            nvmcomm_zwave_receive(0); // Don't process received messages
+            Zwave_receive(0); // Don't process received messages
         if (state != ZWAVE_STATUS_WAIT_SOF) {	// wait for WAIT_SOF state (idle state)
             DEBUG_LOG(DBG_WKCOMM, "SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", state);
             DEBUG_LOG(DBG_WKCOMM, "Try to send SerialAPI command in a wrong state......\n");
@@ -435,7 +406,7 @@ int SerialAPI_request(unsigned char *buf, int len)
         while(!uart_available(ZWAVE_UART) && i++<100)
             delay(1);
         if (uart_available(ZWAVE_UART)) {
-            nvmcomm_zwave_poll();			
+            wkcomm_zwave_poll();			
             if (ack_got == 1) {
                 return 0;
             } else {

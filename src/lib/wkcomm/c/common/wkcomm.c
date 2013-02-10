@@ -53,7 +53,7 @@ void wkcomm_poll(void) {
 }
 
 // Send length bytes to dest
-int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, bool store_seqnr) {
+int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
 	if (length > WKCOMM_MESSAGE_SIZE) {
 		DEBUG_LOG(DBG_WKCOMM, "message oversized\n");
 		return WKCOMM_SEND_ERR_TOO_LONG; // Message too large
@@ -70,31 +70,33 @@ int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t le
 		if (retval == 0)
 			return retval;
 	#endif
-	if (store_seqnr) {
-		// Called from wkcomm_send_and_wait_for_reply.
-		// Need to store the current sequence nr because other messages might be sent while
-		// waiting for the reply, so we can't use wkcomm_last_seqnr to check the incoming replies.
-		wkcomm_wait_reply_seqnr = wkcomm_last_seqnr;
-	}
 
 	return retval;
 }
 
 int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length) {
-	// Just send, but don't store the seqnr
-	return wkcomm_do_send(dest, command, payload, length, false);
+	return wkcomm_do_send(dest, command, payload, length, ++wkcomm_last_seqnr);
+}
+
+int wkcomm_send_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, wkcomm_received_msg *received_msg) {
+	return wkcomm_do_send(dest, command, payload, length, received_msg->seqnr);
 }
 
 // Send length bytes to dest and wait for a specific reply (and matching sequence nr)
 int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length,
 							uint16_t wait_msec, uint8_t *reply_commands, uint8_t number_of_reply_commands, wkcomm_received_msg **reply) {
+
+	// Do the send, and store the seqnr so wkcomm_handle_message can check for a match
+	int8_t retval = wkcomm_do_send(dest, command, payload, length, ++wkcomm_last_seqnr);
+
 	// Set global variables to wait for the required message types
 	wkcomm_wait_reply_commands = reply_commands;
 	wkcomm_wait_reply_number_of_commands = number_of_reply_commands;
 	wkcomm_received_reply.command = 0; // command will be != 0 once a reply has been received.
+	// Need to store the current sequence nr because other messages might be sent while
+	// waiting for the reply, so we can't use wkcomm_last_seqnr to check the incoming replies.
+	wkcomm_wait_reply_seqnr = wkcomm_last_seqnr;
 
-	// Do the send, and store the seqnr so wkcomm_handle_message can check for a match
-	int8_t retval = wkcomm_do_send(dest, command, payload, length, true);
 	if (retval != 0)
 		return retval; // Something went wrong during send.
 
