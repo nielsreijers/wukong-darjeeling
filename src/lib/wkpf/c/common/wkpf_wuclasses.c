@@ -1,3 +1,4 @@
+#include <string.h>
 #include "types.h"
 #include "debug.h"
 #include "heap.h"
@@ -22,6 +23,9 @@ uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uin
   	DEBUG_LOG(DBG_WKPF, "WKPF: Out of memory while registering wuclass id %x: FAILED\n", wuclass->wuclass_id);
   	return WKPF_ERR_OUT_OF_MEMORY;
   }
+
+  // Initialise memory
+	memset(wuclass, 0, size);
 
   DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %x at index %x\n", wuclass->wuclass_id, wkpf_get_number_of_wuclasses());
   wuclass->wuclass_id = wuclass_id;

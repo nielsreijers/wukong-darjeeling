@@ -1,3 +1,4 @@
+#include <string.h>
 #include "types.h"
 #include "debug.h"
 #include "heap.h"
@@ -49,6 +50,9 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 		DEBUG_LOG(DBG_WKPF, "WKPF: Out of memory while creating wuobject for wuclass %x at port %x: FAILED\n", wuclass_id, port_number);
 		return WKPF_ERR_OUT_OF_MEMORY;
 	}
+
+	// Initialise memory (fixes a bug where old data corrupted the property status)
+	memset(wuobject, 0, size);
 
 	// Check if any properties need to pull their initial value from a remote node (properties that are the destination end of a link coming from another node)
 	for(int i=0; i<wuclass->number_of_properties; i++) {
