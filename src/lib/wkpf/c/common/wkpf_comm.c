@@ -285,24 +285,25 @@ void wkpf_comm_handle_message(void *data) {
 			}
 		}
 		break;
+		case WKPF_COMM_CMD_REQUEST_PROPERTY_INIT: {
+			uint8_t port_number = payload[0];
+			uint8_t property_number = payload[1];
+			wuobject_t *wuobject;
 
-
-    // case WKPF_COMM_CMD_REQUEST_PROPERTY_INIT:
-    //   port_number = payload[2];
-    //   property_number = payload[3];
-    //   retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
-    //   if (retval == WKPF_OK) {
-    //     retval = wkpf_property_needs_initialisation_push(wuobject, property_number);
-    //   }
-    //   if (retval != WKPF_OK) {
-    //     payload [2] = retval;
-    //     response_cmd = WKPF_COMM_CMD_ERROR_R;
-    //     response_size = 3;
-    //   } else {
-    //     response_size = 6;
-    //     response_cmd = WKPF_COMM_CMD_REQUEST_PROPERTY_INIT_R;                
-    //   }
-    // break;
+			retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
+			if (retval == WKPF_OK) {
+				retval = wkpf_property_needs_initialisation_push(wuobject, property_number);
+			}
+			if (retval != WKPF_OK) {
+				payload [2] = retval;
+				response_cmd = WKPF_COMM_CMD_ERROR_R;
+				response_size = 1;
+			} else {
+				response_size = 4;
+				response_cmd = WKPF_COMM_CMD_REQUEST_PROPERTY_INIT_R;                
+			}
+		}
+		break;
 	}
 	if (response_cmd != 0)
 		wkcomm_send_reply(msg, response_cmd, payload, response_size);

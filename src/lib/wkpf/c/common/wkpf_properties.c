@@ -100,27 +100,26 @@ uint8_t wkpf_get_property_status(wuobject_t *wuobject, uint8_t property_number, 
 	return WKPF_ERR_PROPERTY_NOT_FOUND;
 }
 
-// uint8_t wkpf_property_needs_initialisation_push(wuobject_t *wuobject, uint8_t property_number) {
-// 	if (wuobject->wuclass->number_of_properties <= property_number)
-// 		return WKPF_ERR_PROPERTY_NOT_FOUND;
-// 	for (int i=0; i<number_of_properties; i++) {
-// 		if (properties[i].wuobject_port_number == wuobject->port_number && properties[i].property_number == property_number) {
-// 			if (properties[i].property_status & PROPERTY_STATUS_NEEDS_PULL || properties[i].property_status & PROPERTY_STATUS_NEEDS_PULL_WAITING) {
-//         // A property in another WuObject needs this property as it's initial value,
-//         // but this property is also waiting for its initial value itself (a chain of unitialised properties)
-//         // So we only mark that the next push needs to be forced, and wait for the arrival of this
-//         // property's initial value before propagating.
-// 				properties[i].property_status |= PROPERTY_STATUS_FORCE_NEXT_PUSH;
-// 			} else {
-//         // Otherwise (the property's value is already available), immediately schedule it to be propagated
-// 				properties[i].property_status = (PROPERTY_STATUS_NEEDS_PUSH | PROPERTY_STATUS_FORCE_NEXT_PUSH);
-// 			}
-// 			DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_property_needs_initialisation_push: (index %x port %x, property %x): value %x, status %x\n", i, wuobject->port_number, property_number, properties[i].value, properties[i].property_status);
-// 			return WKPF_OK;
-// 		}
-// 	}
-// 	return WKPF_ERR_SHOULDNT_HAPPEN;
-// }
+uint8_t wkpf_property_needs_initialisation_push(wuobject_t *wuobject, uint8_t property_number) {
+	if (wuobject->wuclass->number_of_properties <= property_number)
+		return WKPF_ERR_PROPERTY_NOT_FOUND;
+	wuobject_property_t *property = wkpf_get_property(wuobject, property_number);
+	if (property) {
+			if (property->status & PROPERTY_STATUS_NEEDS_PULL || property->status & PROPERTY_STATUS_NEEDS_PULL_WAITING) {
+				// A property in another WuObject needs this property as it's initial value,
+				// but this property is also waiting for its initial value itself (a chain of unitialised properties)
+				// So we only mark that the next push needs to be forced, and wait for the arrival of this
+				// property's initial value before propagating.
+				property->status |= PROPERTY_STATUS_FORCE_NEXT_PUSH;
+			} else {
+				// Otherwise (the property's value is already available), immediately schedule it to be propagated
+				property->status = (PROPERTY_STATUS_NEEDS_PUSH | PROPERTY_STATUS_FORCE_NEXT_PUSH);
+			}
+			DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_property_needs_initialisation_push: (port 0x%x, property %d): status %x\n", wuobject->port_number, property_number, property->status);
+			return WKPF_OK;
+	}
+	return WKPF_ERR_SHOULDNT_HAPPEN;
+}
 
 bool inline wkpf_property_status_is_dirty(uint8_t status) {
 	if (!((status & PROPERTY_STATUS_NEEDS_PUSH) || (status & PROPERTY_STATUS_NEEDS_PULL)))
