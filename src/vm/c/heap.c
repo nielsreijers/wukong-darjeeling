@@ -543,6 +543,7 @@ void dj_mem_compact()
 
 void dj_mem_gc()
 {
+	DEBUG_LOG(DBG_DARJEELING_GC, "(GC)");
 	dj_thread * thread;
 
 	DEBUG_LOG(DBG_DARJEELING, "GC start\n");

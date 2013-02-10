@@ -39,6 +39,7 @@ void avr_serialPrintf(char * format, ...);
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
 // #define DBG_DARJEELING true
+// #define DBG_DARJEELING_GC true
 #define DBG_WKPF true
 #define DBG_WKPFGC true
 #define DBG_WKPFUPDATE true

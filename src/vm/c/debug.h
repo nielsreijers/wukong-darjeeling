@@ -70,6 +70,9 @@
 #ifndef DBG_DARJEELING
 #define DBG_DARJEELING 0
 #endif
+#ifndef DBG_DARJEELING_GC
+#define DBG_DARJEELING_GC 0
+#endif
 #ifndef DBG_WKPF
 #define DBG_WKPF 0
 #endif
