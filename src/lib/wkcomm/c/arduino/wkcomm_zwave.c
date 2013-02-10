@@ -12,6 +12,12 @@
 #define ZWAVE_UART                   2
 #define ZWAVE_UART_BAUDRATE          115200
 
+#define ZWAVE_TRANSMIT_OPTION_ACK                                0x01   //request acknowledge from destination node
+#define ZWAVE_TRANSMIT_OPTION_LOW_POWER                          0x02   // transmit at low output power level (1/3 of normal RF range)
+#define ZWAVE_TRANSMIT_OPTION_RETURN_ROUTE                       0x04   // request transmission via return route 
+#define ZWAVE_TRANSMIT_OPTION_AUTO_ROUTE                         0x04   // request retransmission via repeater nodes 
+#define ZWAVE_TRANSMIT_OPTION_NO_ROUTE                           0x10   // do not use response route - Even if available 
+
 #define ZWAVE_STATUS_WAIT_ACK        0
 #define ZWAVE_STATUS_WAIT_SOF        1
 #define ZWAVE_STATUS_WAIT_LEN        2
@@ -45,8 +51,25 @@ uint8_t wkcomm_zwave_received_payload[WKCOMM_MESSAGE_SIZE+5];
 uint8_t state;        // Current state
 uint8_t seq;          // Sequence number which is used to match the callback function
 
-
+// Low level ZWave functions originally from testrtt.c
 int SerialAPI_request(unsigned char *buf, int len);
+int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions);
+
+
+bool addr_wkcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
+    // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
+    if (nvmcomm_addr>=128)
+        return false;
+    *zwave_addr = nvmcomm_addr;
+    return true;
+}
+
+bool addr_zwave_to_wkcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
+    if (zwave_addr>=128)
+        return false;
+    *nvmcomm_addr = zwave_addr;
+    return true;
+}
 
 ///// temporary?
 void wkcomm_zwave_poll(void);
@@ -107,9 +130,22 @@ address_t wkcomm_zwave_get_node_id() {
 	return wkcomm_zwave_my_address;
 }
 
-uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *wkcomm_zwave_received_payload, uint8_t length, uint16_t seqnr) {
-	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
-	return 1; // To keep the compiler happy.
+uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
+    uint8_t txoptions = ZWAVE_TRANSMIT_OPTION_ACK + ZWAVE_TRANSMIT_OPTION_AUTO_ROUTE;
+
+#ifdef DBG_WKCOMM
+    DEBUG_LOG(DBG_WKCOMM, "Sending command %d to %d, length %d: ", nvc3_command, dest, length);
+    for (int16_t i=0; i<length; ++i) {
+        DEBUG_LOG(DBG_WKCOMM, " %d", payload[i]);
+    }
+    DEBUG_LOG(DBG_WKCOMM, "\n");
+#endif // DBG_WKCOMM
+
+    uint8_t zwave_addr;
+    if (addr_wkcomm_to_zwave(dest, &zwave_addr))
+        return ZW_sendData(zwave_addr, command, payload, length, txoptions);
+    else
+        return -1; // Not a ZWave address
 }
 
 
@@ -142,22 +178,8 @@ uint8_t zwave_learn_mode;
 
 
 int ZW_GetRoutingInformation(uint8_t id);
-int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions);
 
-bool addr_nvmcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
-    // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
-    if (nvmcomm_addr>=128)
-        return false;
-    *zwave_addr = nvmcomm_addr;
-    return true;
-}
 
-bool addr_zwave_to_nvmcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
-    if (zwave_addr>=128)
-        return false;
-    *nvmcomm_addr = zwave_addr;
-    return true;
-}
 
 
 // Blocking receive.
@@ -233,7 +255,7 @@ void nvmcomm_zwave_receive(int processmessages) {
             if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER) {
                 wkcomm_received_msg msg;
 
-                if (addr_zwave_to_nvmcomm(&msg.src, wkcomm_zwave_received_payload[1]) && processmessages==1) {
+                if (addr_zwave_to_wkcomm(&msg.src, wkcomm_zwave_received_payload[1]) && processmessages==1) {
                     msg.command = wkcomm_zwave_received_payload[4];
                     msg.seqnr = *((uint16_t *)wkcomm_zwave_received_payload+5);
                     msg.payload = wkcomm_zwave_received_payload+7;
@@ -244,7 +266,7 @@ void nvmcomm_zwave_receive(int processmessages) {
                 // Old nanovm code:
                 // if (f!=NULL) {
                 //     address_t nvmcomm_addr;
-                //     if (addr_zwave_to_nvmcomm(&nvmcomm_addr, wkcomm_zwave_received_payload[1]) && processmessages==1)
+                //     if (addr_zwave_to_wkcomm(&nvmcomm_addr, wkcomm_zwave_received_payload[1]) && processmessages==1)
                 //         f(nvmcomm_addr, wkcomm_zwave_received_payload[4], wkcomm_zwave_received_payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
                 // }
             }
@@ -315,30 +337,6 @@ void nvmcomm_zwave_poll(void) {
         /*}*/
     }
 }
-
-// Send ZWave command to another node. This command can be used as wireless repeater between 
-// two nodes. It has no assumption of the wkcomm_zwave_received_payload sent between them.
-int nvmcomm_zwave_send(address_t dest, uint8_t nvc3_command, uint8_t *data, uint8_t len, uint8_t txoptions) {
-#ifdef DEBUG
-    DEBUG_LOG(DBG_WKCOMM, "Sending command %d to %d, length %d: ", nvc3_command, dest, len);
-    for (size8_t i=0; i<len; ++i) {
-        DEBUG_LOG(DBG_WKCOMM, " %d", data[i]);
-    }
-    DEBUG_LOG(DBG_WKCOMM, "\n");
-#endif
-    uint8_t zwave_addr;
-    if (addr_nvmcomm_to_zwave(dest, &zwave_addr))
-        return ZW_sendData(zwave_addr, nvc3_command, data, len, txoptions);
-    else
-        return -1; // Not a ZWave address
-    // TODO  expire = millis()+1000;
-}
-
-// Get the ID of this node
-address_t nvmcomm_zwave_get_node_id() {
-    return wkcomm_zwave_my_address;
-}
-
 
 void nvmcomm_zwave_learn() {
     unsigned char b[10];
