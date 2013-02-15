@@ -47,7 +47,7 @@ void javax_wukong_wkpf_WKPF_void_registerWuClass_short_byte__()
 	}
 	uint16_t wuclass_id = (uint16_t)dj_exec_stackPopShort();
 	DEBUG_LOG(DBG_WKPF, "WKPF: Registering virtual wuclass with id %x\n", wuclass_id);
-	wkpf_error_code = wkpf_register_wuclass(wuclass_id, NULL, byteArrayProperties->array.length, (uint8_t *)byteArrayProperties->data.bytes);
+	wkpf_error_code = wkpf_register_virtual_wuclass(wuclass_id, NULL, byteArrayProperties->array.length, (uint8_t *)byteArrayProperties->data.bytes);
 }
 
 void javax_wukong_wkpf_WKPF_void_createWuObject_short_byte_javax_wukong_wkpf_VirtualWuObject()

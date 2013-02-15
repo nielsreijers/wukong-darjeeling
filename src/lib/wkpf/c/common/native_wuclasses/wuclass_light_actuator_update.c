@@ -1,11 +1,8 @@
-#include <debug.h>
-#include <stack.h>
-#include <types.h>
-#include <wkpf.h>
-#include <avr/native_avr.h>
-#include <avr/native.h>
-#include <avr/io.h>
+#include "debug.h"
+#include "types.h"
+#include "wkpf.h"
 #include "native_wuclasses.h"
+#include <avr/io.h>
 
 #ifdef ENABLE_WUCLASS_LIGHT_ACTUATOR
 

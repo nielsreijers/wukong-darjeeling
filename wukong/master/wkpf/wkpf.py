@@ -261,9 +261,6 @@ class WuClass:
     def getCUpdateName(self):
         return self.getCName() + "_update"
 
-    def getCPropertyName(self):
-        return self.getCName() + "_properties"
-
     def getCConstName(self):
         return "WKPF_" + self.getJavaConstName()
 

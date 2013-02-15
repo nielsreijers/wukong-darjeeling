@@ -77,7 +77,7 @@ uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_num
 }
 
 
-//void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t response_size, u08_t response_cmd) {
+//void wkpf_comm_handle_message(address_t src, uint8_t nvmcomm_command, uint8_t *payload, uint8_t response_size, uint8_t response_cmd) {
 void wkpf_comm_handle_message(void *data) {
 	wkcomm_received_msg *msg = (wkcomm_received_msg *)data;
 	uint8_t *payload = msg->payload;

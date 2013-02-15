@@ -7,7 +7,13 @@
 
 wuclass_t *wuclasses_list = NULL;
 
-uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uint8_t number_of_properties, uint8_t properties[]) {
+void wkpf_register_wuclass(wuclass_t *wuclass) {
+  wuclass->next = wuclasses_list;
+  wuclasses_list = wuclass;
+  DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %x at index %x\n", wuclass->wuclass_id, wkpf_get_number_of_wuclasses());
+}
+
+uint8_t wkpf_register_virtual_wuclass(uint16_t wuclass_id, update_function_t update, uint8_t number_of_properties, uint8_t properties[]) {
 	wuclass_t *wuclass;
 	if (wkpf_get_wuclass_by_id(wuclass_id, &wuclass) != WKPF_ERR_WUCLASS_NOT_FOUND) {
 		DEBUG_LOG(DBG_WKPF, "WKPF: WuClass id in use while registering wuclass id %x: FAILED\n", wuclass->wuclass_id);
@@ -27,14 +33,11 @@ uint8_t wkpf_register_wuclass(uint16_t wuclass_id, update_function_t update, uin
   // Initialise memory
 	memset(wuclass, 0, size);
 
-  DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %x at index %x\n", wuclass->wuclass_id, wkpf_get_number_of_wuclasses());
   wuclass->wuclass_id = wuclass_id;
   wuclass->update = update;
   wuclass->number_of_properties = number_of_properties;
   for (int i=0; i<number_of_properties; i++)
   	wuclass->properties[i] = properties[i];
-  wuclass->next = wuclasses_list;
-  wuclasses_list = wuclass;
 
   return WKPF_OK;
 }

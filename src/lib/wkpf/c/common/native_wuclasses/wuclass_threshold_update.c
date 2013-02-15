@@ -16,11 +16,11 @@ void wuclass_threshold_update(wuobject_t *wuobject) {
 	if (((operator == WKPF_ENUM_THRESHOLD_OPERATOR_GT || operator == WKPF_ENUM_THRESHOLD_OPERATOR_GTE) && value > threshold)
 	 || ((operator == WKPF_ENUM_THRESHOLD_OPERATOR_LT || operator == WKPF_ENUM_THRESHOLD_OPERATOR_LTE) && value < threshold)
 	 || ((operator == WKPF_ENUM_THRESHOLD_OPERATOR_GTE || operator == WKPF_ENUM_THRESHOLD_OPERATOR_LTE) && value == threshold)) {
-    wkpf_internal_write_property_boolean(wuobject, WKPF_PROPERTY_THRESHOLD_OUTPUT, TRUE);
+    wkpf_internal_write_property_boolean(wuobject, WKPF_PROPERTY_THRESHOLD_OUTPUT, true);
     DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value %x -> TRUE\n", operator, threshold, value);
   }
 	else {
-    wkpf_internal_write_property_boolean(wuobject, WKPF_PROPERTY_THRESHOLD_OUTPUT, FALSE);
+    wkpf_internal_write_property_boolean(wuobject, WKPF_PROPERTY_THRESHOLD_OUTPUT, false);
     DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value %x -> FALSE\n", operator, threshold, value);
   }
 }

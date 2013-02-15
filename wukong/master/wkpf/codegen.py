@@ -277,13 +277,12 @@ class CodeGen:
 
       extern void %s(wuobject_t *wuobject);
 
-      uint8_t %s[] = {
       ''' % (
               wuClass.getCDefineName(),
               wuClass.getCUpdateName(),
-              wuClass.getCPropertyName(),
             ))
 
+      wuclass_native_impl_properties_lines = ''
       for ind, property in enumerate(wuClass.getProperties().values()):
         datatype = property.getDataType()
         access = property.getAccess()
@@ -296,11 +295,7 @@ class CodeGen:
           line += ","
 
         line += "\n"
-        wuclass_native_impl_lines.append(line)
-
-      wuclass_native_impl_lines.append('''
-      };
-      ''')
+        wuclass_native_impl_properties_lines += line
 
       wuclass_native_impl_lines.append('''
       wuclass_t %s = {
@@ -308,13 +303,15 @@ class CodeGen:
         %s,
         %d,
         NULL,
+        {
         %s
+        }
       };
       ''' % (wuClass.getCName(), 
             wuClass.getCConstName(),
             wuClass.getCUpdateName(),
             len(wuClass.getProperties()), 
-            wuClass.getCPropertyName()))
+            wuclass_native_impl_properties_lines))
 
       wuclass_native_impl_lines.append('''
       #endif
