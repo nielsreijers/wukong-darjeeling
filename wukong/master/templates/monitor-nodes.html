@@ -1,0 +1,111 @@
+<button id="refresh">Refresh</button>
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Location</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for node_info in node_infos %}
+        <tr class={{ 'success' if node_info.isResponding() else 'error' }}>
+            <td id="nodeId">
+                {{ node_info.nodeId }}
+            </td>
+            <td>
+                {% if set_location %}
+                <div class="input-append">
+                    <input class="span2" type="text" value="{{ node_info.location }}"> <button type="button" class="btn set-location">Set Location</button>
+                </div>
+                {% else %}
+                {{ node_info.location }}
+                {% end %}
+            </td>
+            <td>
+                {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
+                <a role=button id=node{{ node_info.nodeId }} data-toggle=modal href='#myModal' class='btn more'>Classes/Objects list</button>
+            </td>
+        </tr>
+        {% end %}
+    </tbody>
+</table>
+
+<div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Modal header</h3>
+    </div>
+    <div class="modal-body">
+        <p>One fine body…</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+</div>
+
+
+<div id="progress">
+<div id="compile_status"></div>
+<div id="normal"></div>
+<div id="critical_error"></div>
+<div id="urgent_error"></div>
+</div>
+
+<script>
+
+    $(function() {
+        $('#myModal').hide();
+
+        $('#refresh').click(function() {
+            console.log('refresh nodes');
+            $('#nodes').block({
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' }
+            });
+
+            $.post('/nodes/refresh', {% if set_location %}{set_location: true},{% end %} function(data) {
+                $('#nodes').html(data.nodes);
+                $('#nodes').unblock();
+            });
+        });
+
+        $('.set-location').click(function() {
+            var nodeId = $.trim($(this).closest('tr').find('#nodeId').text());
+            console.log(nodeId);
+            console.log($(this).prev().val());
+            var tmp_loc = $(this).prev().val();
+            
+            if(tmp_loc==""){
+              tmp_loc = '/'+'{{ default_location }}'+'#(0,0,0)'
+              $(this).prev().val(tmp_loc);
+              console.log(tmp_loc)
+            }
+                    
+            $.ajax('/nodes/' + nodeId, {
+                type: 'PUT',
+                dataType: 'json',
+                data: {location: tmp_loc},
+                success: function(data) {
+                    //data = JSON.parse(data);
+                    if (data.status == 1) {
+                        alert(data.mesg);
+                    }
+                }
+            });
+        });
+    });
+
+    {% for node_info in node_infos %}
+    
+    $('#node{{ node_info.nodeId }}').click(function(e) {
+        e.preventDefault();
+        console.log('click');
+        $('#myModal .modal-header').html('Node Info');
+        $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
+    });
+    //$('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
+
+    {% end %}
+</script>
+

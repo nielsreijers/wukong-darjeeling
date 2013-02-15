@@ -1,0 +1,36 @@
+<!--<button id="map">Map</button>-->
+<!--<button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>-->
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>WuObject Name</th>
+            <th>Node Id</th>
+            <th>Port Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key in mapping_results.keys() %}
+            {% for wuobject in mapping_results[key] %}
+            <tr class=success>
+                <td>
+                    {{ wuobject.getInstanceId() }}
+                </td>
+                <td>
+                    {{ wuobject.getWuClassName() }}
+                </td>
+                <td>
+                    {{ wuobject.getNodeId() }}
+                </td>
+                <td>
+                    {{ wuobject.getPortNumber() }}
+                </td>
+            </tr>
+            {% end %}
+        {% end %}
+
+    </tbody>
+</table>
+
+
+<div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>

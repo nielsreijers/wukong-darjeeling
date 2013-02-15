@@ -1,0 +1,52 @@
+<script>
+    var current_application = "{{ app.id }}";
+</script>
+<script type="text/javascript" src="/static/js/deployment.js"></script>
+
+<div id='wrapper'>
+    <div class=row-fluid>
+        <div class="span12">
+            <div class=tabbable>
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#fbp" data-toggle="tab">FBP editor</a></li>
+                    <li class="disabled"><a href="#policy" data-toggle="tab">User policy editor</a></li>
+                    <li><a href="#deploy" data-toggle="tab">Deployment</a></li>
+                </ul>
+                <div class=tab-content>
+                    <div class="tab-pane active" id="fbp">
+                        <div class="img-rounded" style="height: 100%; padding: 10px;"><iframe width="800" height="600" src="/applications/{{ app_id }}/fbp/load"></iframe></div>
+                    </div>
+                    <div class="tab-pane" id="policy">
+                        <h1>Under construction</h1>
+                    </div>
+                    <div class="tab-pane" id="deploy">
+
+                        <div class=tabbable>
+                            <ul class="nav nav-pills">
+                                <li><a id="nodes-btn" href="#nodes" data-toggle="tab">Discover</a></li>
+                                <li><a id="mapping_results-btn" href="#mapping_results" data-toggle="tab">Map</a></li>
+                                <li><a id="deploy-btn" href="#deploy_results" data-toggle="tab">Deploy</a></li>
+                            </ul>
+                            <div class=tab-content>
+                                <div class="tab-pane" id="nodes">
+                                    {% include "monitor-nodes.html" %}
+                                </div>
+                                <div class="tab-pane" id="mapping_results">
+                                    {% include "monitor-mapping-results.html" %}
+                                </div>
+                                <div class="tab-pane" id="deploy_results">
+                                    <h1 id="wukong_status"></h1>
+                                    <h1 id="application_status"></h1>
+                                </div>
+
+                                <!--<div class="tab-pane" id="log">-->
+                                    <!--{% include "monitor-log.html" %}-->
+                                <!--</div>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
