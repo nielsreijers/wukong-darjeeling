@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "native_wuclasses.h"
+#include "../../common/native_wuclasses/native_wuclasses.h"
 #include <avr/io.h>
 
 #ifdef ENABLE_WUCLASS_LIGHT_SENSOR
