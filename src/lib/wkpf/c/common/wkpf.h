@@ -1,6 +1,8 @@
 #ifndef WKPF_H
 #define WKPF_H
 
+#include "types.h"
+
 // #include "wkpf_wuclasses.h"
 // #include "wkpf_wuobjects.h"
 // #include "wkpf_properties.h"

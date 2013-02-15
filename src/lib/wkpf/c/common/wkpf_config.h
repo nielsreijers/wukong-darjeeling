@@ -1,6 +1,7 @@
 #ifndef WKPF_CONFIG_H
 #define WKPF_CONFIG_H
 
+#include "wkcomm.h"
 #include "types.h"
 
 #define LOCATION_MAX_LENGTH 128

@@ -255,13 +255,12 @@ class CodeGen:
 
       # Generate C header for each native component implementation
       wuclass_native_header_lines.append('''
-      #include <wkpf.h>
       #include "native_wuclasses.h"
 
       #ifndef %sH
       #define %sH
 
-      extern wkpf_wuclass_definition %s;
+      extern wuclass_t %s;
 
       #endif
       ''' % (
@@ -272,12 +271,11 @@ class CodeGen:
 
       # Generate C implementation for each native component implementation
       wuclass_native_impl_lines.append('''
-      #include <wkpf.h>
       #include "native_wuclasses.h"
 
       #ifdef ENABLE_%s
 
-      extern void %s(wkpf_local_wuobject *wuobject);
+      extern void %s(wuobject_t *wuobject);
 
       uint8_t %s[] = {
       ''' % (
@@ -305,10 +303,11 @@ class CodeGen:
       ''')
 
       wuclass_native_impl_lines.append('''
-      wkpf_wuclass_definition %s = {
+      wuclass_t %s = {
         %s,
         %s,
         %d,
+        NULL,
         %s
       };
       ''' % (wuClass.getCName(), 
