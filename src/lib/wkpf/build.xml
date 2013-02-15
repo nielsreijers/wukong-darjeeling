@@ -9,4 +9,11 @@
 	<!-- include the library build template -->
 	<import file="../lib.xml"/>
 
+	<target name="clean">
+		<delete>
+			<fileset dir="." casesensitive="yes">
+			  <include name="**/GENERATED*"/>
+			</fileset>
+		</delete>
+	</target>
 </project>
