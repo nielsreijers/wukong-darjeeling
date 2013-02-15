@@ -1,5 +1,4 @@
-#include <debug.h>
-#include <wkpf.h>
+#include "debug.h"
 #include "native_wuclasses.h"
 
 #ifdef ENABLE_WUCLASS_LOGICAL

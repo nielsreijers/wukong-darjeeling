@@ -1,5 +1,4 @@
-#include <wkpf.h>
-#include <debug.h>
+#include "debug.h"
 #include "native_wuclasses.h"
 
 void wuclass_generic_update(wuobject_t *wuobject) {

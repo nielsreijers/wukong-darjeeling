@@ -1,6 +1,4 @@
 #include "debug.h"
-#include "types.h"
-#include "wkpf.h"
 #include "native_wuclasses.h"
 #include <avr/io.h>
 
