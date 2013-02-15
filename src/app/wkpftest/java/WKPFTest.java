@@ -109,6 +109,8 @@ public class WKPFTest {
 
 		VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();
 
+		// A native threshold is already in the VM, but here we're registering a virtual object.
+		// This works, but should never happen in a real application.
 		WKPF.registerWuClass(WKPF.WUCLASS_THRESHOLD, GENERATEDVirtualThresholdWuObject.properties);
 		assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualThresholdWuObject.");
 

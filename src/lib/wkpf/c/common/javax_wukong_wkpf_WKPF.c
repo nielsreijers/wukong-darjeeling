@@ -15,6 +15,7 @@
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
 #include "wkpf_comm.h"
+#include "native_wuclasses/native_wuclasses.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
 
@@ -31,6 +32,9 @@ void javax_wukong_wkpf_WKPF_void__init() {
 
 	wkpf_comm_handleMessageHook.function = wkpf_comm_handle_message;
 	dj_hook_add(&wkcomm_handle_message_hook, &wkpf_comm_handleMessageHook);
+
+	if (wkpf_native_wuclasses_init() != WKPF_OK)
+		dj_panic(DJ_PANIC_OUT_OF_MEMORY);
 }
 
 void javax_wukong_wkpf_WKPF_byte_getErrorCode()

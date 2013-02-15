@@ -41,12 +41,12 @@
 typedef int64_t dj_time_t;
 /* Please see common/debug.h */
 
-#define DARJEELING_DEBUG
+// #define DARJEELING_DEBUG
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
 // #define DBG_DARJEELING true
-#define DBG_DARJEELING_GC true
+// #define DBG_DARJEELING_GC true
 // #define DBG_WKPF true
 // #define DBG_WKPFGC true
 // #define DBG_WKPFUPDATE true
