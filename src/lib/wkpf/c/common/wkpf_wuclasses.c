@@ -38,7 +38,8 @@ uint8_t wkpf_register_virtual_wuclass(uint16_t wuclass_id, update_function_t upd
   wuclass->number_of_properties = number_of_properties;
   for (int i=0; i<number_of_properties; i++)
   	wuclass->properties[i] = properties[i];
-
+  wkpf_register_wuclass(wuclass);
+  
   return WKPF_OK;
 }
 
