@@ -93,7 +93,7 @@ uint8_t wkpf_write_property_refresh_rate(wuobject_t *wuobject, uint8_t property_
 uint8_t wkpf_get_property_status(wuobject_t *wuobject, uint8_t property_number, uint8_t *status) {
 	wuobject_property_t *property = wkpf_get_property(wuobject, property_number);
 	if (property) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_get_property_status: (port 0x%x, property %d): 0x%x\n", i, wuobject->port_number, property_number, property->status);
+		DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_get_property_status: (port 0x%x, property %d): 0x%x\n", wuobject->port_number, property_number, property->status);
 		*status = property->status;
 		return WKPF_OK;
 	}
