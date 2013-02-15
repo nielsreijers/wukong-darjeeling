@@ -9,9 +9,7 @@
 	<!-- include the library build template -->
 	<import file="../lib.xml"/>
 
-	<target name="all" depends="generate" />
-
-	<target name="generate">
+	<target name="lib-specific-pre">
 		<exec executable="../../../wukong/master/wkpf/codegen.py">
 			<arg line="-i ../../../wukong/WuKongStandardLibrary.xml -p ../../.. -u ../../.."/>
 		</exec>

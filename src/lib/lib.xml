@@ -67,7 +67,10 @@
 	</pathconvert>
 	
 	<!-- Meta-target -->
-	<target name="all" depends="compile-java, package, infuse, compile-c, ar, copy-public-headerfile"/>
+	<target name="lib-specific-pre" />
+	<target name="lib-specific-post" />
+
+	<target name="all" depends="lib-specific-pre, compile-java, package, infuse, compile-c, ar, copy-public-headerfile, lib-specific-post"/>
 
 	<!-- compile the java sources -->
 	<target name="compile-java">
