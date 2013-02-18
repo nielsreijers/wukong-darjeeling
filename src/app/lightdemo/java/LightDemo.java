@@ -27,13 +27,13 @@ public class LightDemo {
     // each row has two items: node id, port number
     private final static Object[] componentInstanceToWuObjectAddrMap = {
       new byte[]{
-        1, 3
+        2, 3
       },
       new byte[]{
-        1, 4
+        2, 4
       },
       new byte[]{
-        1, 1
+        2, 1
       },
       new byte[]{
         1, 2
