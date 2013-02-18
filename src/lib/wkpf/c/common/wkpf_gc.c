@@ -69,7 +69,9 @@ void wkpf_updatePointers(void *data) {
 		// Store a pointer to this wuobject' next pointer
 	    wuobject_t **next = &(*wuobject)->next;
 	    // Then update the pointers
-	    (*wuobject)->wuclass = dj_mem_getUpdatedPointer((*wuobject)->wuclass);
+   		if ((*wuobject)->wuclass->update == NULL) { // Only for virtual classes, since native classes are global variables that aren't on the heap.
+	    	(*wuobject)->wuclass = dj_mem_getUpdatedPointer((*wuobject)->wuclass);
+		}
 	    (*wuobject)->java_instance_reference = dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference);
 
 	    *wuobject = dj_mem_getUpdatedPointer(*wuobject);
