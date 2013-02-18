@@ -86,6 +86,7 @@ uint8_t wkpf_write_property_refresh_rate(wuobject_t *wuobject, uint8_t property_
 	wuobject_property_t *property = wkpf_get_property(wuobject, property_number);
 	wkpf_refresh_rate_t *ptr = (wkpf_refresh_rate_t *)property->value;
 	*ptr = value;
+    wkpf_schedule_next_update_for_wuobject(wuobject);
 	wkpf_update_status_after_property_write(wuobject, property, external_access);
 	return WKPF_OK;
 }
