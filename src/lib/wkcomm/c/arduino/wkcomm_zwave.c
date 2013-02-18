@@ -456,9 +456,9 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
     buf[2] = id;
     buf[3] = len+4;
     buf[4] = COMMAND_CLASS_PROPRIETARY;
-    buf[5] = seqnr / 256;
-    buf[6] = seqnr % 256;
-    buf[7] = command; // See nvmcomm.h
+    buf[5] = command; // See nvmcomm.h
+    buf[6] = seqnr / 256;
+    buf[7] = seqnr % 256;
     for(i=0; i<len; i++)
         buf[i+8] = in[i];
     buf[8+len] = txoptions;
