@@ -457,13 +457,17 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
     buf[3] = len+4;
     buf[4] = COMMAND_CLASS_PROPRIETARY;
     buf[5] = command; // See nvmcomm.h
+    // We have two sequence numbers here.
+    // "seqnr" is used by the wkcomm code to check received replies correspond to the right request.
+    // "seq" is used by zwave itself.
+    // It would have been nicer to put seqnr in the payload before calling ZW_sendData, but that would have meant copying the data one more time and wasting memory.
     buf[6] = seqnr % 256;
     buf[7] = seqnr / 256;
     for(i=0; i<len; i++)
         buf[i+8] = in[i];
     buf[8+len] = txoptions;
     buf[9+len] = seq++;
-    if (SerialAPI_request(buf, len + 8) != 0)
+    if (SerialAPI_request(buf, len + 10) != 0)
         return -1;
     while (zwsend_ack_got == -1 && timeout-->0) {
         wkcomm_poll();
