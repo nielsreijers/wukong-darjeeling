@@ -50,44 +50,44 @@ void wkpf_updatePointers(void *data) {
 	// WuClasses
 	wuclass_t **wuclass = &wuclasses_list;
 	while (*wuclass) {
-	    wuclass_t **next = &(*wuclass)->next; // Store a pointer to this wuclass' next pointer
+		wuclass_t **next = &(*wuclass)->next; // Store a pointer to this wuclass' next pointer
 		if ((*wuclass)->update == NULL) { // Only for virtual classes, since native classes are global variables that aren't on the heap.
-		    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuclass %d from %p to %p\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
-		    *wuclass = dj_mem_getUpdatedPointer(*wuclass); // Then update the pointer to this wuclass
+			DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuclass %d from %p to %p\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
+			*wuclass = dj_mem_getUpdatedPointer(*wuclass); // Then update the pointer to this wuclass
 		}
-	    wuclass = next; // Continue from the previously stored next pointer, since we can't access the wuclass itself anymore
+		wuclass = next; // Continue from the previously stored next pointer, since we can't access the wuclass itself anymore
 	}
 
 	wuobject_t **wuobject = &wuobjects_list;
 	while (*wuobject) {
-	    // Print some debug output
-	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuobject on port %d from %p to %p\n", (*wuobject)->port_number, *wuobject, dj_mem_getUpdatedPointer(*wuobject));
-	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer to wuclass for wuobject on port %d from %p to %p\n", (*wuobject)->port_number, (*wuobject)->wuclass, dj_mem_getUpdatedPointer((*wuobject)->wuclass));
-	    if ((*wuobject)->java_instance_reference) {
-		    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer to java instance for wuobject on port %d from %p to %p\n", (*wuobject)->port_number, (*wuobject)->java_instance_reference, dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference));
+		// Print some debug output
+		DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuobject on port %d from %p to %p\n", (*wuobject)->port_number, *wuobject, dj_mem_getUpdatedPointer(*wuobject));
+		DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer to wuclass for wuobject on port %d from %p to %p\n", (*wuobject)->port_number, (*wuobject)->wuclass, dj_mem_getUpdatedPointer((*wuobject)->wuclass));
+		if ((*wuobject)->java_instance_reference) {
+			DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer to java instance for wuobject on port %d from %p to %p\n", (*wuobject)->port_number, (*wuobject)->java_instance_reference, dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference));
 		}
 		// Store a pointer to this wuobject' next pointer
-	    wuobject_t **next = &(*wuobject)->next;
-	    // Then update the pointers
-   		if ((*wuobject)->wuclass->update == NULL) { // Only for virtual classes, since native classes are global variables that aren't on the heap.
-	    	(*wuobject)->wuclass = dj_mem_getUpdatedPointer((*wuobject)->wuclass);
+		wuobject_t **next = &(*wuobject)->next;
+		// Then update the pointers
+		if ((*wuobject)->wuclass->update == NULL) { // Only for virtual classes, since native classes are global variables that aren't on the heap.
+			(*wuobject)->wuclass = dj_mem_getUpdatedPointer((*wuobject)->wuclass);
 		}
-	    (*wuobject)->java_instance_reference = dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference);
+		(*wuobject)->java_instance_reference = dj_mem_getUpdatedPointer((*wuobject)->java_instance_reference);
 
-	    *wuobject = dj_mem_getUpdatedPointer(*wuobject);
-	    // Continue from the previously stored next pointer, since we can't access the wuobject itself anymore
+		*wuobject = dj_mem_getUpdatedPointer(*wuobject);
+		// Continue from the previously stored next pointer, since we can't access the wuobject itself anymore
 		wuobject = next;
 	}
 
 	// Links
 	if (wkpf_links_store) {
-	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for link table from %p to %p\n", wkpf_links_store, dj_mem_getUpdatedPointer(wkpf_links_store));
-	    wkpf_links_store = dj_mem_getUpdatedPointer(wkpf_links_store); // Then update the pointer to this wuclass
+		DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for link table from %p to %p\n", wkpf_links_store, dj_mem_getUpdatedPointer(wkpf_links_store));
+		wkpf_links_store = dj_mem_getUpdatedPointer(wkpf_links_store); // Then update the pointer to this wuclass
 	}
 
 	// Component map
 	if (wkpf_component_map_store) {
-	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for component map from %p to %p\n", wkpf_component_map_store, dj_mem_getUpdatedPointer(wkpf_component_map_store));
-	    wkpf_component_map_store = dj_mem_getUpdatedPointer(wkpf_component_map_store); // Then update the pointer to this wuclass
+		DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for component map from %p to %p\n", wkpf_component_map_store, dj_mem_getUpdatedPointer(wkpf_component_map_store));
+		wkpf_component_map_store = dj_mem_getUpdatedPointer(wkpf_component_map_store); // Then update the pointer to this wuclass
 	}
 }
