@@ -18,7 +18,9 @@ void wkpf_markRootSet(void *data) {
 	DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Marking wuclasses black.\n");
 	wuclass_t *wuclass = wuclasses_list;
 	while (wuclass) {
-		dj_mem_setChunkColor(wuclass, TCM_BLACK);
+		if (wuclass->update == NULL) { // Only for virtual classes, since native classes are global variables that aren't on the heap.
+			dj_mem_setChunkColor(wuclass, TCM_BLACK);
+		}
 		wuclass = wuclass->next;
 	}
 
@@ -49,8 +51,10 @@ void wkpf_updatePointers(void *data) {
 	wuclass_t **wuclass = &wuclasses_list;
 	while (*wuclass) {
 	    wuclass_t **next = &(*wuclass)->next; // Store a pointer to this wuclass' next pointer
-	    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuclass %d from %p to %p\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
-	    *wuclass = dj_mem_getUpdatedPointer(*wuclass); // Then update the pointer to this wuclass
+		if ((*wuclass)->update == NULL) { // Only for virtual classes, since native classes are global variables that aren't on the heap.
+		    DEBUG_LOG(DBG_WKPFGC, "WKPF: (GC) Updating pointer for wuclass %d from %p to %p\n", (*wuclass)->wuclass_id, *wuclass, dj_mem_getUpdatedPointer(*wuclass));
+		    *wuclass = dj_mem_getUpdatedPointer(*wuclass); // Then update the pointer to this wuclass
+		}
 	    wuclass = next; // Continue from the previously stored next pointer, since we can't access the wuclass itself anymore
 	}
 
