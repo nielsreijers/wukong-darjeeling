@@ -53,7 +53,7 @@ uint8_t seq;          // Sequence number which is used to match the callback fun
 
 // Low level ZWave functions originally from testrtt.c
 int SerialAPI_request(unsigned char *buf, int len);
-int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr);
+int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr);
 void Zwave_receive(int processmessages);
 
 
@@ -138,7 +138,7 @@ uint8_t wkcomm_zwave_send(address_t dest, uint8_t command, uint8_t *payload, uin
     uint8_t txoptions = ZWAVE_TRANSMIT_OPTION_ACK + ZWAVE_TRANSMIT_OPTION_AUTO_ROUTE;
 
 #ifdef DBG_WKCOMM
-    DEBUG_LOG(DBG_WKCOMM, "Sending command %d to %d, length %d: ", nvc3_command, dest, length);
+    DEBUG_LOG(DBG_WKCOMM, "Sending command %d to %d, length %d: ", command, dest, length);
     for (int16_t i=0; i<length; ++i) {
         DEBUG_LOG(DBG_WKCOMM, " %d", payload[i]);
     }
@@ -167,7 +167,7 @@ uint8_t len;          // Length of the returned wkcomm_zwave_receive_buffer
 uint8_t type;         // 0: request 1: response 2: timeout
 uint8_t cmd;          // the serial api command number of the current wkcomm_zwave_receive_buffer
 // 4 bytes protocol overhead (see Zwave_receive),
-// 1 byte for the nvc3_command, which is the first byte in the message.
+// 1 byte for the command, which is the first byte in the message.
 uint8_t payload_length;  // Length of the wkcomm_zwave_receive_buffer while reading a packet
 // TODO: used?
 uint8_t last_node = 0;
@@ -444,7 +444,7 @@ int ZW_GetRoutingInformation(uint8_t id)
 }
 */
 
-int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr)
+int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr)
 {
     unsigned char buf[WKCOMM_MESSAGE_SIZE+10];
     int i;
@@ -458,7 +458,7 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, uint8_t *in, uint8_t len, uint
     buf[4] = COMMAND_CLASS_PROPRIETARY;
     buf[5] = seqnr / 256;
     buf[6] = seqnr % 256;
-    buf[7] = nvc3_command; // See nvmcomm.h
+    buf[7] = command; // See nvmcomm.h
     for(i=0; i<len; i++)
         buf[i+8] = in[i];
     buf[8+len] = txoptions;
