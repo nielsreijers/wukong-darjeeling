@@ -83,8 +83,16 @@
 				<arg line="-C @{outputfile}"/>
 			</exec>
 			
+			<!-- Sections used in NanoVM but not (yet) in Darjeeling:
+					.lowtext
+					.javabytecode
+					.reprogram_flash_page -->
 			<exec executable="avr-objcopy">
-				<arg line="-O ihex @{outputfile} darjeeling.ihex"/>
+				<arg line="-j .text -j .data -O ihex @{outputfile} darjeeling.ihex"/>
+			</exec>
+
+			<exec executable="avr-objcopy">
+				<arg line="-j .eeprom -O ihex @{outputfile} darjeeling_eeprom.ihex"/>
 			</exec>
 		</sequential>
 	</macrodef>
