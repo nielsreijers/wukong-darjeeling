@@ -2,7 +2,7 @@
 
 
 	<!-- set the name of the library -->
-	<property name="name" value="wkpflightdemo"/>
+	<property name="name" value="lightdemo"/>
 	
 	<!-- list of libraries this library depends on -->
 	<property name="lib-depends" value="base, wkpf, wkcomm"/>
