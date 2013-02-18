@@ -182,17 +182,16 @@ void javax_wukong_wkpf_WKPF_void_setPropertyRefreshRate_short_byte_short() {
 void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 	wuobject_t *wuobject;
 	while(true) {
-
-// // TODONR: implement communication
-// 	// Process any incoming messages
-// 	nvmcomm_poll();
-// // TODONR: implement group stuff
-// #ifdef NVM_USE_GROUP
-// 	// Send out a heartbeat message if it's due, and check for failed nodes.
-// 	group_heartbeat();
-// #endif // NVM_USE_GROUP
-// // TODONR: implement runlevels (needed when we start to do the bytecode upgrade)
-//		if (nvm_runlevel == NVM_RUNLVL_VM) {
+		// Process any incoming messages
+		// TODONR: find a better way to call this at various points in the VM
+		wkcomm_poll();
+		// // TODONR: implement group stuff
+		// #ifdef NVM_USE_GROUP
+		// 	// Send out a heartbeat message if it's due, and check for failed nodes.
+		// 	group_heartbeat();
+		// #endif // NVM_USE_GROUP
+		// TODONR: implement runlevels (needed when we start to do the bytecode upgrade)
+		// if (nvm_runlevel == NVM_RUNLVL_VM) {
 			// Propagate any dirty properties
 			wkpf_propagate_dirty_properties();
 			// Check if any wuobjects need updates
