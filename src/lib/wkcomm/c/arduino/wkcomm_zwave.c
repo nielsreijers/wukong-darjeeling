@@ -258,7 +258,7 @@ void Zwave_receive(int processmessages) {
 
                 if (addr_zwave_to_wkcomm(&msg.src, wkcomm_zwave_receive_buffer[1]) && processmessages==1) {
                     msg.command = wkcomm_zwave_receive_buffer[4];
-                    msg.seqnr = *((uint16_t *)wkcomm_zwave_receive_buffer+5);
+                    msg.seqnr = wkcomm_zwave_receive_buffer[5] + (((uint16_t)wkcomm_zwave_receive_buffer[6]) << 8);
                     msg.payload = wkcomm_zwave_receive_buffer+7;
                     msg.length = payload_length-7;
 
@@ -457,8 +457,8 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
     buf[3] = len+4;
     buf[4] = COMMAND_CLASS_PROPRIETARY;
     buf[5] = command; // See nvmcomm.h
-    buf[6] = seqnr / 256;
-    buf[7] = seqnr % 256;
+    buf[6] = seqnr % 256;
+    buf[7] = seqnr / 256;
     for(i=0; i<len; i++)
         buf[i+8] = in[i];
     buf[8+len] = txoptions;

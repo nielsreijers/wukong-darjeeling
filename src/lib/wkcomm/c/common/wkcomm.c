@@ -61,12 +61,12 @@ int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t le
 	int retval = WKCOMM_SEND_ERR_NOT_HANDLED;
 	DEBUG_LOG(DBG_WKCOMM, "wkcomm_send\n");
 	#ifdef RADIO_USE_ZWAVE
-		retval = wkcomm_zwave_send(dest, command, payload, length, ++wkcomm_last_seqnr);
+		retval = wkcomm_zwave_send(dest, command, payload, length, seqnr);
 		if (retval == 0)
 			return retval;
 	#endif
 	#ifdef RADIO_USE_XBEE
-		retval = wkcomm_xbee_send(dest, command, payload, length, ++wkcomm_last_seqnr);
+		retval = wkcomm_xbee_send(dest, command, payload, length, seqnr);
 		if (retval == 0)
 			return retval;
 	#endif
@@ -86,16 +86,16 @@ int wkcomm_send_reply(wkcomm_received_msg *received_msg, uint8_t command, uint8_
 int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length,
 							uint16_t wait_msec, uint8_t *reply_commands, uint8_t number_of_reply_commands, wkcomm_received_msg **reply) {
 
-	// Do the send, and store the seqnr so wkcomm_handle_message can check for a match
-	int8_t retval = wkcomm_do_send(dest, command, payload, length, ++wkcomm_last_seqnr);
-
 	// Set global variables to wait for the required message types
 	wkcomm_wait_reply_commands = reply_commands;
 	wkcomm_wait_reply_number_of_commands = number_of_reply_commands;
 	wkcomm_received_reply.command = 0; // command will be != 0 once a reply has been received.
 	// Need to store the current sequence nr because other messages might be sent while
 	// waiting for the reply, so we can't use wkcomm_last_seqnr to check the incoming replies.
-	wkcomm_wait_reply_seqnr = wkcomm_last_seqnr;
+	wkcomm_wait_reply_seqnr = ++wkcomm_last_seqnr;
+
+	// Do the send, and store the seqnr so wkcomm_handle_message can check for a match
+	int8_t retval = wkcomm_do_send(dest, command, payload, length, wkcomm_last_seqnr);
 
 	if (retval != 0)
 		return retval; // Something went wrong during send.
@@ -107,10 +107,9 @@ int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *pay
 			// Reply received
 			*reply = &wkcomm_received_reply;
 			wkcomm_wait_reply_number_of_commands = 0;
-			return 0;
+			return WKCOMM_SEND_OK;
 		}
-	} while(wkcomm_wait_reply_number_of_commands == 0
-			&& deadline > dj_timer_getTimeMillis());
+	} while(deadline > dj_timer_getTimeMillis());
 	return WKCOMM_SEND_ERR_NO_REPLY;
 }
 
