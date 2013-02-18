@@ -1,0 +1,2 @@
+ - No support for multidimensional arrays
+ - Too long application names cause some problem (LightDemo is ok, WKPFLightDemo is not)
