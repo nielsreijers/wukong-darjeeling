@@ -5,15 +5,18 @@
 	
 	<import file="${compilerpath}/../../taskdefs.xml"/>
 
-    <condition property="compiler.standard"
+<!--     <condition property="compiler.standard"
                value="-std=gnu99"
                else="-mstrict-align">
         <os family="windows"/>
-    </condition>
-    
+    </condition> -->
+    <!-- NR 20130219: -mstrict-align doesn't work for my msp430-gcc, setting the same standard as I use for AVR -->
+    <property name="compiler.standard" value="-std=c99" />
+
+
     <condition property="compiler.debug.format"
                value="-gdwarf-2"
-               else="">
+               else="-ggdb">
         <os family="windows"/>
     </condition>
     
