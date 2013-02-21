@@ -35,7 +35,6 @@
 #include "debug.h"
 
 #include "pointerwidth.h"
-#include "conio.h"
 
 #define di_archive_data		_binary_infusions_start
 #define di_archive_data_end	_binary_infusions_end
@@ -55,8 +54,6 @@ int main(int argc,char* argv[])
 
 	dj_vm * vm;
 	dj_object * obj;
-
-	conio_init();
 
 	// initialise timer
 	dj_timer_init();
@@ -101,6 +98,5 @@ int main(int argc,char* argv[])
 	dj_mem_gc();
 	dj_vm_destroy(vm);
 
-	conio_shutdown();
 	return 0;
 }
