@@ -11,7 +11,7 @@
 	<property name="architecture" value="msp430"/>
 	<property name="configuration" value="msp430-taroko"/>
 
-	<property name="mcu" value="msp430x1611"/>
+	<property name="mcu" value="msp430f1611"/>
 
 	<!-- Import the rest from config.xml (magic) -->
 	<import file="../config.xml"/>
