@@ -35,7 +35,6 @@
 #include "execution.h"
 
 #include "jlib_base.h"
-#include "jlib_darjeeling2.h"
 #include "jlib_uart.h"
 #include "jlib_wkcomm.h"
 #include "jlib_wkpf.h"
@@ -70,7 +69,6 @@ int main()
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
-			{ "darjeeling2", &darjeeling2_native_handler },
 			{ "uart", &uart_native_handler },
 			{ "wkcomm", &wkcomm_native_handler },
 			{ "wkpf", &wkpf_native_handler },

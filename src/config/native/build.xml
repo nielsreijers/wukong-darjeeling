@@ -3,7 +3,7 @@
 	<!-- include native code for libraries -->
 	<!-- note that libraries should come after libraries they depend on
 		 (wkcomm first, the wkpf), or else loading the archive will fail -->
-	<property name="libs" value="base, util, darjeeling2, uart, wkcomm, wkpf"/>
+	<property name="libs" value="base, uart, wkcomm, wkpf"/>
 
 	<!-- Compile these applications -->
 	<property name="apps" value="wkpftest"/>
