@@ -25,7 +25,7 @@
 #include <stdbool.h>
 
 #include "jlib_base.h"
-#include "jlib_darjeeling2.h"
+// #include "jlib_darjeeling2.h"
 
 #include "types.h"
 #include "vm.h"
@@ -58,8 +58,6 @@ int main(int argc,char* argv[])
 	// initialise timer
 	dj_timer_init();
 
-	initLed();
-
 	// initialise memory manager
 	dj_mem_init(mem, HEAPSIZE);
 
@@ -71,7 +69,7 @@ int main(int argc,char* argv[])
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
-			{ "darjeeling2", &darjeeling2_native_handler },
+			// { "darjeeling2", &darjeeling2_native_handler },
 		};
 
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
