@@ -54,7 +54,6 @@ typedef int64_t dj_time_t;
 // #define DBG_ZWAVETRACE true
 
 #define DARJEELING_PRINTF printf
-#define DARJEELING_PRINTD(x) printf("%d", x)
 //#define ASSEMBLY_DEBUGGING 1
 //#define ASSEMBLY_DEBUG printf
 

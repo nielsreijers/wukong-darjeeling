@@ -1,5 +1,5 @@
 /*
- * djtimer.c
+ * msp430.h
  * 
  * Copyright (c) 2008-2010 CSIRO, Delft University of Technology.
  * 
@@ -19,15 +19,34 @@
  * along with Darjeeling.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#include "types.h"
-#include "msp430.h"
+#ifndef __msp430_h__
+#define __msp430_h__
 
-void dj_timer_init()
-{
-	msp430_timerInit();
-}
+#include <stdio.h>
+#include <stdarg.h>
 
-uint32_t dj_timer_getTimeMillis()
-{
-	return (dj_time_t)msp430_millis();
-}
+// TODONR: copied from arduino platform. need to port to msp430.
+
+// // 16 MHz clock speed
+// #define F_CPU 16000000
+
+// // clear bit, set bit macros
+// #ifndef cbi
+// #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+// #endif
+// #ifndef sbi
+// #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+// #endif
+
+void msp430_timerInit();
+unsigned long msp430_millis();
+void msp430_delay(unsigned long ms);
+
+void msp430_serialInit(uint32_t baud);
+void msp430_serialPrint(char * str);
+void msp430_serialVPrint(char * format, va_list arg);
+void msp430_serialPrintf(char * format, ...);
+void msp430_serialWrite(unsigned char value);
+
+
+#endif

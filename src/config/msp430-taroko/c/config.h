@@ -22,6 +22,7 @@
 #ifndef __config_h
 #define __config_h
 #include <sys/types.h>
+#include "msp430.h"
 
 // Allocate 4k heap for the VM
 #define HEAPSIZE 4096
@@ -47,8 +48,8 @@ typedef int64_t dj_time_t;
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
-#define DARJEELING_PRINTF printf
-#define DARJEELING_PRINTD(x) printf("%d", x)
+#define DARJEELING_PRINTF msp430_serialPrintf
+
 //#define ASSEMBLY_DEBUGGING 1
 //#define ASSEMBLY_DEBUG printf
 
