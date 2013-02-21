@@ -36,10 +36,6 @@
 
 #include "pointerwidth.h"
 
-#define di_archive_data		_binary_infusions_start
-#define di_archive_data_end	_binary_infusions_end
-#define di_archive_size		_binary_infusions_size
-
 extern const unsigned char di_archive_data[];
 extern const unsigned char di_archive_data_end[];
 extern const size_t di_archive_size;
@@ -75,7 +71,7 @@ int main(int argc,char* argv[])
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 	dj_archive archive;
 	archive.start = (dj_di_pointer)di_archive_data;
-	archive.end = (dj_di_pointer)di_archive_data_end;
+	archive.end = (dj_di_pointer)(di_archive_data + di_archive_size);
 
 	dj_vm_loadInfusionArchive(vm, &archive, handlers, length);
 	

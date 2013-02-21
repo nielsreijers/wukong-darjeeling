@@ -84,9 +84,31 @@
 		<attribute name="inputfile"/>
 		<attribute name="outputfile"/>
 		<sequential>
-            <exec executable="msp430-objcopy">
-                <arg line="-I binary -O elf32-msp430 ${objcopy.renamesection} @{inputfile} @{outputfile}"/>
-            </exec>
+			<!--
+			<exec executable="avr-objcopy">
+				<arg line="-I binary -O elf32-avr @{inputfile} @{outputfile}"/>
+			</exec>
+			-->
+			<!-- compile the binary file to a .c file -->
+			<carray
+				src="@{inputfile}"
+				dest="temp.c"
+				arrayname="di_archive"
+			/>
+			<!-- compile -->
+			<cc
+				name="gcc"
+				objdir="."
+				>
+				<compiler classname="net.sf.antcontrib.cpptasks.gcc.cross.GccCCompiler">
+					<compilerparam value="msp430" name="target"/>
+					<compilerarg value="-mmcu=${mcu}"/>
+				</compiler>
+				<fileset includes="temp.c" dir="."/>
+			</cc>
+			<exec executable="mv">
+				<arg line="temp.o @{outputfile}"/>
+			</exec>
 		</sequential>
 	</macrodef>
 
