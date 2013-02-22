@@ -41,8 +41,10 @@
 #include "pointerwidth.h"
 char * ref_t_base_address;
 
-extern unsigned char di_archive_data[];
-extern size_t di_archive_size;
+extern unsigned char di_lib_archive_data[];
+extern size_t di_lib_archive_size;
+extern unsigned char di_app_archive_data[];
+extern size_t di_app_archive_size;
 
 FILE * progflashFile;
 
@@ -102,12 +104,16 @@ int main(int argc,char* argv[])
 		};
 
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
-	dj_archive archive;
-	archive.start = (dj_di_pointer)di_archive_data;
-	archive.end = (dj_di_pointer)(di_archive_data + di_archive_size);
-
-	dj_vm_loadInfusionArchive(vm, &archive, handlers, length);
+	dj_archive lib_archive;
+	lib_archive.start = (dj_di_pointer)di_lib_archive_data;
+	lib_archive.end = (dj_di_pointer)(di_lib_archive_data + di_lib_archive_size);
+	dj_vm_loadInfusionArchive(vm, &lib_archive, handlers, length);
 	
+	dj_archive app_archive;
+	app_archive.start = (dj_di_pointer)di_app_archive_data;
+	app_archive.end = (dj_di_pointer)(di_app_archive_data + di_app_archive_size);
+	dj_vm_loadInfusionArchive(vm, &app_archive, handlers, length);
+
 	// pre-allocate an OutOfMemoryError object
 	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
 	dj_mem_setPanicExceptionObject(obj);

@@ -411,7 +411,6 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive* archive, dj_named_native_
 	unsigned char digit, i;
 	dj_global_id entryPoint;
 	unsigned long size, pos;
-	bool first = true;
 
 	// skip header, we'll just assume you're not passing something silly into this method
 	archive_start += 8;
@@ -433,8 +432,11 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive* archive, dj_named_native_
 		if (dj_di_getU8(archive_start)!='/')
 		{
 
-			// Read infusion file. We're assuming here that base.di is the first file in the archive
-			if (first)
+			// // Read infusion file. We're assuming here that base.di is the first file in the archive
+			// if (first)
+			// NR 20130222: Since I'm splitting the archive in a library and application archive this doesn't work anymore.
+			// If we're assuming the first to be base.di, this test should work just as well though.
+			if (vm->systemInfusion == NULL)
 				infusion = dj_vm_loadSystemInfusion(vm, archive_start + AR_EHEADER_SIZE);
 			else
 				infusion = dj_vm_loadInfusion(vm, archive_start + AR_EHEADER_SIZE);
@@ -498,7 +500,6 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive* archive, dj_named_native_
 				dj_vm_addThread(vm, thread);
 			}
 
-			first = false;
 		}
 
 		// files are 2-byte aligned

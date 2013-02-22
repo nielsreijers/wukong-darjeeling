@@ -3,7 +3,8 @@
 
 	<property name="executable" value="darjeeling.elf"/>
 	<property name="outputfile" value="darjeeling.a"/>
-	<property name="infusionarchive" value="infusions"/>
+	<property name="lib_infusionarchive" value="lib_infusions"/>
+	<property name="app_infusionarchive" value="app_infusions"/>
 	<property name="infusionelf" value="infusions.o"/>
 
 	<!-- Get the directory where config.xml is located -->
@@ -129,13 +130,18 @@
 		</pathconvert>
 		
 		<!-- Archive the files using gnu ar -->
-		<delete file="${infusionarchive}"/>
+		<delete file="${lib_infusionarchive}"/>
+		<delete file="${app_infusionarchive}"/>
 		<exec executable="${ar}">
-			<arg line="rc ${infusionarchive} ${dilibs} ${diapps}"/>
+			<arg line="rc ${lib_infusionarchive} ${dilibs}"/>
+		</exec>	
+		<exec executable="${ar}">
+			<arg line="rc ${app_infusionarchive} ${diapps}"/>
 		</exec>	
 
 		<!-- Use objcopy to turn the archive into an elf file so it can be linked into the final executable -->
-		<platform-objcopy inputfile="${infusionarchive}" outputfile="${temp}/infusions/infusions.o"/>
+		<platform-objcopy inputfile="${lib_infusionarchive}" outputfile="${temp}/infusions/lib_infusions.o" arrayname="di_lib_archive"/>
+		<platform-objcopy inputfile="${app_infusionarchive}" outputfile="${temp}/infusions/app_infusions.o" arrayname="di_app_archive"/>
 	</target>
 		
 	<!-- Unpack the static libraries for the different libraries and the VM into the build directory -->
