@@ -105,18 +105,14 @@
 	<macrodef name="platform-objcopy">
 		<attribute name="inputfile"/>
 		<attribute name="outputfile"/>
+		<attribute name="arrayname"/>
 		<sequential>
-			<!--
-			<exec executable="avr-objcopy">
-				<arg line="-I binary -O elf32-avr @{inputfile} @{outputfile}"/>
-			</exec>
-			-->
 			<!-- compile the binary file to a .c file -->
 			<carray
 				src="@{inputfile}"
-				dest="temp.c"
-				arrayname="di_archive"
-                                keywords="PROGMEM"
+				dest="temp_@{arrayname}.c"
+				arrayname="@{arrayname}"
+				keywords="PROGMEM"
 			/>
 			<!-- compile -->
 			<cc
@@ -127,12 +123,11 @@
 					<compilerparam value="avr" name="target"/>
 					<compilerarg value="-mmcu=${mcu}"/>
 				</compiler>
-				<fileset includes="temp.c" dir="."/>
+				<fileset includes="temp_@{arrayname}.c" dir="."/>
 			</cc>
 			<exec executable="mv">
-				<arg line="temp.o @{outputfile}"/>
+				<arg line="temp_@{arrayname}.o @{outputfile}"/>
 			</exec>
 		</sequential>
 	</macrodef>
-
 </project>
