@@ -85,10 +85,9 @@
 			
 			<!-- Sections used in NanoVM but not (yet) in Darjeeling:
 					.lowtext
-					.javabytecode
 					.reprogram_flash_page -->
 			<exec executable="avr-objcopy">
-				<arg line="-j .text -j .data -O ihex @{outputfile} darjeeling.ihex"/>
+				<arg line="-j .text -j .data -j .javabytecode -O ihex @{outputfile} darjeeling.ihex"/>
 			</exec>
 
 			<exec executable="avr-objcopy">
@@ -107,12 +106,16 @@
 		<attribute name="outputfile"/>
 		<attribute name="arrayname"/>
 		<sequential>
+			<local name="keywords"/>
+			<condition property="keywords" value="__attribute__ ((section (&quot;.javabytecode&quot;)))" else="PROGMEM">
+				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
+			</condition>
 			<!-- compile the binary file to a .c file -->
 			<carray
 				src="@{inputfile}"
 				dest="temp_@{arrayname}.c"
 				arrayname="@{arrayname}"
-				keywords="PROGMEM"
+				keywords="${keywords}"
 			/>
 			<!-- compile -->
 			<cc
