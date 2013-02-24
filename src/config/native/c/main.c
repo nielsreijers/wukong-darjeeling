@@ -105,13 +105,15 @@ int main(int argc,char* argv[])
 
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 	dj_archive lib_archive;
-	lib_archive.start = (dj_di_pointer)di_lib_archive_data;
-	lib_archive.end = (dj_di_pointer)(di_lib_archive_data + di_lib_archive_size);
+	uint32_t lib_length = ((uint32_t)di_lib_archive_data[0]) + (((uint32_t)di_lib_archive_data[1]) << 8) + (((uint32_t)di_lib_archive_data[2]) << 16) + (((uint32_t)di_lib_archive_data[3]) << 24);
+	lib_archive.start = ((dj_di_pointer)di_lib_archive_data) + 4;
+	lib_archive.end = (dj_di_pointer)(di_lib_archive_data + lib_length);
 	dj_vm_loadInfusionArchive(vm, &lib_archive, handlers, length);
 	
 	dj_archive app_archive;
-	app_archive.start = (dj_di_pointer)di_app_archive_data;
-	app_archive.end = (dj_di_pointer)(di_app_archive_data + di_app_archive_size);
+	uint32_t app_length = ((uint32_t)di_app_archive_data[0]) + (((uint32_t)di_app_archive_data[1]) << 8) + (((uint32_t)di_app_archive_data[2]) << 16) + (((uint32_t)di_app_archive_data[3]) << 24);
+	app_archive.start = ((dj_di_pointer)di_app_archive_data) + 4;
+	app_archive.end = (dj_di_pointer)(di_app_archive_data + app_length);
 	dj_vm_loadInfusionArchive(vm, &app_archive, handlers, length);
 
 	// pre-allocate an OutOfMemoryError object

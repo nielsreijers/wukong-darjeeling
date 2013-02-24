@@ -53,10 +53,15 @@
 		<attribute name="arrayname"/>
 		<sequential>
 			<!-- compile the binary file to a .c file -->
+			<local name="arraysize"/>
+			<condition property="arraysize" value="${app-archive-size}" else="0">
+				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
+			</condition>
 			<carray
 				src="@{inputfile}"
 				dest="temp_@{arrayname}.c"
 				arrayname="@{arrayname}"
+				arraysize="${arraysize}"
 			/>
 			<!-- compile -->
 			<cc
