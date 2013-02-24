@@ -45,6 +45,13 @@ import org.apache.tools.ant.Task;
  * 
  * @author Niels Brouwers
  *
+ * NR 20130224: Replacing the size from a separate variable to the first 4 bytes of the C array.
+ *              This will make wireless reprogramming easier since we can just upload a whole new
+ *              array, and will free a little bit of memory as well.
+ *              Also adding an extra parameter "arraysize" so we can easily reserve space for
+ *              uploading larger archives (will only be useful for the app archive). When it's
+ *              empty we'll create an array as large as the archive. When it's set, but smaller
+ *              than the archive, throw an error.
  */
 public class CArrayTask extends Task
 {
@@ -53,7 +60,9 @@ public class CArrayTask extends Task
 	
 	// Source, destination files and output array name.
 	private String src, dest, arrayName;
-	
+	// Desired size of the array. Defaults to the size of the archive if 0. Error if !=0 but < archive size.
+	private int arraysize;
+
 	// Keyword list. 
 	private ArrayList<String> keywords = new ArrayList<String>();
 	
@@ -93,13 +102,15 @@ public class CArrayTask extends Task
 			throw new org.apache.tools.ant.BuildException("IO error while reading: " + src);
 		}
 
+		if (arraysize!=0 && bytes.length>arraysize)
+			throw new BuildException("Archive doesn't fit in specified array size: " + arraysize);
 		log("Converting "+src+" to "+dest+", "+bytes.length+" bytes",Project.MSG_INFO);
 		
 		// write C-style array definition
 		try {
 			FileOutputStream fout = new FileOutputStream(dest);
 			PrintWriter writer = new PrintWriter(fout);
-			writeArray(writer, bytes);
+			writeArray(writer, bytes, arraysize);
 			writer.flush();
 			writer.close();
 			fout.close();
@@ -112,7 +123,7 @@ public class CArrayTask extends Task
 	/*
 	 * Does the actual writing.
 	 */
-	private void writeArray(PrintWriter out, byte[] bytes)
+	private void writeArray(PrintWriter out, byte[] bytes, int arraysize)
 	{
 		// If the array name is not set, use the source file name instead.
 		String name = arrayName;
@@ -130,20 +141,29 @@ public class CArrayTask extends Task
 
 		// Print standard headers.
 		out.println("#include <stddef.h>");
-		out.println(String.format("size_t %s_size = %d;", name, bytes.length));
 		
 		// Print the Array declaration.
+		int length = bytes.length+4; // Add four bytes for archive size
 		out.printf(
 				"%sunsigned char %s%s_data[] = {\n", 
 				constKeyword ? "const ":"", 
 				keywordString,
 				name
-			);
-		
+		);
+
+		// First print the size of the archive
+		out.printf("\t/* size: " + length + " bytes */\n");
+		out.print("\t");
+		out.printf("0x%02x, ", (length>>0)%256);
+		out.printf("0x%02x, ", (length>>8)%256);
+		out.printf("0x%02x, ", (length>>16)%256);
+		out.printf("0x%02x, ", (length>>24)%256);
+		out.print("\n");
+
 		// Print the actual data.
 		int left = bytes.length;
 		int pos = 0;
-		
+		out.printf("\t/* archive data */\n");
 		while (left>0)
 		{
 			int lineLength = Math.min(left, LINESIZE);
@@ -156,7 +176,24 @@ public class CArrayTask extends Task
 			out.print("\n");
 			left-=lineLength;
 		}
-		
+
+		// Add some extra bytes to get to the desired array size
+		if (arraysize>length) {
+			out.printf("\t/* Extra bytes to get to desired array size */\n");
+			left = arraysize-length;
+			while (left>0)
+			{
+				int lineLength = Math.min(left, LINESIZE);
+				out.print("\t");
+				for (int i=0; i<lineLength; i++)
+				{
+					out.printf("0x00, ");
+				}
+				out.print("\n");
+				left-=lineLength;
+			}			
+		}
+
 		// Close array.
 		out.printf("};\n\n");
 		
@@ -205,6 +242,15 @@ public class CArrayTask extends Task
 	public void setKeywords(String value)
 	{
 		Collections.addAll(keywords, value.split(" "));
+	}
+
+	/**
+	 * Sets the desired size of the array. Defaults to the size of the archive if 0. Error if !=0 but < archive size.
+	 * @param arraysize the desired size of the array
+	 */
+	public void setArraysize(int arraysize)
+	{
+		this.arraysize = arraysize;
 	}
 
 }
