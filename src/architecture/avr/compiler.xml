@@ -107,8 +107,7 @@
 		<attribute name="arrayname"/>
 		<sequential>
 			<local name="keywords"/>
-			<!-- Wanted to use PAGESIZE here instead of 256, but this causes a segfault on avr-gcc 4.7.2 -->
-			<condition property="keywords" value="PROGMEM __attribute__ ((aligned (256)))" else="PROGMEM">
+			<condition property="keywords" value="PROGMEM __attribute__ ((aligned (SPM_PAGESIZE)))" else="PROGMEM">
 				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
 			</condition>
 			<local name="arraysize"/>

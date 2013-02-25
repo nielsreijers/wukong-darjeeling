@@ -131,9 +131,10 @@ public class CArrayTask extends Task
 		
 		// If the avr-specific PROGMEM keyword is used, include the required pgmspace header file.
 		for (String keyword : keywords)
-			if ("PROGMEM".equals(keyword))
+			if ("PROGMEM".equals(keyword)) {
 				out.println("#include <avr/pgmspace.h>");
-		
+				out.println("#include <avr/boot.h>");
+		}
 		// Create the keywords string.
 		String keywordString = "";
 		for (String keyword : keywords)
