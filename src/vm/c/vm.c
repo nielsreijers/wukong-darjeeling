@@ -398,15 +398,21 @@ void dj_vm_unloadInfusion(dj_vm *vm, dj_infusion * unloadInfusion)
 #define AR_EHEADER_SIZE 60
 #define AR_EHEADER_SIZE_START 48
 #define AR_EHEADER_SIZE_END 58
-void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive* archive, dj_named_native_handler native_handlers[], unsigned char numHandlers)
+
+typedef struct
+{
+        dj_di_pointer start;
+        dj_di_pointer end;
+} dj_archive;
+
+void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named_native_handler native_handlers[], unsigned char numHandlers)
 {
 
 	dj_thread * thread;
 	dj_infusion * infusion = NULL;
 
-        dj_di_pointer archive_start = archive->start;
-        dj_di_pointer archive_end = archive->end; 
-
+	dj_di_pointer archive_end = archive_start + dj_di_getU32(archive_start);
+	archive_start += 4; // Skip archive size
 
 	unsigned char digit, i;
 	dj_global_id entryPoint;

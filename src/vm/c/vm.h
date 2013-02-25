@@ -24,12 +24,6 @@
 
 #include "types.h"
 
-typedef struct
-{
-        dj_di_pointer start;
-        dj_di_pointer end;
-} dj_archive;
-
 dj_vm * dj_vm_create();
 void dj_vm_destroy(dj_vm * vm);
 
@@ -45,7 +39,7 @@ dj_infusion * dj_vm_loadInfusion(dj_vm * vm, dj_di_pointer di);
 
 void dj_vm_setSystemInfusion(dj_vm *vm, dj_infusion * infusion);
 dj_infusion * dj_vm_getSystemInfusion(dj_vm * vm);
-void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive * archive, dj_named_native_handler native_handlers[], unsigned char numHandlers);
+void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named_native_handler native_handlers[], unsigned char numHandlers);
 
 dj_infusion* dj_vm_runClassInitialisers(dj_vm * vm, dj_infusion * infusion);
 
