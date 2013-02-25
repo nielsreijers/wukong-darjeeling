@@ -118,7 +118,7 @@ void wkcomm_zwave_init(void) {
     while(!wkcomm_zwave_my_address_loaded) {
         while(!wkcomm_zwave_my_address_loaded && retries-->0) {
             SerialAPI_request(buf, 2);
-            wkcomm_poll();
+            wkcomm_zwave_poll();
         }
         if(!wkcomm_zwave_my_address_loaded) // Can't read address -> panic
             dj_panic(WKCOMM_PANIC_INIT_FAILED);
@@ -470,7 +470,7 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
     if (SerialAPI_request(buf, len + 10) != 0)
         return -1;
     while (zwsend_ack_got == -1 && timeout-->0) {
-        wkcomm_poll();
+        wkcomm_zwave_poll();
         delay(1);
     }
     if (zwsend_ack_got == 0) // ACK 0 indicates success

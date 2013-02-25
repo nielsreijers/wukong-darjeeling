@@ -183,8 +183,7 @@ void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 	wuobject_t *wuobject;
 	while(true) {
 		// Process any incoming messages
-		// TODONR: find a better way to call this at various points in the VM
-		wkcomm_poll();
+		dj_hook_call(dj_vm_pollingHook, NULL);
 		// // TODONR: implement group stuff
 		// #ifdef NVM_USE_GROUP
 		// 	// Send out a heartbeat message if it's due, and check for failed nodes.

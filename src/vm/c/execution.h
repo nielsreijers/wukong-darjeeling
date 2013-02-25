@@ -30,6 +30,17 @@
 
 #include "config.h"
 
+#define RUNLEVEL_BOOT          0
+#define RUNLEVEL_RUNNING       1
+#define RUNLEVEL_REPROGRAMMING 2
+#define RUNLEVEL_REBOOT        3
+
+// For libraries that need frequent polling. Currently just for radios, but maybe there are other uses. Should be fast.
+extern dj_hook *dj_vm_pollingHook;
+
+void dj_exec_setRunlevel(uint8_t runlevel);
+uint8_t dj_exec_getRunlevel();
+
 int dj_exec_run();
 void dj_exec_breakExecution();
 void dj_exec_activate_thread(dj_thread *thread);
