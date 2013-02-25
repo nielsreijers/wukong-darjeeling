@@ -25,6 +25,7 @@
 #include "execution.h"
 #include "panic.h"
 #include "debug.h"
+#include "hooks.h"
 #include "avr.h"
 
 void dj_panic(int32_t panictype)
@@ -76,5 +77,11 @@ void dj_panic(int32_t panictype)
 #endif
             break;
     }
-    exit(-1);
+    if (dj_exec_getRunlevel() < RUNLEVEL_PANIC) {
+        dj_exec_setRunlevel(panictype);
+        while (true) // Still allow remote access through wkcomm when in panic state.
+            dj_hook_call(dj_vm_pollingHook, NULL);
+    } else {
+        exit(panictype); // To avoid getting into a recursive panic.
+    }
 }

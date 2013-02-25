@@ -34,6 +34,7 @@
 #define RUNLEVEL_RUNNING       1
 #define RUNLEVEL_REPROGRAMMING 2
 #define RUNLEVEL_REBOOT        3
+#define RUNLEVEL_PANIC         4 // All runlevels higher than this, as defined in panic.h, are panic runlevels.
 
 // For libraries that need frequent polling. Currently just for radios, but maybe there are other uses. Should be fast.
 extern dj_hook *dj_vm_pollingHook;

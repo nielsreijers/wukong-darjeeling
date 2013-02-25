@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "execution.h"
+#include "hooks.h"
 #include "panic.h"
 #include "nesc.h"
 
@@ -48,6 +50,11 @@ void dj_panic(int32_t panictype)
 			nesc_printf("PANIC: UNKNOWN TYPE\n");
 			break;
 	}
-//	exit(-1);
-	while(1) {};
+    if (dj_exec_getRunlevel() < RUNLEVEL_PANIC) {
+        dj_exec_setRunlevel(panictype);
+        while (true) // Still allow remote access through wkcomm when in panic state.
+            dj_hook_call(dj_vm_pollingHook, NULL);
+    } else {
+        exit(panictype); // To avoid getting into a recursive panic.
+    }
 }

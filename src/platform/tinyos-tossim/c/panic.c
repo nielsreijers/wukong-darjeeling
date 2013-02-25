@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "panic.h"
+#include "execution.h"
+#include "hooks.h"
 #include "tossim.h"
 
 #include "config.h"
@@ -50,5 +52,11 @@ void dj_panic(int32_t panictype)
 			tossim_printf("PANIC: UNKNOWN TYPE\n");
 			break;
 	}
-	exit(-1);
+    if (dj_exec_getRunlevel() < RUNLEVEL_PANIC) {
+        dj_exec_setRunlevel(panictype);
+        while (true) // Still allow remote access through wkcomm when in panic state.
+            dj_hook_call(dj_vm_pollingHook, NULL);
+    } else {
+        exit(panictype); // To avoid getting into a recursive panic.
+    }
 }
