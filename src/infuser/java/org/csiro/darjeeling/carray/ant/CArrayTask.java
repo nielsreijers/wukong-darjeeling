@@ -145,10 +145,11 @@ public class CArrayTask extends Task
 		// Print the Array declaration.
 		int length = bytes.length+4; // Add four bytes for archive size
 		out.printf(
-				"%sunsigned char %s%s_data[] = {\n", 
+				"%sunsigned char %s%s_data[%d] = {\n", 
 				constKeyword ? "const ":"", 
 				keywordString,
-				name
+				name,
+				Math.max(arraysize, length)
 		);
 
 		// First print the size of the archive
@@ -175,23 +176,6 @@ public class CArrayTask extends Task
 			}
 			out.print("\n");
 			left-=lineLength;
-		}
-
-		// Add some extra bytes to get to the desired array size
-		if (arraysize>length) {
-			out.printf("\t/* Extra bytes to get to desired array size */\n");
-			left = arraysize-length;
-			while (left>0)
-			{
-				int lineLength = Math.min(left, LINESIZE);
-				out.print("\t");
-				for (int i=0; i<lineLength; i++)
-				{
-					out.printf("0x00, ");
-				}
-				out.print("\n");
-				left-=lineLength;
-			}			
 		}
 
 		// Close array.
