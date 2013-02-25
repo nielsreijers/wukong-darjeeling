@@ -30,6 +30,7 @@
 #include "jlib_uart.h"
 #include "jlib_wkcomm.h"
 #include "jlib_wkpf.h"
+#include "jlib_wkreprog.h"
 // #include "jlib_wknode.h"
 
 #include "types.h"
@@ -102,7 +103,7 @@ int main(int argc,char* argv[])
 			{ "uart", &uart_native_handler },
 			{ "wkcomm", &wkcomm_native_handler },
 			{ "wkpf", &wkpf_native_handler },
-			// { "wknode", &wknode_native_handler },
+			{ "wkreprog", &wkreprog_native_handler },
 		};
 
 	int length = sizeof(handlers)/ sizeof(handlers[0]);

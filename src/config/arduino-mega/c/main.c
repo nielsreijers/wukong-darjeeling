@@ -39,6 +39,7 @@
 #include "jlib_uart.h"
 #include "jlib_wkcomm.h"
 #include "jlib_wkpf.h"
+#include "jlib_wkreprog.h"
 
 #include "pointerwidth.h"
 
@@ -76,6 +77,7 @@ int main()
 			{ "uart", &uart_native_handler },
 			{ "wkcomm", &wkcomm_native_handler },
 			{ "wkpf", &wkpf_native_handler },
+			{ "wkreprog", &wkreprog_native_handler },
 		};
 
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
