@@ -31,8 +31,8 @@
 #include "config.h"
 
 #define RUNLEVEL_BOOT          0
-#define RUNLEVEL_RUNNING       1
-#define RUNLEVEL_REPROGRAMMING 2
+#define RUNLEVEL_RUN           1
+#define RUNLEVEL_REPROGRAM     2
 #define RUNLEVEL_REBOOT        3
 #define RUNLEVEL_PANIC         4 // All runlevels higher than this, as defined in panic.h, are panic runlevels.
 

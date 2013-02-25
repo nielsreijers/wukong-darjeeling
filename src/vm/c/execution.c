@@ -1192,7 +1192,7 @@ int dj_exec_run(int nrOpcodes)
 
 	dj_hook_call(dj_vm_pollingHook, NULL);
 
-	while (nrOpcodesLeft > 0) {
+	while (nrOpcodesLeft > 0 && runlevel == RUNLEVEL_RUN) {
 		nrOpcodesLeft--;
 		opcode = fetch();
 

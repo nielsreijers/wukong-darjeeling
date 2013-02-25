@@ -93,6 +93,8 @@ int main(int argc,char* argv[])
 
 	// tell the execution engine to use the newly created VM instance
 	dj_exec_setVM(vm);
+	// set run level before loading libraries since they need to execute initialisation code
+	dj_exec_setRunlevel(RUNLEVEL_RUN);
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },

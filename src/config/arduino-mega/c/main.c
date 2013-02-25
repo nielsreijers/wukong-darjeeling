@@ -67,6 +67,8 @@ int main()
 
 	// tell the execution engine to use the newly created VM instance
 	dj_exec_setVM(vm);
+	// set run level before loading libraries since they need to execute initialisation code
+	dj_exec_setRunlevel(RUNLEVEL_RUN);
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
@@ -79,7 +81,6 @@ int main()
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 	dj_vm_loadInfusionArchive(vm, (dj_di_pointer)di_lib_archive_data, handlers, length);
 	dj_vm_loadInfusionArchive(vm, (dj_di_pointer)di_app_archive_data, handlers, length);
-
 
 #ifdef DARJEELING_DEBUG
 	avr_serialPrintf("Darjeeling is go!\n\r");
