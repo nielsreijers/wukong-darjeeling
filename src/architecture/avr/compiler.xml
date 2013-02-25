@@ -73,7 +73,6 @@
 				<linker classname="net.sf.antcontrib.cpptasks.gcc.cross.GccLinker">
 					<linkerparam value="avr" name="target"/>
 					<linkerarg value="-Wl,--cref,-Map,darjeeling-avr.map,--section-start=.bootloader=0x1e000"/>
-					<linkerarg value="-T${compilerpath}/avr6.x"/>					
 					<linkerarg value="-mmcu=${mcu}"/>
 				</linker>
 				
@@ -88,7 +87,7 @@
 					.lowtext
 					.reprogram_flash_page -->
 			<exec executable="avr-objcopy">
-				<arg line="-j .text -j .data -j .javabytecode -O ihex @{outputfile} darjeeling.ihex"/>
+				<arg line="-j .text -j .data -O ihex @{outputfile} darjeeling.ihex"/>
 			</exec>
 
 			<exec executable="avr-objcopy">
@@ -108,7 +107,12 @@
 		<attribute name="arrayname"/>
 		<sequential>
 			<local name="keywords"/>
-			<condition property="keywords" value="__attribute__ ((section (&quot;.javabytecode&quot;)))" else="PROGMEM">
+			<!-- Wanted to use PAGESIZE here instead of 256, but this causes a segfault on avr-gcc 4.7.2 -->
+			<condition property="keywords" value="PROGMEM __attribute__ ((aligned (256)))" else="PROGMEM">
+				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
+			</condition>
+			<local name="arraysize"/>
+			<condition property="arraysize" value="${app-archive-size}" else="0">
 				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
 			</condition>
 			<!-- compile the binary file to a .c file -->
@@ -116,6 +120,7 @@
 				src="@{inputfile}"
 				dest="temp_@{arrayname}.c"
 				arrayname="@{arrayname}"
+				arraysize="${arraysize}"
 				keywords="${keywords}"
 			/>
 			<!-- compile -->

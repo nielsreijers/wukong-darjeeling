@@ -14,11 +14,12 @@
 	<property name="configuration" value="arduino-mega"/>
 
 	<property name="mcu" value="atmega2560"/>
+	<property name="app-archive-size" value="4096"/>
 
 	<!-- Import the rest from config.xml (magic) -->
 	<import file="../config.xml"/>
 	
-
+	<!-- convenience targets to launch avrdude or avarice -->
 	<target name="avrdude-jtag" depends="executable">
 		<exec executable="avrdude">
 			<arg line="-p atmega2560 -P usb -c dragon_jtag -U flash:w:darjeeling.ihex -U eeprom:w:darjeeling_eeprom.ihex"/>
