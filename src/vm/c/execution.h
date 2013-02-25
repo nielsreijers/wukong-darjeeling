@@ -39,8 +39,9 @@
 // For libraries that need frequent polling. Currently just for radios, but maybe there are other uses. Should be fast.
 extern dj_hook *dj_vm_pollingHook;
 
-void dj_exec_setRunlevel(uint8_t runlevel);
-uint8_t dj_exec_getRunlevel();
+extern uint8_t dj_exec_runlevel;
+#define dj_exec_setRunlevel(runlevel)			(dj_exec_runlevel = runlevel)
+#define dj_exec_getRunlevel()					(dj_exec_runlevel)
 
 int dj_exec_run();
 void dj_exec_breakExecution();
