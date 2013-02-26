@@ -20,19 +20,25 @@ void wkreprog_comm_handle_message(void *data) {
 	switch (msg->command) {
 		case WKREPROG_COMM_CMD_REPROG_OPEN: {
 			DEBUG_LOG(DBG_WKREPROG, "Initialise reprogramming.\n");
-			// TODONR: DEBUG_LOG(DBG_WKREPROG, "Setting master address to %x", src);
-		    // wkpf_config_set_master_node_id(src);
-			DEBUG_LOG(DBG_WKREPROG, "Going to runlevel RUNLEVEL_REPROGRAMMING.\n");
-			dj_exec_setRunlevel(RUNLEVEL_REPROGRAMMING);
-			DEBUG_LOG(DBG_WKREPROG, "Initialise reprogramming code.\n");
-			wkreprog_impl_open();
-			wkreprog_pos = 0;
-			DEBUG_LOG(DBG_WKREPROG, "Send WKREPROG_COMM_CMD_REPROG_OPEN_R containing page size.\n");
-			uint16_t pagesize = wkreprog_impl_get_page_size();
-			payload[0] = (uint8_t)(pagesize);
-			payload[1] = (uint8_t)(pagesize>>8);
+			uint16_t size_to_upload = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
+			if (wkreprog_impl_open(size_to_upload)) {
+				// TODONR: DEBUG_LOG(DBG_WKREPROG, "Setting master address to %x", src);
+			    // wkpf_config_set_master_node_id(src);
+				DEBUG_LOG(DBG_WKREPROG, "Going to runlevel RUNLEVEL_REPROGRAMMING.\n");
+				dj_exec_setRunlevel(RUNLEVEL_REPROGRAMMING);
+				DEBUG_LOG(DBG_WKREPROG, "Initialise reprogramming code.\n");
+				wkreprog_pos = 0;
+				DEBUG_LOG(DBG_WKREPROG, "Send WKREPROG_COMM_CMD_REPROG_OPEN_R containing page size.\n");
+				uint16_t pagesize = wkreprog_impl_get_page_size();
+				payload[0] = WKREPROG_OK;
+				payload[1] = (uint8_t)(pagesize);
+				payload[2] = (uint8_t)(pagesize>>8);
+				response_size = 3;
+			} else {
+				payload[0] = WKREPROG_TOOLARGE;
+				response_size = 1;
+			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_OPEN_R;
-			response_size = 2;
 		}
 		break;
 		case WKREPROG_COMM_CMD_REPROG_WRITE: {
@@ -67,7 +73,6 @@ void wkreprog_comm_handle_message(void *data) {
 		case WKREPROG_COMM_CMD_REPROG_COMMIT: {
 			uint16_t pos_in_message = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
 			DEBUG_LOG(DBG_WKREPROG, "Received commit request for code up to address 0x%x, current position: 0x%x.\n", pos_in_message, wkreprog_pos);
-			response_cmd = WKREPROG_COMM_CMD_REPROG_COMMIT_R;
 			if (pos_in_message != wkreprog_pos) {
 				DEBUG_LOG(DBG_WKREPROG, "Positions don't match. Sending REQUEST_RETRANSMIT.");
 				payload[0] = WKREPROG_REQUEST_RETRANSMIT;
@@ -87,6 +92,7 @@ void wkreprog_comm_handle_message(void *data) {
 				DEBUG_LOG(DBG_WKREPROG, "Reboot the VM.\n");
 				wkreprog_impl_reboot();
 			}
+			response_cmd = WKREPROG_COMM_CMD_REPROG_COMMIT_R;
 		}
 		break;
 	}

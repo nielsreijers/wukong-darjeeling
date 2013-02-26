@@ -26,7 +26,7 @@ uint16_t wkreprog_impl_get_page_size() {
 	return SPM_PAGESIZE;
 }
 
-void wkreprog_impl_open() {
+bool wkreprog_impl_open(uint16_t size_to_upload) {
 	void *x = (void *)di_app_archive_data;
 	avr_flash_pageaddress = (unsigned int)x;
 	if (avr_flash_pageaddress % SPM_PAGESIZE != 0) {
@@ -36,6 +36,8 @@ void wkreprog_impl_open() {
 	DEBUG_LOG(DBG_WKREPROG, "Start writing to flash at address 0x%x.\n", di_app_archive_data);
 	memset(avr_flash_pagebuffer, 0xFF, SPM_PAGESIZE); // Clear flash buffer
 	avr_flash_buf_len = 0;
+	// TODONR: Check if the size fits in the allocated space for app archive
+	return true;
 }
 
 void wkreprog_impl_write(uint8_t size, uint8_t* data) {

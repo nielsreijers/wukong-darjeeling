@@ -10,8 +10,9 @@
 
 #define WKREPROG_OK									  0x00
 #define WKREPROG_REQUEST_RETRANSMIT					  0x01
+#define WKREPROG_TOOLARGE							  0x02
 // Not used yet, but we should add some checksum mechanism at some point.
-#define WKREPROG_FAILED								  0x02
+#define WKREPROG_FAILED								  0x03
 
 extern void wkreprog_comm_handle_message(void *msg); // Will be called with a pointer to a wkcomm_received_msg
 
