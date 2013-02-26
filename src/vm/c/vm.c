@@ -28,12 +28,62 @@
 #include "panic.h"
 #include "djtimer.h"
 #include "vm.h"
+#include "jlib_base.h"
 
 /**
  *
  *
  * @author Niels Brouwers
  */
+
+
+/**
+ * Main function that creates the vm and runs until either all threads stop or runlevel is set to RUNLEVEL_REBOOT
+ * This code was in the main() of each config before, but has been extracted to make rebooting easier.
+ */
+void dj_vm_main(void *mem,
+ 				uint32_t memsize,
+ 				dj_di_pointer di_lib_archive,
+ 				dj_di_pointer di_app_archive,
+ 				dj_named_native_handler handlers[],
+ 				uint8_t handlers_length) {
+	dj_vm *vm;
+	dj_object * obj;
+
+	// initialise timer
+	dj_timer_init();
+
+	// initialise memory managerw
+	dj_mem_init(mem, memsize);
+
+	// create a new VM
+	vm = dj_vm_create();
+
+	// tell the execution engine to use the newly created VM instance
+	dj_exec_setVM(vm);
+	// set run level before loading libraries since they need to execute initialisation code
+	dj_exec_setRunlevel(RUNLEVEL_RUNNING);
+
+	dj_vm_loadInfusionArchive(vm, di_lib_archive, handlers, handlers_length);
+	dj_vm_loadInfusionArchive(vm, di_app_archive, handlers, handlers_length);
+
+	// pre-allocate an OutOfMemoryError object
+	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
+	dj_mem_setPanicExceptionObject(obj);
+
+	DEBUG_LOG(true, "Darjeeling is go!\n\r");
+
+	// start the main execution loop
+	while (dj_vm_countLiveThreads(vm)>0)
+	{
+		dj_vm_schedule(vm);
+		if (vm->currentThread!=NULL)
+			if (vm->currentThread->status==THREADSTATUS_RUNNING)
+				dj_exec_run(RUNSIZE);
+	}
+	DEBUG_LOG(true, "All threads terminated.\n\r");
+}
+
 
 /**
  * Constructs a new virtual machine context.

@@ -18,3 +18,6 @@ void wkreprog_impl_close() {
 
 }
 
+void wkreprog_impl_reboot() {
+	
+}

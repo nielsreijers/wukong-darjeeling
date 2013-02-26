@@ -12,7 +12,7 @@ void wkreprog_comm_handle_message(void *data) {
 	uint8_t *payload = msg->payload;
 	uint8_t response_size = 0, response_cmd = 0;
 
-	if (dj_exec_getRunlevel() != RUNLEVEL_RUN)
+	if (dj_exec_getRunlevel() != RUNLEVEL_RUNNING)
 		return;
 
 	// TODONR: check on file size
@@ -22,8 +22,8 @@ void wkreprog_comm_handle_message(void *data) {
 			DEBUG_LOG(DBG_WKREPROG, "Initialise reprogramming.\n");
 			// TODONR: DEBUG_LOG(DBG_WKREPROG, "Setting master address to %x", src);
 		    // wkpf_config_set_master_node_id(src);
-			DEBUG_LOG(DBG_WKREPROG, "Going to runlevel RUNLEVEL_REPROGRAM.\n");
-			dj_exec_setRunlevel(RUNLEVEL_REPROGRAM);
+			DEBUG_LOG(DBG_WKREPROG, "Going to runlevel RUNLEVEL_REPROGRAMMING.\n");
+			dj_exec_setRunlevel(RUNLEVEL_REPROGRAMMING);
 			DEBUG_LOG(DBG_WKREPROG, "Initialise reprogramming code.\n");
 			wkreprog_impl_open();
 			wkreprog_pos = 0;
@@ -84,8 +84,8 @@ void wkreprog_comm_handle_message(void *data) {
 				wkreprog_impl_close();
 				payload[0] = WKREPROG_OK;
 				response_size = 1;
-				DEBUG_LOG(DBG_WKREPROG, "Going to reboot runlevel.\n");
-				dj_exec_setRunlevel(RUNLEVEL_REBOOT);
+				DEBUG_LOG(DBG_WKREPROG, "Reboot the VM.\n");
+				wkreprog_impl_reboot();
 			}
 		}
 		break;

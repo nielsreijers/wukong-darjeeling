@@ -31,7 +31,6 @@
 #include "jlib_wkcomm.h"
 #include "jlib_wkpf.h"
 #include "jlib_wkreprog.h"
-// #include "jlib_wknode.h"
 
 #include "types.h"
 #include "vm.h"
@@ -76,26 +75,13 @@ void init_progflash()
 
 int main(int argc,char* argv[])
 {
-
-	dj_vm * vm;
-	dj_object * obj;
-
 	// initialise memory manager
 	void *mem = malloc(MEMSIZE);
-	dj_mem_init(mem, MEMSIZE);
-
 	ref_t_base_address = (char*)mem - 42;
 
 	// Initialise the simulated program flash
-	init_progflash();
-
-	// Create a new VM
-	vm = dj_vm_create();
-
-	// tell the execution engine to use the newly created VM instance
-	dj_exec_setVM(vm);
-	// set run level before loading libraries since they need to execute initialisation code
-	dj_exec_setRunlevel(RUNLEVEL_RUN);
+	// TODONR: Refactor native config later to load infusion from a file instead of linked in
+	// init_progflash();
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
@@ -105,27 +91,14 @@ int main(int argc,char* argv[])
 			{ "wkpf", &wkpf_native_handler },
 			{ "wkreprog", &wkreprog_native_handler },
 		};
-
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
-	dj_vm_loadInfusionArchive(vm, (dj_di_pointer)di_lib_archive_data, handlers, length);
-	dj_vm_loadInfusionArchive(vm, (dj_di_pointer)di_app_archive_data, handlers, length);
 
-	// pre-allocate an OutOfMemoryError object
-	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
-	dj_mem_setPanicExceptionObject(obj);
+	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
 
-	// start the main execution loop
-	while (dj_vm_countLiveThreads(vm)>0)
-	{
-		dj_vm_schedule(vm);
-		if (vm->currentThread!=NULL)
-			if (vm->currentThread->status==THREADSTATUS_RUNNING)
-				dj_exec_run(RUNSIZE);
-	}
-
-	dj_vm_schedule(vm);
-	dj_mem_gc();
-	dj_vm_destroy(vm);
+	// TODONR: don't think we need this anymore
+	// dj_vm_schedule(vm);
+	// dj_mem_gc();
+	// dj_vm_destroy(vm);
 
 	fclose(progflashFile);
 

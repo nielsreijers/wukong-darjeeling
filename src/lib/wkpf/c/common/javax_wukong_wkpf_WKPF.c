@@ -189,7 +189,7 @@ void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 		// 	// Send out a heartbeat message if it's due, and check for failed nodes.
 		// 	group_heartbeat();
 		// #endif // NVM_USE_GROUP
-		if (dj_exec_getRunlevel() == RUNLEVEL_RUN) {
+		if (dj_exec_getRunlevel() == RUNLEVEL_RUNNING) {
 			// Propagate any dirty properties
 			wkpf_propagate_dirty_properties();
 			// Check if any wuobjects need updates

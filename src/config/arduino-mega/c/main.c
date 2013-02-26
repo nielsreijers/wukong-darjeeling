@@ -52,24 +52,8 @@ unsigned char mem[HEAPSIZE];
 
 int main()
 {
-	dj_vm *vm;
-
 	// initialise serial port
 	avr_serialInit(115200);
-
-	// initialise timer
-	dj_timer_init();
-
-	// initialise memory managerw
-	dj_mem_init(mem, HEAPSIZE);
-
-	// create a new VM
-	vm = dj_vm_create();
-
-	// tell the execution engine to use the newly created VM instance
-	dj_exec_setVM(vm);
-	// set run level before loading libraries since they need to execute initialisation code
-	dj_exec_setRunlevel(RUNLEVEL_RUN);
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
@@ -79,32 +63,9 @@ int main()
 			{ "wkpf", &wkpf_native_handler },
 			{ "wkreprog", &wkreprog_native_handler },
 		};
+	uint16_t length = sizeof(handlers)/ sizeof(handlers[0]);
 
-	int length = sizeof(handlers)/ sizeof(handlers[0]);
-	dj_vm_loadInfusionArchive(vm, (dj_di_pointer)di_lib_archive_data, handlers, length);
-	dj_vm_loadInfusionArchive(vm, (dj_di_pointer)di_app_archive_data, handlers, length);
-
-#ifdef DARJEELING_DEBUG
-	avr_serialPrintf("Darjeeling is go!\n\r");
-#endif
-
-	// start the main execution loop
-	while (dj_vm_countLiveThreads(vm)>0)
-	{
-		dj_vm_schedule(vm);
-
-		if (vm->currentThread!=NULL)
-			if (vm->currentThread->status==THREADSTATUS_RUNNING)
-				dj_exec_run(RUNSIZE);
-
-		// yield
-
-	}
-
-#ifdef DARJEELING_DEBUG
-	avr_serialPrintf("All threads terminated.\n\r");
-#endif
+	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
 
 	return 0;
-
 }

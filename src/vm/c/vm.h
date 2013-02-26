@@ -24,6 +24,8 @@
 
 #include "types.h"
 
+void dj_vm_main(void *mem, uint32_t memsize, dj_di_pointer di_lib_archive, dj_di_pointer di_app_archive, dj_named_native_handler handlers[], uint8_t handlers_length);
+
 dj_vm * dj_vm_create();
 void dj_vm_destroy(dj_vm * vm);
 
