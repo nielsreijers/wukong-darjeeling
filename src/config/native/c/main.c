@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "jlib_base.h"
 #include "jlib_darjeeling2.h"
@@ -46,6 +47,47 @@ char * ref_t_base_address;
 //         we decide to remove or finish it.
 FILE * progflashFile;
 char** posix_argv;
+char* posix_uart_filenames[4];
+
+void parse_uart_arg(char *arg) {
+	int uart = arg[0];
+	uart -= '0';
+	if (uart < 0 || uart > 3 || arg[1]!='=') {
+		printf("option -u/--uart format: <uart>=<file>, where <uart> is 0, 1, 2, or 3 and <file> is the device to connect to thise uart.\n");
+		abort();
+	}
+	posix_uart_filenames[uart] = arg+2;
+	printf("Uart %d at %s\n", uart, posix_uart_filenames[uart]);
+}
+
+void parse_command_line(int argc,char* argv[]) {
+	int c;
+	while (1) {
+		static struct option long_options[] = {
+			{"uart",    required_argument, 0, 'u'},
+			{0, 0, 0, 0}
+		};
+
+		/* getopt_long stores the option index here. */
+		int option_index = 0;
+
+		c = getopt_long (argc, argv, "u:",
+		    long_options, &option_index);
+
+		/* Detect the end of the options. */
+		if (c == -1)
+			break;
+
+		switch (c) {
+			case 'u':
+				parse_uart_arg(optarg);
+			break;
+
+			default:
+				abort ();
+		}
+	}
+}
 
 
 char* load_infusion_archive(char *filename) {
@@ -80,6 +122,7 @@ char* load_infusion_archive(char *filename) {
 
 int main(int argc,char* argv[])
 {
+	parse_command_line(argc, argv);
 	posix_argv = argv;
 
 	// Read the lib and app infusion archives from file

@@ -73,12 +73,9 @@ bool addr_zwave_to_wkcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
 }
 
 ///// temporary?
-void wkcomm_zwave_poll(void);
 void delay(uint32_t msec) {
     dj_time_t start = dj_timer_getTimeMillis();
-    while (dj_timer_getTimeMillis() < start+msec) {
-        wkcomm_zwave_poll();
-    }
+    while (dj_timer_getTimeMillis() < start+msec);
 }
 
 void wkcomm_zwave_poll(void) {
@@ -90,6 +87,8 @@ void wkcomm_zwave_poll(void) {
 }
 
 void wkcomm_zwave_init(void) {
+    uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
+
     // Clear existing queue on Zwave
     DEBUG_LOG(DBG_WKCOMM, "Clearing leftovers\n");
     while (uart_available(ZWAVE_UART)) {
@@ -105,7 +104,6 @@ void wkcomm_zwave_init(void) {
     seq = 42; // temporarily init to fixed value
     state = ZWAVE_STATUS_WAIT_SOF;
     // nvmcomm_zwaveLastByteTime = dj_timer_getTimeMillis();
-    uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
     // TODO
     // expire = 0;
 
@@ -423,7 +421,7 @@ int SerialAPI_request(unsigned char *buf, int len)
                 DEBUG_LOG(DBG_WKCOMM, "%d ", buf[i]);
             }
             DEBUG_LOG(DBG_WKCOMM, "\n");
-            DEBUG_LOG(DBG_WKCOMM, "error!!!\n", __FUNCTION__);
+            DEBUG_LOG(DBG_WKCOMM, "error!!!\n");
             return -1;
         }
         DEBUG_LOG(DBG_WKCOMM, "SerialAPI_request retry (%d)......\n", retry);
