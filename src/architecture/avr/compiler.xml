@@ -72,7 +72,9 @@
 				>
 				<linker classname="net.sf.antcontrib.cpptasks.gcc.cross.GccLinker">
 					<linkerparam value="avr" name="target"/>
-					<linkerarg value="-Wl,--cref,-Map,darjeeling-avr.map,--section-start=.bootloader=0x1e000"/>
+					<linkerarg value="-Wl,--cref,-Map,darjeeling-avr.map"/>
+					<linkerarg value="--section-start=.bootloader=0x1e000"/>
+					<linkerarg value="--section-start=.reprogram_flash_page=0x3F000"/>
 					<linkerarg value="-mmcu=${mcu}"/>
 				</linker>
 				
