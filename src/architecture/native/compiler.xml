@@ -51,31 +51,8 @@
 		<attribute name="inputfile"/>
 		<attribute name="outputfile"/>
 		<attribute name="arrayname"/>
-		<sequential>
-			<!-- compile the binary file to a .c file -->
-			<local name="arraysize"/>
-			<condition property="arraysize" value="${app-archive-size}" else="0">
-				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
-			</condition>
-			<carray
-				src="@{inputfile}"
-				dest="temp_@{arrayname}.c"
-				arrayname="@{arrayname}"
-				arraysize="${arraysize}"
-			/>
-			<!-- compile -->
-			<cc
-				name="gcc"
-				objdir="."
-				>
-				<fileset includes="temp_@{arrayname}.c" dir="."/>
-			</cc>
-			<exec executable="mv">
-				<arg line="temp_@{arrayname}.o @{outputfile}"/>
-			</exec>
-			<!-- clean up temp file -->
-			<!-- <delete file="temp.c"/> -->
-		</sequential>
+		<!-- Load the inputfile directly for native target instead of compiling it to a c file and linking it in to the VM -->
+		<sequential/>
 	</macrodef>
 
 </project>

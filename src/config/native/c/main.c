@@ -41,42 +41,50 @@
 #include "pointerwidth.h"
 char * ref_t_base_address;
 
-extern unsigned char di_lib_archive_data[];
-extern size_t di_lib_archive_size;
-extern unsigned char di_app_archive_data[];
-extern size_t di_app_archive_size;
-
+// TODONR: this is necessary for the functions in ProgramFlash in java
+//         Doesn't seem to work now, butjust leave it here until
+//         we decide to remove or finish it.
 FILE * progflashFile;
 char** posix_argv;
 
-// void init_progflash()
-// {
-// 	char emptyBlock[PROGFLASH_BLOCKSIZE];
 
-// 	// Open the 'program flash' file.
-// 	progflashFile = fopen("programflash.data", "w+b");
-// 	if (!progflashFile)
-// 	{
-// 		printf("Unable to open the program flash file.\n");
-// 		return;
-// 	}
+char* load_infusion_archive(char *filename) {
+	FILE *fp = fopen(filename, "r");
+	if (!fp) {
+		printf("Unable to open the program flash file.\n");
+		exit(1);
+	}
 
-// 	// Check the program flash file length.
-// 	fseek(progflashFile, 0, SEEK_END);
-// 	size_t length = ftell(progflashFile);
+	// Determine the size of the archive
+	fseek(fp, 0, SEEK_END);
+	size_t length = ftell(fp);
 
-// 	// Keep adding empty blocks to the end of the file until the length matches.
-// 	memset(emptyBlock, 0, PROGFLASH_BLOCKSIZE);
-// 	while (length<PROGFLASH_SIZE)
-// 	{
-// 		fwrite(emptyBlock, PROGFLASH_BLOCKSIZE, 1, progflashFile);
-// 		length += PROGFLASH_BLOCKSIZE;
-// 	}
-// }
+	// Allocate memory for the archive
+	char* di_archive_data = malloc(length+4);
+	if (!di_archive_data) {
+		printf("Unable to allocate memory to load the program flash file.\n");
+		exit(1);
+	}
+	di_archive_data[0] = (length >> 0) % 256;
+	di_archive_data[1] = (length >> 8) % 256;
+	di_archive_data[2] = (length >> 16) % 256;
+	di_archive_data[3] = (length >> 24) % 256;
+
+	// Read the file into memory
+	rewind(fp);
+	fread(di_archive_data+4, sizeof(char), length, fp); // Skip 4 bytes that contain the archive length
+	fclose(fp);
+
+	return di_archive_data;
+}
 
 int main(int argc,char* argv[])
 {
 	posix_argv = argv;
+
+	// Read the lib and app infusion archives from file
+	char* di_lib_archive_data = load_infusion_archive("lib_infusions");
+	char* di_app_archive_data = load_infusion_archive("app_infusions");
 
 	// initialise memory manager
 	void *mem = malloc(MEMSIZE);
