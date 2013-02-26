@@ -47,34 +47,37 @@ extern unsigned char di_app_archive_data[];
 extern size_t di_app_archive_size;
 
 FILE * progflashFile;
+char** posix_argv;
 
-void init_progflash()
-{
-	char emptyBlock[PROGFLASH_BLOCKSIZE];
+// void init_progflash()
+// {
+// 	char emptyBlock[PROGFLASH_BLOCKSIZE];
 
-	// Open the 'program flash' file.
-	progflashFile = fopen("programflash.data", "w+b");
-	if (!progflashFile)
-	{
-		printf("Unable to open the program flash file.\n");
-		return;
-	}
+// 	// Open the 'program flash' file.
+// 	progflashFile = fopen("programflash.data", "w+b");
+// 	if (!progflashFile)
+// 	{
+// 		printf("Unable to open the program flash file.\n");
+// 		return;
+// 	}
 
-	// Check the program flash file length.
-	fseek(progflashFile, 0, SEEK_END);
-	size_t length = ftell(progflashFile);
+// 	// Check the program flash file length.
+// 	fseek(progflashFile, 0, SEEK_END);
+// 	size_t length = ftell(progflashFile);
 
-	// Keep adding empty blocks to the end of the file until the length matches.
-	memset(emptyBlock, 0, PROGFLASH_BLOCKSIZE);
-	while (length<PROGFLASH_SIZE)
-	{
-		fwrite(emptyBlock, PROGFLASH_BLOCKSIZE, 1, progflashFile);
-		length += PROGFLASH_BLOCKSIZE;
-	}
-}
+// 	// Keep adding empty blocks to the end of the file until the length matches.
+// 	memset(emptyBlock, 0, PROGFLASH_BLOCKSIZE);
+// 	while (length<PROGFLASH_SIZE)
+// 	{
+// 		fwrite(emptyBlock, PROGFLASH_BLOCKSIZE, 1, progflashFile);
+// 		length += PROGFLASH_BLOCKSIZE;
+// 	}
+// }
 
 int main(int argc,char* argv[])
 {
+	posix_argv = argv;
+
 	// initialise memory manager
 	void *mem = malloc(MEMSIZE);
 	ref_t_base_address = (char*)mem - 42;
@@ -94,13 +97,6 @@ int main(int argc,char* argv[])
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 
 	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
-
-	// TODONR: don't think we need this anymore
-	// dj_vm_schedule(vm);
-	// dj_mem_gc();
-	// dj_vm_destroy(vm);
-
-	fclose(progflashFile);
 
 	return 0;
 }
