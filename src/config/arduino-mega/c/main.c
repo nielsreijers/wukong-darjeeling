@@ -33,6 +33,7 @@
 #include "vmthread.h"
 #include "djtimer.h"
 #include "execution.h"
+#include "hooks.h"
 
 #include "jlib_base.h"
 #include "jlib_darjeeling2.h"
@@ -66,6 +67,10 @@ int main()
 	uint16_t length = sizeof(handlers)/ sizeof(handlers[0]);
 
 	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
+
+	// Listen to the radio
+	while(true)
+		dj_hook_call(dj_vm_pollingHook, NULL);
 
 	return 0;
 }

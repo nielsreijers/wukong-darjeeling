@@ -38,6 +38,7 @@
 #include "heap.h"
 #include "execution.h"
 #include "config.h"
+#include "hooks.h"
 
 #include "pointerwidth.h"
 char * ref_t_base_address;
@@ -148,6 +149,10 @@ int main(int argc,char* argv[])
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 
 	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
+
+	// Listen to the radio
+	while(true)
+		dj_hook_call(dj_vm_pollingHook, NULL);
 
 	return 0;
 }
