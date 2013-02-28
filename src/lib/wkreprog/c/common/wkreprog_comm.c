@@ -12,9 +12,6 @@ void wkreprog_comm_handle_message(void *data) {
 	uint8_t *payload = msg->payload;
 	uint8_t response_size = 0, response_cmd = 0;
 
-	if (dj_exec_getRunlevel() != RUNLEVEL_RUNNING)
-		return;
-
 	// TODONR: check on file size
 	// TODONR: add checksum
 	switch (msg->command) {
