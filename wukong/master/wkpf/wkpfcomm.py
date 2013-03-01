@@ -416,10 +416,12 @@ class Communication:
           elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_OK:
             print "Received REPRG_DJ_RETURN_OK in reply to packet writing at", payload_pos
             pos += len(payload_data)
-          elif reply.command == pynvc.REPRG_DJ_RETURN_REQUEST_RETRANSMIT:
-            reply = [reply.command] + reply.payload[2:] # without the seq numbers
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_REQUEST_RETRANSMIT:
             pos = reply.payload[3] + reply.payload[4]*256
             print "===========>Received REPRG_DJ_WRITE_R_RETRANSMIT request to retransmit from ", pos
+          else:
+            print "Unexpected reply:", reply.payload
+            return False
         if pos == len(bytecode):
           print "Send REPRG_DJ_COMMIT after last packet"
           reply = self.zwave.send(destination, pynvc.REPRG_DJ_COMMIT, [pos%256, pos/256], [pynvc.REPRG_DJ_COMMIT_R])
@@ -434,8 +436,11 @@ class Communication:
             print "===========>Received REPRG_COMMIT_R_RETRANSMIT request to retransmit from ", pos
             if pos >= len(bytecode):
               print "Received REPRG_DJ_RETURN_REQUEST_RETRANSMIT >= the image size. This shoudn't happen!"
-          else:
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_OK:
             print "Commit OK.", reply.payload
+          else:
+            print "Unexpected reply:", reply.payload
+            return False
       self.zwave.send(destination, pynvc.REPRG_DJ_REBOOT, [], [])
       print "Sent reboot.", reply.payload
       return True;
