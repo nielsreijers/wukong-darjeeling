@@ -39,15 +39,12 @@ void wkreprog_comm_handle_message(void *data) {
 		}
 		break;
 		case WKREPROG_COMM_CMD_REPROG_WRITE: {
+			// TODONR: move sending to this block and test if it improves performance
+			// (the zwave module can do the sending in parallel with the CPU writing to flash)
 			uint16_t pos_in_message = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
 			DEBUG_LOG(DBG_WKREPROG, "Received program packet for address 0x%x, current position: 0x%x.\n", pos_in_message, wkreprog_pos);
 			uint8_t codelength = msg->length - 2;
 			uint8_t *codepayload = payload + 2;
-			if (pos_in_message == wkreprog_pos) {
-				DEBUG_LOG(DBG_WKREPROG, "Write %d bytes at position 0x%x.\n", codelength, wkreprog_pos);
-				wkreprog_impl_write(codelength, codepayload);
-				wkreprog_pos += codelength;
-			}
 			uint16_t pagesize = wkreprog_impl_get_page_size();
 			if (pos_in_message/(uint16_t)pagesize != (pos_in_message+(uint16_t)codelength)/(uint16_t)pagesize) {
 				// Crossing page boundary, send a reply with OK or REQUEST_RETRANSMIT
@@ -64,6 +61,11 @@ void wkreprog_comm_handle_message(void *data) {
 					payload[2] = (uint8_t)(wkreprog_pos>>8);
 					response_size = 3;
 				}
+			}
+			if (pos_in_message == wkreprog_pos) {
+				DEBUG_LOG(DBG_WKREPROG, "Write %d bytes at position 0x%x.\n", codelength, wkreprog_pos);
+				wkreprog_impl_write(codelength, codepayload);
+				wkreprog_pos += codelength;
 			}
 		}
 		break;
@@ -86,12 +88,14 @@ void wkreprog_comm_handle_message(void *data) {
 				wkreprog_impl_close();
 				payload[0] = WKREPROG_OK;
 				response_size = 1;
-				DEBUG_LOG(DBG_WKREPROG, "Reboot the VM.\n");
-				wkreprog_impl_reboot();
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_COMMIT_R;
 		}
 		break;
+		case WKREPROG_COMM_CMD_REPROG_REBOOT: {
+			DEBUG_LOG(DBG_WKREPROG, "Reboot the VM.\n");
+			wkreprog_impl_reboot();
+		}
 	}
 	if (response_cmd != 0)
 		wkcomm_send_reply(msg, response_cmd, payload, response_size);

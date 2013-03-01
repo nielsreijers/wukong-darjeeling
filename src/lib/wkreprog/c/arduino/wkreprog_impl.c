@@ -30,10 +30,10 @@ bool wkreprog_impl_open(uint16_t size_to_upload) {
 	void *x = (void *)di_app_archive_data;
 	avr_flash_pageaddress = (unsigned int)x;
 	if (avr_flash_pageaddress % SPM_PAGESIZE != 0) {
-		DEBUG_LOG(DBG_WKREPROG, "Flashing to address 0x%x: not a page boundary.", di_app_archive_data);
+		DEBUG_LOG(DBG_WKREPROG, "AVR: Flashing to address 0x%x: not a page boundary.", di_app_archive_data);
 		avr_flash_pageaddress = 0;
 	}
-	DEBUG_LOG(DBG_WKREPROG, "Start writing to flash at address 0x%x.\n", di_app_archive_data);
+	DEBUG_LOG(DBG_WKREPROG, "AVR: Start writing to flash at address 0x%x.\n", di_app_archive_data);
 	memset(avr_flash_pagebuffer, 0xFF, SPM_PAGESIZE); // Clear flash buffer
 	avr_flash_buf_len = 0;
 	// TODONR: Check if the size fits in the allocated space for app archive
@@ -43,8 +43,8 @@ bool wkreprog_impl_open(uint16_t size_to_upload) {
 void wkreprog_impl_write(uint8_t size, uint8_t* data) {
 	if (avr_flash_pageaddress == 0)
 		return;
-	DEBUG_LOG(DBG_WKREPROG, "Received %d bytes to flash to page 0x%x.\n", size, avr_flash_pageaddress);
-	DEBUG_LOG(DBG_WKREPROG, "Buffer already contains %d bytes.\n", avr_flash_buf_len);
+	DEBUG_LOG(DBG_WKREPROG, "AVR: Received %d bytes to flash to page 0x%x.\n", size, avr_flash_pageaddress);
+	DEBUG_LOG(DBG_WKREPROG, "AVR: Buffer already contains %d bytes.\n", avr_flash_buf_len);
 	while(size!=0) {
 		uint8_t bytes_on_this_page = size;
 		if (avr_flash_buf_len + size > SPM_PAGESIZE) {
@@ -53,7 +53,7 @@ void wkreprog_impl_write(uint8_t size, uint8_t* data) {
 		}
 		memcpy(avr_flash_pagebuffer + avr_flash_buf_len, data, bytes_on_this_page); // Copy the data to the page buffer
 		if (avr_flash_buf_len + bytes_on_this_page == SPM_PAGESIZE) { // If we filled a whole page, write it to flash
-			DEBUG_LOG(DBG_WKREPROG, "Flashing page at 0x%x.\n", avr_flash_pageaddress);
+			DEBUG_LOG(DBG_WKREPROG, "AVR: Flashing page at 0x%x.\n", avr_flash_pageaddress);
 			avr_flash_program_page(avr_flash_pageaddress, avr_flash_pagebuffer);
 			memset(avr_flash_pagebuffer, 0xFF, SPM_PAGESIZE); // Clear flash buffer
 			avr_flash_pageaddress += SPM_PAGESIZE;
@@ -65,9 +65,9 @@ void wkreprog_impl_write(uint8_t size, uint8_t* data) {
 }
 
 void wkreprog_impl_close() {
-	DEBUG_LOG(DBG_WKREPROG, "Closing flash file.\n");
+	DEBUG_LOG(DBG_WKREPROG, "AVR: Closing flash file.\n");
 	if (avr_flash_buf_len != 0) { // If there's any data remaining, write it to flash.
-	  DEBUG_LOG(DBG_WKREPROG, "Flashing page at 0x%x.\n", avr_flash_pageaddress);
+	  DEBUG_LOG(DBG_WKREPROG, "AVR: Flashing page at 0x%x.\n", avr_flash_pageaddress);
 		avr_flash_program_page(avr_flash_pageaddress, avr_flash_pagebuffer);
 	}
 	avr_flash_pageaddress = 0;

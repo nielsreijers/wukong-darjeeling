@@ -7,6 +7,7 @@
 #define WKREPROG_COMM_CMD_REPROG_WRITE_R              0x13
 #define WKREPROG_COMM_CMD_REPROG_COMMIT               0x14
 #define WKREPROG_COMM_CMD_REPROG_COMMIT_R             0x15
+#define WKREPROG_COMM_CMD_REPROG_REBOOT               0x16
 
 #define WKREPROG_OK									  0x00
 #define WKREPROG_REQUEST_RETRANSMIT					  0x01
