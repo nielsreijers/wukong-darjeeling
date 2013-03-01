@@ -36,11 +36,10 @@ void wkreprog_comm_handle_message(void *data) {
 				response_size = 1;
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_OPEN_R;
+			wkcomm_send_reply(msg, response_cmd, payload, response_size);
 		}
 		break;
 		case WKREPROG_COMM_CMD_REPROG_WRITE: {
-			// TODONR: move sending to this block and test if it improves performance
-			// (the zwave module can do the sending in parallel with the CPU writing to flash)
 			uint16_t pos_in_message = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
 			DEBUG_LOG(DBG_WKREPROG, "Received program packet for address 0x%x, current position: 0x%x.\n", pos_in_message, wkreprog_pos);
 			uint8_t codelength = msg->length - 2;
@@ -50,18 +49,19 @@ void wkreprog_comm_handle_message(void *data) {
 				// Crossing page boundary, send a reply with OK or REQUEST_RETRANSMIT
 				if (pos_in_message == wkreprog_pos) {
 					DEBUG_LOG(DBG_WKREPROG, "Page boundary reached. Sending OK.\n");
-					response_cmd = WKREPROG_COMM_CMD_REPROG_WRITE_R;
 					payload[0] = WKREPROG_OK;
 					response_size = 1;
 				} else {
 					DEBUG_LOG(DBG_WKREPROG, "Page boundary reached, positions don't match. Sending REQUEST_RETRANSMIT.\n");
-					response_cmd = WKREPROG_COMM_CMD_REPROG_WRITE_R;
 					payload[0] = WKREPROG_REQUEST_RETRANSMIT;
 					payload[1] = (uint8_t)(wkreprog_pos);
 					payload[2] = (uint8_t)(wkreprog_pos>>8);
 					response_size = 3;
 				}
 			}
+			response_cmd = WKREPROG_COMM_CMD_REPROG_WRITE_R;
+			wkcomm_send_reply(msg, response_cmd, payload, response_size);
+			// Sending the reply first, then writing to flash is faster since both can take some time and can be done in parallel
 			if (pos_in_message == wkreprog_pos) {
 				DEBUG_LOG(DBG_WKREPROG, "Write %d bytes at position 0x%x.\n", codelength, wkreprog_pos);
 				wkreprog_impl_write(codelength, codepayload);
@@ -72,6 +72,7 @@ void wkreprog_comm_handle_message(void *data) {
 		case WKREPROG_COMM_CMD_REPROG_COMMIT: {
 			uint16_t pos_in_message = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
 			DEBUG_LOG(DBG_WKREPROG, "Received commit request for code up to address 0x%x, current position: 0x%x.\n", pos_in_message, wkreprog_pos);
+			bool reprogramming_ok = false;
 			if (pos_in_message != wkreprog_pos) {
 				DEBUG_LOG(DBG_WKREPROG, "Positions don't match. Sending REQUEST_RETRANSMIT.");
 				payload[0] = WKREPROG_REQUEST_RETRANSMIT;
@@ -83,13 +84,17 @@ void wkreprog_comm_handle_message(void *data) {
 				payload[0] = WKREPROG_FAILED;
 				response_size = 1;
 			} else {
-				DEBUG_LOG(DBG_WKREPROG, "Committing new code.\n");
-				DEBUG_LOG(DBG_WKREPROG, "Flushing pending writes to flash.\n");
-				wkreprog_impl_close();
 				payload[0] = WKREPROG_OK;
 				response_size = 1;
+				reprogramming_ok = true;
+				DEBUG_LOG(DBG_WKREPROG, "Committing new code.\n");
+				DEBUG_LOG(DBG_WKREPROG, "Flushing pending writes to flash.\n");
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_COMMIT_R;
+			wkcomm_send_reply(msg, response_cmd, payload, response_size);
+
+			if (reprogramming_ok)
+				wkreprog_impl_close();
 		}
 		break;
 		case WKREPROG_COMM_CMD_REPROG_REBOOT: {
@@ -97,6 +102,4 @@ void wkreprog_comm_handle_message(void *data) {
 			wkreprog_impl_reboot();
 		}
 	}
-	if (response_cmd != 0)
-		wkcomm_send_reply(msg, response_cmd, payload, response_size);
 }

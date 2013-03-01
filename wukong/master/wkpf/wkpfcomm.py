@@ -358,7 +358,7 @@ class Communication:
         return ret
 
     def reprogramInfusion(self, destination, filename):
-      MESSAGESIZE = 16
+      MESSAGESIZE = 30
 
       bytecode = []
       with open(filename, "rb") as f:
