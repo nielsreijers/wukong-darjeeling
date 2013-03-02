@@ -1,6 +1,6 @@
 package javax.wukong.wkpf;
 
-public class WKPF extends GENERATEDWKPF {
+public class WKPF {
   private static native void _init();
 
   static

@@ -101,7 +101,7 @@ class CodeGen:
 
       self.global_vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common')
       self.vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
-      self.java_dir = os.path.join('wukong', 'virtualwuclasses')
+      self.java_dir = os.path.join('wukong', 'javax', 'wukong', 'virtualwuclasses')
 
       self.component_string = args[0]
       self.project_dir = args[1]
@@ -138,7 +138,7 @@ class CodeGen:
     app.info("==================Begin TypeDefs=====================")
     # Boilerplate for Java global constants file
     self.global_virtual_constants_lines.append('''
-        package javax.wukong.wkpf;
+        package javax.wukong.virtualwuclasses;
 
         public class GENERATEDWKPF {
     ''')
@@ -218,7 +218,7 @@ class CodeGen:
       # Parsing to WuKong Profile Framework Component Library header in Java
       if wuclass.getAttribute('virtual') == 'true':
         wuclass_virtual_super_lines.append('''
-        package javax.wukong.wkpf.wuclasses;
+        package javax.wukong.virtualwuclasses;
         import javax.wukong.wkpf.VirtualWuObject;
         import javax.wukong.wkpf.WKPF;
 

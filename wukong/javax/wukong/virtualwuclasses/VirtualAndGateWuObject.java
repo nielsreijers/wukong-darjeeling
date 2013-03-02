@@ -1,4 +1,4 @@
-package javax.wukong.wkpf.wuclasses;
+package javax.wukong.virtualwuclasses;
 
 import javax.wukong.wkpf.WKPF;
 import javax.wukong.wkpf.VirtualWuObject;

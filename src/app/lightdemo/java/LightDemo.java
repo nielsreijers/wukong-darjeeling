@@ -73,37 +73,37 @@ public class LightDemo {
         if (WKPF.isLocalComponent((short)0)) {
 
         // Native WuClasses (C)
-        WKPF.createWuObject((short)WKPF.WUCLASS_LIGHT_SENSOR, WKPF.getPortNumberForComponent((short)0), null);
-        WKPF.setPropertyRefreshRate((short)0, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)250);
+        WKPF.createWuObject((short)GENERATEDWKPF.WUCLASS_LIGHT_SENSOR, WKPF.getPortNumberForComponent((short)0), null);
+        WKPF.setPropertyRefreshRate((short)0, GENERATEDWKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)250);
         
         }
         //all WuClasses from the same group has the same instanceIndex and wuclass
         if (WKPF.isLocalComponent((short)1)) {
 
         // Native WuClasses (C)
-        WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, WKPF.getPortNumberForComponent((short)1), null);
-        WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_LT);
-        WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)30);
+        WKPF.createWuObject((short)GENERATEDWKPF.WUCLASS_THRESHOLD, WKPF.getPortNumberForComponent((short)1), null);
+        WKPF.setPropertyShort((short)1, GENERATEDWKPF.PROPERTY_THRESHOLD_OPERATOR, GENERATEDWKPF.ENUM_THRESHOLD_OPERATOR_LT);
+        WKPF.setPropertyShort((short)1, GENERATEDWKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)30);
         
-        WKPF.setPropertyShort((short)1, WKPF.PROPERTY_THRESHOLD_VALUE, (short)20);
+        WKPF.setPropertyShort((short)1, GENERATEDWKPF.PROPERTY_THRESHOLD_VALUE, (short)20);
         
-        WKPF.setPropertyBoolean((short)1, WKPF.PROPERTY_THRESHOLD_OUTPUT, false);
+        WKPF.setPropertyBoolean((short)1, GENERATEDWKPF.PROPERTY_THRESHOLD_OUTPUT, false);
         
         }
         //all WuClasses from the same group has the same instanceIndex and wuclass
         if (WKPF.isLocalComponent((short)2)) {
 
         // Native WuClasses (C)
-        WKPF.createWuObject((short)WKPF.WUCLASS_NUMERIC_CONTROLLER, WKPF.getPortNumberForComponent((short)2), null);
-        WKPF.setPropertyShort((short)2, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)200);
+        WKPF.createWuObject((short)GENERATEDWKPF.WUCLASS_NUMERIC_CONTROLLER, WKPF.getPortNumberForComponent((short)2), null);
+        WKPF.setPropertyShort((short)2, GENERATEDWKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)200);
         
         }
         //all WuClasses from the same group has the same instanceIndex and wuclass
         if (WKPF.isLocalComponent((short)3)) {
 
         // Native WuClasses (C)
-        WKPF.createWuObject((short)WKPF.WUCLASS_LIGHT_ACTUATOR, WKPF.getPortNumberForComponent((short)3), null);
-        WKPF.setPropertyBoolean((short)3, WKPF.PROPERTY_LIGHT_ACTUATOR_ON_OFF, false);
+        WKPF.createWuObject((short)GENERATEDWKPF.WUCLASS_LIGHT_ACTUATOR, WKPF.getPortNumberForComponent((short)3), null);
+        WKPF.setPropertyBoolean((short)3, GENERATEDWKPF.PROPERTY_LIGHT_ACTUATOR_ON_OFF, false);
         
         }
     }

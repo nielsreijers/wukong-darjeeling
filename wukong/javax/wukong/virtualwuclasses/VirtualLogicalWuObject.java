@@ -1,4 +1,4 @@
-package javax.wukong.wkpf.wuclasses;
+package javax.wukong.virtualwuclasses;
 
 import javax.wukong.wkpf.WKPF;
 import javax.wukong.wkpf.VirtualWuObject;
@@ -13,10 +13,10 @@ public class VirtualLogicalWuObject extends GENERATEDVirtualLogicalWuObject {
         short operator = WKPF.getPropertyShort(this, OPERATOR);
 
 
-      	if ( ((operator==WKPF.ENUM_LOGICAL_OPERATOR_AND) && (in1 & in2 & in3 & in4)) ||
-             ((operator==WKPF.ENUM_LOGICAL_OPERATOR_OR) && (in1 | in2 | in3 | in4)) ||
-             ((operator==WKPF.ENUM_LOGICAL_OPERATOR_NOT) && (!in1)) ||	//only not input1
-             ((operator==WKPF.ENUM_LOGICAL_OPERATOR_XOR) && (in1 ^ in2 ^ in3 ^ in4)) 
+      	if ( ((operator==GENERATEDWKPF.ENUM_LOGICAL_OPERATOR_AND) && (in1 & in2 & in3 & in4)) ||
+             ((operator==GENERATEDWKPF.ENUM_LOGICAL_OPERATOR_OR) && (in1 | in2 | in3 | in4)) ||
+             ((operator==GENERATEDWKPF.ENUM_LOGICAL_OPERATOR_NOT) && (!in1)) ||	//only not input1
+             ((operator==GENERATEDWKPF.ENUM_LOGICAL_OPERATOR_XOR) && (in1 ^ in2 ^ in3 ^ in4)) 
 		) {
             WKPF.setPropertyBoolean(this, OUTPUT, true);
             //System.out.println("WKPFUPDATE(Logical): in1 " + in1 + " in2 " + in2 + " in3 " + in3 + " in4 " + in4 + " operator " + operator + " -> TRUE");

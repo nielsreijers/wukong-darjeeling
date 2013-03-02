@@ -1,4 +1,4 @@
-package javax.wukong.wkpf.wuclasses;
+package javax.wukong.virtualwuclasses;
 
 import javax.wukong.wkpf.WKPF;
 import javax.wukong.wkpf.VirtualWuObject;
@@ -15,7 +15,7 @@ public class VirtualMathOpWuObject extends GENERATEDVirtualMathOpWuObject {
 	short remainder=0;
 
 
-      	if ( operator==WKPF.ENUM_MATH_OPERATOR_MAX ) {
+      	if ( operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_MAX ) {
 		if ( (input1>=input2) && (input1>=input3) && (input1>=input4))
 			output=input1;
 		else if ( (input2>=input1) && (input2>=input3) && (input2>=input4))
@@ -25,7 +25,7 @@ public class VirtualMathOpWuObject extends GENERATEDVirtualMathOpWuObject {
 		else if ( (input4>=input1) && (input4>=input2) && (input4>=input3))
 			output=input4;
 		remainder=0;
-        } else if ( operator==WKPF.ENUM_MATH_OPERATOR_MIN ) {
+        } else if ( operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_MIN ) {
 	  	if ( (input1<=input2) && (input1<=input3) && (input1<=input4))
 			output=input1;
 		else if ( (input2<=input1) && (input2<=input3) && (input2<=input4))
@@ -35,19 +35,19 @@ public class VirtualMathOpWuObject extends GENERATEDVirtualMathOpWuObject {
 		else if ( (input4<=input1) && (input4<=input2) && (input4<=input3))
 			output=input4;
 		remainder=0;
-        } else if(operator==WKPF.ENUM_MATH_OPERATOR_AVG) {
+        } else if(operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_AVG) {
 		output=(short)((input1+input2+input3+input4)/4);
 		remainder=0;
-        } else if(operator==WKPF.ENUM_MATH_OPERATOR_ADD) {
+        } else if(operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_ADD) {
 		output=(short)(input1+input2+input3+input4);
 		remainder=0;
-        } else if(operator==WKPF.ENUM_MATH_OPERATOR_SUB) {	// input1-input2
+        } else if(operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_SUB) {	// input1-input2
 		output=(short)(input1-input2);
 		remainder=0;
-        } else if(operator==WKPF.ENUM_MATH_OPERATOR_MULTIPLY) {
+        } else if(operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_MULTIPLY) {
 		output=(short)(input1*input2*input3*input4);
 		remainder=0;
-        } else if(operator==WKPF.ENUM_MATH_OPERATOR_DIVIDE) {	// input1/input2
+        } else if(operator==GENERATEDWKPF.ENUM_MATH_OPERATOR_DIVIDE) {	// input1/input2
 		if(input2==0)
 			System.out.println("WKPFUPDATE(math):divide by 0 Error");
 		output=(short)(input1/input2);
