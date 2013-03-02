@@ -101,7 +101,7 @@ class CodeGen:
 
       self.global_vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common')
       self.vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
-      self.java_dir = os.path.join('src', 'lib', 'wkpf', 'java', 'javax', 'wukong', 'wkpf', 'wuclasses')
+      self.java_dir = os.path.join('wukong', 'virtualwuclasses')
 
       self.component_string = args[0]
       self.project_dir = args[1]
