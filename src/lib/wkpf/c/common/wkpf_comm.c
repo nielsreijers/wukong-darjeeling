@@ -85,7 +85,7 @@ void wkpf_comm_handle_message(void *data) {
 	uint8_t response_size = 0, response_cmd = 0;
 	uint8_t retval;
 
-	if (dj_exec_getRunlevel() != RUNLEVEL_RUNNING)
+	if (dj_exec_getRunlevel() == RUNLEVEL_REPROGRAMMING)
 		return;
 
 	switch (msg->command) {
