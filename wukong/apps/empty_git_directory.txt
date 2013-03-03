@@ -1,0 +1,3 @@
+This is the directory where the master will generate it's applications.
+It's in .gitignore so the applications won't show up as source changes.
+This file is here just so git will create the directory. (can't have empty dirs in a git repository)
