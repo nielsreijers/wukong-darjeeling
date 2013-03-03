@@ -347,12 +347,12 @@ class Communication:
     def reprogram(self, destination, filename, retry=False):
       master_busy()
 
-      ret = self.reprogramNvmdefault(destination, filename)
+      ret = self.reprogramInfusion(destination, filename)
       if retry:
         if not ret:
           print "Retrying after 5 seconds..."
           time.sleep(5)
-          return self.reprogramNvmdefault(destination, filename)
+          return self.reprogramInfusion(destination, filename)
       else:
         master_available()
         return ret

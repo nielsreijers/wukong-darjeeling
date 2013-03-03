@@ -454,9 +454,9 @@ class WuApplication:
       self.status = "Compressing java to bytecode format"
       gevent.sleep(0)
 
-      # Generate nvmdefault.h
+      # Build the java code
       self.info('==Compressing application code to bytecode format')
-      pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
+      pp = Popen('cd %s/..; ant clean; ant' % (JAVA_OUTPUT_DIR), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       (infomsg,errmsg) = pp.communicate()
 
@@ -465,8 +465,8 @@ class WuApplication:
       self.error(errmsg)
       self.version += 1
       if pp.returncode != 0:
-        self.error('==Error generating nvmdefault.h')
-        self.status = "Error generating nvmdefault.h"
+        self.error('==Error generating wkdeploy.di')
+        self.status = "Error generating wkdeploy.di"
         gevent.sleep(0)
         return False
       self.info('==Finishing compression')
@@ -490,7 +490,7 @@ class WuApplication:
         ret = False
         retries = 3
         while retries > 0:
-          if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+          if not comm.reprogram(node_id, os.path.join(JAVA_OUTPUT_DIR, '..', 'build', 'wkdeploy.di'), retry=False):
             self.status = "Deploying unsucessful for node %d, trying again" % (node_id)
             gevent.sleep(0)
             self.error('==Node not deployed successfully, retries = %d' % (retries))
