@@ -9,7 +9,7 @@
 // This function should be in the NRWW section to allow it to write to flash
 //void BOOTLOADER_SECTION avr_flash_program_page(uint32_t page, uint8_t *buf);
 void __attribute__ ((section (".reprogram_flash_page"))) avr_flash_program_page (uint32_t page, uint8_t *buf);
-extern unsigned char di_app_archive_data[];
+extern unsigned char di_app_infusion_data[];
 
 // TODO (if we run short on RAM): this can probably be made more
 // efficient by splitting this up in two parts and writing directly
@@ -27,13 +27,13 @@ uint16_t wkreprog_impl_get_page_size() {
 }
 
 bool wkreprog_impl_open(uint16_t size_to_upload) {
-	void *x = (void *)di_app_archive_data;
+	void *x = (void *)di_app_infusion_data;
 	avr_flash_pageaddress = (unsigned int)x;
 	if (avr_flash_pageaddress % SPM_PAGESIZE != 0) {
-		DEBUG_LOG(DBG_WKREPROG, "AVR: Flashing to address 0x%x: not a page boundary.", di_app_archive_data);
+		DEBUG_LOG(DBG_WKREPROG, "AVR: Flashing to address 0x%x: not a page boundary.", di_app_infusion_data);
 		avr_flash_pageaddress = 0;
 	}
-	DEBUG_LOG(DBG_WKREPROG, "AVR: Start writing to flash at address 0x%x.\n", di_app_archive_data);
+	DEBUG_LOG(DBG_WKREPROG, "AVR: Start writing to flash at address 0x%x.\n", di_app_infusion_data);
 	memset(avr_flash_pagebuffer, 0xFF, SPM_PAGESIZE); // Clear flash buffer
 	avr_flash_buf_len = 0;
 	// TODONR: Check if the size fits in the allocated space for app archive

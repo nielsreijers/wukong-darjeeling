@@ -43,8 +43,8 @@
  */
 void dj_vm_main(void *mem,
  				uint32_t memsize,
- 				dj_di_pointer di_lib_archive,
- 				dj_di_pointer di_app_archive,
+ 				dj_di_pointer di_lib_infusions_archive_data,
+ 				dj_di_pointer di_app_infusion_data,
  				dj_named_native_handler handlers[],
  				uint8_t handlers_length) {
 	dj_vm *vm;
@@ -64,8 +64,8 @@ void dj_vm_main(void *mem,
 	// set run level before loading libraries since they need to execute initialisation code
 	dj_exec_setRunlevel(RUNLEVEL_RUNNING);
 
-	dj_vm_loadInfusionArchive(vm, di_lib_archive, handlers, handlers_length);
-	dj_vm_loadInfusionArchive(vm, di_app_archive, handlers, handlers_length);
+	dj_vm_loadInfusionArchive(vm, di_lib_infusions_archive_data, handlers, handlers_length);
+	dj_vm_loadInfusion(vm, di_app_infusion_data + 4, NULL, 0);
 
 	// pre-allocate an OutOfMemoryError object
 	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
@@ -235,13 +235,15 @@ dj_infusion *dj_vm_lookupInfusion(dj_vm *vm, dj_di_pointer name)
  * @param di a di pointer to the infusion file in program space
  * @return a newly loaded infusion, or NULL in case of fail
  */
-dj_infusion *dj_vm_loadInfusion(dj_vm *vm, dj_di_pointer di)
+dj_infusion *dj_vm_loadInfusion(dj_vm *vm, dj_di_pointer di, dj_named_native_handler native_handlers[], unsigned char numHandlers)
 {
 	int i;
-	dj_infusion *ret;
+	dj_infusion *infusion;
 	dj_di_pointer element;
 	dj_di_pointer staticFieldInfo = DJ_DI_NOT_SET;
 	dj_di_pointer infusionList = DJ_DI_NOT_SET;
+	dj_thread * thread;
+	dj_global_id entryPoint;
 
 	// iterate over the child elements, and find the static
 	// field size info block. We need this info to allocate
@@ -266,10 +268,10 @@ dj_infusion *dj_vm_loadInfusion(dj_vm *vm, dj_di_pointer di)
 		dj_panic(DJ_PANIC_MALFORMED_INFUSION);
 
 	// allocate the Infusion struct
-	ret = dj_infusion_create(staticFieldInfo, dj_di_infusionList_getSize(infusionList));
+	infusion = dj_infusion_create(staticFieldInfo, dj_di_infusionList_getSize(infusionList));
 
 	// if we're out of memory, let the caller handle it
-	if (ret==NULL) return NULL;
+	if (infusion==NULL) return NULL;
 
 	// iterate over the child elements and get references
 	// to the class list and method implementation list,
@@ -281,66 +283,86 @@ dj_infusion *dj_vm_loadInfusion(dj_vm *vm, dj_di_pointer di)
 		switch (dj_di_element_getId(element))
 		{
 		case HEADER:
-			ret->header = element;
+			infusion->header = element;
 			break;
 		case CLASSLIST:
-			ret->classList = element;
+			infusion->classList = element;
 			break;
 		case METHODIMPLLIST:
-			ret->methodImplementationList = element;
+			infusion->methodImplementationList = element;
 			break;
 		case STRINGTABLE:
-			ret->stringTable = element;
+			infusion->stringTable = element;
 			break;
 		}
 
 	}
 
 	// Check if each of the required elements was found
-	if (ret->stringTable==DJ_DI_NOT_SET||ret->classList==DJ_DI_NOT_SET||ret->methodImplementationList==DJ_DI_NOT_SET||ret->header==DJ_DI_NOT_SET)
+	if (infusion->stringTable==DJ_DI_NOT_SET||infusion->classList==DJ_DI_NOT_SET||infusion->methodImplementationList==DJ_DI_NOT_SET||infusion->header==DJ_DI_NOT_SET)
 		dj_panic(DJ_PANIC_MALFORMED_INFUSION);
 
 	// iterate over the referenced infusion list and set the appropriate pointers
 	for (i=0; i<dj_di_infusionList_getSize(infusionList); i++)
 	{
 		dj_di_pointer name = dj_di_infusionList_getChild(infusionList, i);
-		dj_infusion *infusion = dj_vm_lookupInfusion(vm, name);
+		dj_infusion *referenced_infusion = dj_vm_lookupInfusion(vm, name);
 
 		if (infusion==NULL)
 			dj_panic(DJ_PANIC_UNSATISFIED_LINK);
 
-		ret->referencedInfusions[i] = infusion;
+		infusion->referencedInfusions[i] = referenced_infusion;
 	}
 
 	// add the new infusion to the VM
-	dj_vm_addInfusion(vm, ret);
+	dj_vm_addInfusion(vm, infusion);
 
-	return ret;
-}
+	// We're assuming here that base.di is the first file in the archive
+	if (vm->systemInfusion == NULL)
+		vm->systemInfusion = infusion;
 
+	// This code was originally in load dj_vm_loadInfusionArchive.
+	// Moved here because the application is not in an archive, but needs
+	// some of the same code (not native_handlers, but class initialisers
+	// and creating a thread)
+#ifdef DARJEELING_DEBUG
+	char name[64];
 
-/**
- * Loads an infusion into the virtual machine, and marks it as the system infusion. Always load the
- * system infusion before anything else.
- * @param vm the virtual machine object to load the infusion into
- * @param di a di pointer to the infusion file in program space
- * @return a newly loaded infusion, or NULL in case of fail
- */
-dj_infusion *dj_vm_loadSystemInfusion(dj_vm *vm, dj_di_pointer di)
-{
-	dj_infusion *ret = dj_vm_loadInfusion(vm, di);
+	dj_infusion_getName(infusion, name, 64);
 
-	// if we run out of memory, let the caller handle it
-	if (ret==NULL) return NULL;
+	DEBUG_LOG(DBG_DARJEELING, "Loaded infusion %s.", name);
+#endif
 
-	dj_vm_setSystemInfusion(vm, ret);
+	for (i=0; i<numHandlers; i++)
+	{
 
-	return ret;
-}
+		if (dj_di_strEqualsDirectStr(dj_di_header_getInfusionName(infusion->header), native_handlers[i].name))
+		{
+			infusion->native_handler = native_handlers[i].handler;
 
-void dj_vm_setSystemInfusion(dj_vm *vm, dj_infusion * infusion)
-{
-	vm->systemInfusion = infusion;
+#ifdef DARJEELING_DEBUG
+			DEBUG_LOG(DBG_DARJEELING, "Attached native handler to infusion %s.", name);
+#endif
+		}
+	}
+
+	// run class initialisers for this infusion
+	infusion = dj_vm_runClassInitialisers(vm, infusion);
+
+	// find the entry point for the infusion
+	if ((entryPoint.entity_id=dj_di_header_getEntryPoint(infusion->header))!=255)
+	{
+		// create a new thread and add it to the VM
+		entryPoint.infusion = infusion;
+		thread = dj_thread_create_and_run(entryPoint);
+
+		if (thread==NULL)
+	        dj_panic(DJ_PANIC_OUT_OF_MEMORY);
+
+		dj_vm_addThread(vm, thread);
+	}
+
+	return infusion;
 }
 
 /**
@@ -457,15 +479,12 @@ typedef struct
 
 void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named_native_handler native_handlers[], unsigned char numHandlers)
 {
-
-	dj_thread * thread;
 	dj_infusion * infusion = NULL;
 
 	dj_di_pointer archive_end = archive_start + dj_di_getU32(archive_start);
 	archive_start += 4; // Skip archive size
 
-	unsigned char digit, i;
-	dj_global_id entryPoint;
+	unsigned char digit;
 	unsigned long size, pos;
 
 	// skip header, we'll just assume you're not passing something silly into this method
@@ -487,15 +506,7 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named
 		// GNU extension on the common AR format
 		if (dj_di_getU8(archive_start)!='/')
 		{
-
-			// // Read infusion file. We're assuming here that base.di is the first file in the archive
-			// if (first)
-			// NR 20130222: Since I'm splitting the archive in a library and application archive this doesn't work anymore.
-			// If we're assuming the first to be base.di, this test should work just as well though.
-			if (vm->systemInfusion == NULL)
-				infusion = dj_vm_loadSystemInfusion(vm, archive_start + AR_EHEADER_SIZE);
-			else
-				infusion = dj_vm_loadInfusion(vm, archive_start + AR_EHEADER_SIZE);
+			infusion = dj_vm_loadInfusion(vm, archive_start + AR_EHEADER_SIZE, native_handlers, numHandlers);
 
 			// If infusion is not loaded a critical error has occured
 			if (infusion == NULL){
@@ -511,51 +522,6 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named
 				);
 		        dj_panic(DJ_PANIC_OUT_OF_MEMORY);
 			}
-			/*
-			else
-				DARJEELING_PRINTF("[%s.di] %ld\n",
-						(char *) dj_di_header_getInfusionName(infusion->header),
-						size
-						);
-						*/
-
-#ifdef DARJEELING_DEBUG
-			char name[64];
-
-			dj_infusion_getName(infusion, name, 64);
-
-			DEBUG_LOG(DBG_DARJEELING, "Loaded infusion %s.", name);
-#endif
-
-			for (i=0; i<numHandlers; i++)
-			{
-
-				if (dj_di_strEqualsDirectStr(dj_di_header_getInfusionName(infusion->header), native_handlers[i].name))
-				{
-					infusion->native_handler = native_handlers[i].handler;
-
-#ifdef DARJEELING_DEBUG
-					DEBUG_LOG(DBG_DARJEELING, "Attached native handler to infusion %s.", name);
-#endif
-				}
-			}
-
-			// run class initialisers for this infusion
-			infusion = dj_vm_runClassInitialisers(vm, infusion);
-
-			// find the entry point for the infusion
-			if ((entryPoint.entity_id=dj_di_header_getEntryPoint(infusion->header))!=255)
-			{
-				// create a new thread and add it to the VM
-				entryPoint.infusion = infusion;
-				thread = dj_thread_create_and_run(entryPoint);
-
-				if (thread==NULL)
-			        dj_panic(DJ_PANIC_OUT_OF_MEMORY);
-
-				dj_vm_addThread(vm, thread);
-			}
-
 		}
 
 		// files are 2-byte aligned

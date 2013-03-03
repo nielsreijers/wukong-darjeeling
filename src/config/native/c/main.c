@@ -94,7 +94,7 @@ void parse_command_line(int argc,char* argv[]) {
 char* load_infusion_archive(char *filename) {
 	FILE *fp = fopen(filename, "r");
 	if (!fp) {
-		printf("Unable to open the program flash file.\n");
+		printf("Unable to open the program flash file %s.\n", filename);
 		exit(1);
 	}
 
@@ -127,8 +127,8 @@ int main(int argc,char* argv[])
 	posix_argv = argv;
 
 	// Read the lib and app infusion archives from file
-	char* di_lib_archive_data = load_infusion_archive("lib_infusions");
-	char* di_app_archive_data = load_infusion_archive("app_infusions");
+	char* di_lib_infusions_archive_data = load_infusion_archive("lib_infusions_archive");
+	char* di_app_infusion_data = load_infusion_archive("app_infusion.di");
 
 	// initialise memory manager
 	void *mem = malloc(MEMSIZE);
@@ -148,7 +148,7 @@ int main(int argc,char* argv[])
 		};
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 
-	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
+	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
 
 	// Listen to the radio
 	while(true)

@@ -37,7 +37,7 @@ dj_infusion * dj_vm_lookupInfusion(dj_vm * vm, dj_di_pointer name);
 dj_infusion *dj_vm_loadSystemInfusion(dj_vm * vm, dj_di_pointer di);
 bool dj_vm_safeToUnload(dj_vm *vm, dj_infusion * infusion);
 void dj_vm_unloadInfusion(dj_vm *vm, dj_infusion * infusion);
-dj_infusion * dj_vm_loadInfusion(dj_vm * vm, dj_di_pointer di);
+dj_infusion * dj_vm_loadInfusion(dj_vm * vm, dj_di_pointer di, dj_named_native_handler native_handlers[], unsigned char numHandlers);
 
 void dj_vm_setSystemInfusion(dj_vm *vm, dj_infusion * infusion);
 dj_infusion * dj_vm_getSystemInfusion(dj_vm * vm);

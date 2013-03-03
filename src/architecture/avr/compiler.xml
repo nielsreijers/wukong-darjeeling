@@ -110,11 +110,11 @@
 		<sequential>
 			<local name="keywords"/>
 			<condition property="keywords" value="PROGMEM __attribute__ ((aligned (SPM_PAGESIZE)))" else="PROGMEM">
-				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
+				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
 			</condition>
 			<local name="arraysize"/>
 			<condition property="arraysize" value="${app-archive-size}" else="0">
-				<equals arg1="@{arrayname}" arg2="di_app_archive"/>
+				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
 			</condition>
 			<!-- compile the binary file to a .c file -->
 			<carray

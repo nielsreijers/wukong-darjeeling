@@ -44,8 +44,8 @@
 
 #include "pointerwidth.h"
 
-extern unsigned char di_lib_archive_data[];
-extern unsigned char di_app_archive_data[];
+extern unsigned char di_lib_infusions_archive_data[];
+extern unsigned char di_app_infusion_data[];
 
 unsigned char mem[HEAPSIZE];
 
@@ -66,7 +66,7 @@ int main()
 		};
 	uint16_t length = sizeof(handlers)/ sizeof(handlers[0]);
 
-	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_archive_data, (dj_di_pointer)di_app_archive_data, handlers, length);
+	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
 
 	// Listen to the radio
 	while(true)

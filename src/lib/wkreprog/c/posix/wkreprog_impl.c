@@ -26,7 +26,7 @@ void wkreprog_impl_write(uint8_t size, uint8_t* data) {
 }
 
 void wkreprog_impl_close() {
-  FILE *fp = fopen("app_infusions", "w");
+  FILE *fp = fopen("app_infusion.di", "w");
   if (fp== NULL) {
 	  printf("Error in opening file to write infusion to...\n");
   }
