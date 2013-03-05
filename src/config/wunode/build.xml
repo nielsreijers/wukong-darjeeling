@@ -11,7 +11,7 @@
 	<!-- Platform and architecture selection -->
 	<property name="platform" value="arduino"/>
 	<property name="architecture" value="avr"/>
-	<property name="configuration" value="arduino-mega"/>
+	<property name="configuration" value="wunode"/>
 
 	<property name="mcu" value="atmega2560"/>
 	<property name="app-archive-size" value="4096"/>
