@@ -41,17 +41,11 @@ void javax_darjeeling_Darjeeling_void_assertTrue_int_boolean()
 	// pop argument from the stack
 	int32_t value = dj_exec_stackPopShort();
 	int32_t id = dj_exec_stackPopInt();
-	if (value==0)
-		printf("%c[31mASSERT[%3d] FAILED%c[0m\n", 0x1b, (int)id, 0x1b);
-	else
-		printf("%c[32mASSERT[%3d] PASSED%c[0m\n", 0x1b, (int)id, 0x1b);
-}
 
-// void javax.darjeeling.Darjeeling.printBytesAsString(byte[])
-void javax_darjeeling_Darjeeling_void_printBytesAsString_byte__()
-{
-	dj_int_array* byteStr = REF_TO_VOIDP(dj_exec_stackPopRef());
-	printf("%s", byteStr->data.bytes);
+	if (value==0)
+		DARJEELING_PRINTF("%c[31mASSERT[%3d] FAILED%c[0m\n", 0x1b, (int)id, 0x1b);
+	else
+		DARJEELING_PRINTF("%c[32mASSERT[%3d] PASSED%c[0m\n", 0x1b, (int)id, 0x1b);
 }
 
 void javax_darjeeling_Darjeeling_void__print_java_lang_String()
@@ -60,22 +54,13 @@ void javax_darjeeling_Darjeeling_void__print_java_lang_String()
 	BASE_STRUCT_java_lang_String * stringObject = (BASE_STRUCT_java_lang_String*)REF_TO_VOIDP(dj_exec_stackPopRef());
 
 	if (stringObject == NULL)
-	{
-		dj_exec_createAndThrow(BASE_CDEF_java_lang_NullPointerException);
 		return;
-	}
 
 	// Get byte array
 	dj_int_array * byteArray = (dj_int_array*)REF_TO_VOIDP(stringObject->value);
 
-	if (byteArray == NULL)
-	{
-		dj_exec_createAndThrow(BASE_CDEF_java_lang_NullPointerException);
-		return;
-	}
-
 	for (int i=0; i<byteArray->array.length; i++)
-		printf("%c", byteArray->data.bytes[i]);
+		DARJEELING_PRINTF("%c", byteArray->data.bytes[i]);
 }
 
 // int javax.darjeeling.Darjeeling.getNodeId()
@@ -107,14 +92,14 @@ void javax_darjeeling_Darjeeling_short_getNrThreads()
 void javax_darjeeling_Darjeeling_java_lang_Thread_getThread_short()
 {
 	dj_thread *thread;
-        int index = dj_exec_stackPopShort();
+	int index = dj_exec_stackPopShort();
 
-        // check for out of bounds
-        if ( (index<0) || (index>=dj_vm_countThreads(dj_exec_getVM())) )
-                dj_exec_throwHere(dj_vm_createSysLibObject(dj_exec_getVM(), BASE_CDEF_java_lang_IndexOutOfBoundsException));
-        else
-        {
-                thread = dj_vm_getThread(dj_exec_getVM(), index);
-                dj_exec_stackPushRef(VOIDP_TO_REF(thread));
-        }
+	// check for out of bounds
+	if ( (index<0) || (index>=dj_vm_countThreads(dj_exec_getVM())) )
+		dj_exec_throwHere(dj_vm_createSysLibObject(dj_exec_getVM(), BASE_CDEF_java_lang_IndexOutOfBoundsException));
+	else
+	{
+		thread = dj_vm_getThread(dj_exec_getVM(), index);
+		dj_exec_stackPushRef(VOIDP_TO_REF(thread));
+	}
 }
