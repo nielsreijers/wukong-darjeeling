@@ -39,7 +39,7 @@
 					<compilerarg value="-Os"/>
 					<compilerarg value="-finline-limit-1"/>
                     <compilerarg value="${compiler.standard}"/>
-                    <!-- <compilerarg value="${compiler.debug.format}"/> -->
+                    <compilerarg value="${compiler.debug.format}"/>
 				</compiler>
 
 				<compile-elements/>

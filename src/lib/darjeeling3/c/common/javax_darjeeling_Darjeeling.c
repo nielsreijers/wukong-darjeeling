@@ -79,7 +79,12 @@ void javax_darjeeling_Darjeeling_int_getMemFree()
 //int javax.darjeeling.Darjeeling.random()
 void javax_darjeeling_Darjeeling_int_random()
 {
-	dj_exec_stackPushInt(rand());
+	// TODONR: fix this.
+	// On msp430-gcc I get an error while linking, (relocation truncated to fit: R_MSP430_16_BYTE against symbol)
+	// unless I either remove the call to rand, or the -ggdb flag to gcc.
+	// Since I care more about debug info than random numbers, just disable this for now until I figure out what the problem is.
+	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	// dj_exec_stackPushInt(rand());
 }
 
 //short javax.darjeeling.Darjeeling.getNrThreads()
