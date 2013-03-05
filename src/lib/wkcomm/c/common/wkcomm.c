@@ -43,7 +43,7 @@ address_t wkcomm_get_node_id() {
 }
 
 // Call this periodically to receive data
-void wkcomm_poll(void) {
+void wkcomm_poll(void *dummy) {
 	#ifdef RADIO_USE_ZWAVE
 		wkcomm_zwave_poll();
 	#endif
@@ -102,7 +102,7 @@ int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *pay
 
 	dj_time_t deadline = dj_timer_getTimeMillis() + wait_msec;
 	do {
-		wkcomm_poll();
+		wkcomm_poll(NULL);
 		if (wkcomm_received_reply.command != 0) {
 			// Reply received
 			*reply = &wkcomm_received_reply;

@@ -55,6 +55,7 @@
 #include "global_id.h"
 #include "debug.h"
 #include "panic.h"
+#include "hooks.h"
 
 // platform-specific configuration
 #include "config.h"
@@ -66,6 +67,12 @@
 #include "pointerwidth.h"
 
 #include "opcodes.c"
+
+// Runlevel. Used to pause the VM when reprogramming and reset it afterwards.
+uint8_t dj_exec_runlevel;
+
+// For libraries that need frequent polling. Currently just for radios, but maybe there are other uses. Should be fast.
+dj_hook *dj_vm_pollingHook = NULL;
 
 // currently selected Virtual Machine context
 static dj_vm *vm;
@@ -105,6 +112,7 @@ static int callDepth = 0;
  * Tells the execution engine which VM is currently running. In principle this should be called once in the main.
  * @param _vm the virtual machine to set as the executing VM
  */
+
 void dj_exec_setVM(dj_vm *_vm)
 {
 #ifdef DARJEELING_DEBUG
@@ -1171,7 +1179,9 @@ int dj_exec_run(int nrOpcodes)
 	int64_t ltemp1, ltemp2;
 	ref_t rtemp1, rtemp2, rtemp3;
 
-	while (nrOpcodesLeft > 0) {
+	dj_hook_call(dj_vm_pollingHook, NULL);
+
+	while (nrOpcodesLeft > 0 && dj_exec_runlevel == RUNLEVEL_RUNNING) {
 		nrOpcodesLeft--;
 		opcode = fetch();
 

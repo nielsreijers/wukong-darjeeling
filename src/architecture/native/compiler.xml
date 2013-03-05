@@ -50,26 +50,9 @@
 	<macrodef name="platform-objcopy">
 		<attribute name="inputfile"/>
 		<attribute name="outputfile"/>
-		<sequential>
-			<!-- compile the binary file to a .c file -->
-			<carray
-				src="@{inputfile}"
-				dest="temp.c"
-				arrayname="di_archive"
-			/>
-			<!-- compile -->
-			<cc
-				name="gcc"
-				objdir="."
-				>
-				<fileset includes="temp.c" dir="."/>
-			</cc>
-			<exec executable="mv">
-				<arg line="temp.o @{outputfile}"/>
-			</exec>
-			<!-- clean up temp file -->
-			<!-- <delete file="temp.c"/> -->
-		</sequential>
+		<attribute name="arrayname"/>
+		<!-- Load the inputfile directly for native target instead of compiling it to a c file and linking it in to the VM -->
+		<sequential/>
 	</macrodef>
 
 </project>

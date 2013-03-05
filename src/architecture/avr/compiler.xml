@@ -72,7 +72,9 @@
 				>
 				<linker classname="net.sf.antcontrib.cpptasks.gcc.cross.GccLinker">
 					<linkerparam value="avr" name="target"/>
-					<linkerarg value="-Wl,--cref,-Map,darjeeling-avr.map,--section-start=.bootloader=0x1e000"/>
+					<linkerarg value="-Wl,--cref,-Map,darjeeling-avr.map"/>
+					<linkerarg value="--section-start=.bootloader=0x1e000"/>
+					<linkerarg value="--section-start=.reprogram_flash_page=0x3F000"/>
 					<linkerarg value="-mmcu=${mcu}"/>
 				</linker>
 				
@@ -85,7 +87,6 @@
 			
 			<!-- Sections used in NanoVM but not (yet) in Darjeeling:
 					.lowtext
-					.javabytecode
 					.reprogram_flash_page -->
 			<exec executable="avr-objcopy">
 				<arg line="-j .text -j .data -O ihex @{outputfile} darjeeling.ihex"/>
@@ -105,18 +106,23 @@
 	<macrodef name="platform-objcopy">
 		<attribute name="inputfile"/>
 		<attribute name="outputfile"/>
+		<attribute name="arrayname"/>
 		<sequential>
-			<!--
-			<exec executable="avr-objcopy">
-				<arg line="-I binary -O elf32-avr @{inputfile} @{outputfile}"/>
-			</exec>
-			-->
+			<local name="keywords"/>
+			<condition property="keywords" value="PROGMEM __attribute__ ((aligned (SPM_PAGESIZE)))" else="PROGMEM">
+				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
+			</condition>
+			<local name="arraysize"/>
+			<condition property="arraysize" value="${app-archive-size}" else="0">
+				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
+			</condition>
 			<!-- compile the binary file to a .c file -->
 			<carray
 				src="@{inputfile}"
-				dest="temp.c"
-				arrayname="di_archive"
-                                keywords="PROGMEM"
+				dest="temp_@{arrayname}.c"
+				arrayname="@{arrayname}"
+				arraysize="${arraysize}"
+				keywords="${keywords}"
 			/>
 			<!-- compile -->
 			<cc
@@ -127,12 +133,11 @@
 					<compilerparam value="avr" name="target"/>
 					<compilerarg value="-mmcu=${mcu}"/>
 				</compiler>
-				<fileset includes="temp.c" dir="."/>
+				<fileset includes="temp_@{arrayname}.c" dir="."/>
 			</cc>
 			<exec executable="mv">
-				<arg line="temp.o @{outputfile}"/>
+				<arg line="temp_@{arrayname}.o @{outputfile}"/>
 			</exec>
 		</sequential>
 	</macrodef>
-
 </project>

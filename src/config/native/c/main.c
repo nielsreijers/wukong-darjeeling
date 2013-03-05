@@ -24,73 +24,119 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "jlib_base.h"
 #include "jlib_darjeeling2.h"
 #include "jlib_uart.h"
 #include "jlib_wkcomm.h"
 #include "jlib_wkpf.h"
-// #include "jlib_wknode.h"
+#include "jlib_wkreprog.h"
 
 #include "types.h"
 #include "vm.h"
 #include "heap.h"
 #include "execution.h"
 #include "config.h"
+#include "hooks.h"
 
 #include "pointerwidth.h"
 char * ref_t_base_address;
 
-extern unsigned char di_archive_data[];
-extern size_t di_archive_size;
-
+// TODONR: this is necessary for the functions in ProgramFlash in java
+//         Doesn't seem to work now, butjust leave it here until
+//         we decide to remove or finish it.
 FILE * progflashFile;
+char** posix_argv;
+char* posix_uart_filenames[4];
 
-void init_progflash()
-{
-	char emptyBlock[PROGFLASH_BLOCKSIZE];
+void parse_uart_arg(char *arg) {
+	int uart = arg[0];
+	uart -= '0';
+	if (uart < 0 || uart > 3 || arg[1]!='=') {
+		printf("option -u/--uart format: <uart>=<file>, where <uart> is 0, 1, 2, or 3 and <file> is the device to connect to thise uart.\n");
+		abort();
+	}
+	posix_uart_filenames[uart] = arg+2;
+	printf("Uart %d at %s\n", uart, posix_uart_filenames[uart]);
+}
 
-	// Open the 'program flash' file.
-	progflashFile = fopen("programflash.data", "w+b");
-	if (!progflashFile)
-	{
-		printf("Unable to open the program flash file.\n");
-		return;
+void parse_command_line(int argc,char* argv[]) {
+	int c;
+	while (1) {
+		static struct option long_options[] = {
+			{"uart",    required_argument, 0, 'u'},
+			{0, 0, 0, 0}
+		};
+
+		/* getopt_long stores the option index here. */
+		int option_index = 0;
+
+		c = getopt_long (argc, argv, "u:",
+		    long_options, &option_index);
+
+		/* Detect the end of the options. */
+		if (c == -1)
+			break;
+
+		switch (c) {
+			case 'u':
+				parse_uart_arg(optarg);
+			break;
+
+			default:
+				abort ();
+		}
+	}
+}
+
+
+char* load_infusion_archive(char *filename) {
+	FILE *fp = fopen(filename, "r");
+	if (!fp) {
+		printf("Unable to open the program flash file %s.\n", filename);
+		exit(1);
 	}
 
-	// Check the program flash file length.
-	fseek(progflashFile, 0, SEEK_END);
-	size_t length = ftell(progflashFile);
+	// Determine the size of the archive
+	fseek(fp, 0, SEEK_END);
+	size_t length = ftell(fp);
 
-	// Keep adding empty blocks to the end of the file until the length matches.
-	memset(emptyBlock, 0, PROGFLASH_BLOCKSIZE);
-	while (length<PROGFLASH_SIZE)
-	{
-		fwrite(emptyBlock, PROGFLASH_BLOCKSIZE, 1, progflashFile);
-		length += PROGFLASH_BLOCKSIZE;
+	// Allocate memory for the archive
+	char* di_archive_data = malloc(length+4);
+	if (!di_archive_data) {
+		printf("Unable to allocate memory to load the program flash file.\n");
+		exit(1);
 	}
+	di_archive_data[0] = (length >> 0) % 256;
+	di_archive_data[1] = (length >> 8) % 256;
+	di_archive_data[2] = (length >> 16) % 256;
+	di_archive_data[3] = (length >> 24) % 256;
+
+	// Read the file into memory
+	rewind(fp);
+	fread(di_archive_data+4, sizeof(char), length, fp); // Skip 4 bytes that contain the archive length
+	fclose(fp);
+
+	return di_archive_data;
 }
 
 int main(int argc,char* argv[])
 {
+	parse_command_line(argc, argv);
+	posix_argv = argv;
 
-	dj_vm * vm;
-	dj_object * obj;
+	// Read the lib and app infusion archives from file
+	char* di_lib_infusions_archive_data = load_infusion_archive("lib_infusions_archive");
+	char* di_app_infusion_data = load_infusion_archive("app_infusion.di");
 
 	// initialise memory manager
 	void *mem = malloc(MEMSIZE);
-	dj_mem_init(mem, MEMSIZE);
-
 	ref_t_base_address = (char*)mem - 42;
 
 	// Initialise the simulated program flash
-	init_progflash();
-
-	// Create a new VM
-	vm = dj_vm_create();
-
-	// tell the execution engine to use the newly created VM instance
-	dj_exec_setVM(vm);
+	// TODONR: Refactor native config later to load infusion from a file instead of linked in
+	// init_progflash();
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
@@ -98,34 +144,15 @@ int main(int argc,char* argv[])
 			{ "uart", &uart_native_handler },
 			{ "wkcomm", &wkcomm_native_handler },
 			{ "wkpf", &wkpf_native_handler },
-			// { "wknode", &wknode_native_handler },
+			{ "wkreprog", &wkreprog_native_handler },
 		};
-
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
-	dj_archive archive;
-	archive.start = (dj_di_pointer)di_archive_data;
-	archive.end = (dj_di_pointer)(di_archive_data + di_archive_size);
 
-	dj_vm_loadInfusionArchive(vm, &archive, handlers, length);
-	
-	// pre-allocate an OutOfMemoryError object
-	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
-	dj_mem_setPanicExceptionObject(obj);
+	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
 
-	// start the main execution loop
-	while (dj_vm_countLiveThreads(vm)>0)
-	{
-		dj_vm_schedule(vm);
-		if (vm->currentThread!=NULL)
-			if (vm->currentThread->status==THREADSTATUS_RUNNING)
-				dj_exec_run(RUNSIZE);
-	}
-
-	dj_vm_schedule(vm);
-	dj_mem_gc();
-	dj_vm_destroy(vm);
-
-	fclose(progflashFile);
+	// Listen to the radio
+	while(true)
+		dj_hook_call(dj_vm_pollingHook, NULL);
 
 	return 0;
 }

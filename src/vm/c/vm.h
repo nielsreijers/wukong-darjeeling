@@ -24,11 +24,7 @@
 
 #include "types.h"
 
-typedef struct
-{
-        dj_di_pointer start;
-        dj_di_pointer end;
-} dj_archive;
+void dj_vm_main(void *mem, uint32_t memsize, dj_di_pointer di_lib_archive, dj_di_pointer di_app_archive, dj_named_native_handler handlers[], uint8_t handlers_length);
 
 dj_vm * dj_vm_create();
 void dj_vm_destroy(dj_vm * vm);
@@ -41,11 +37,11 @@ dj_infusion * dj_vm_lookupInfusion(dj_vm * vm, dj_di_pointer name);
 dj_infusion *dj_vm_loadSystemInfusion(dj_vm * vm, dj_di_pointer di);
 bool dj_vm_safeToUnload(dj_vm *vm, dj_infusion * infusion);
 void dj_vm_unloadInfusion(dj_vm *vm, dj_infusion * infusion);
-dj_infusion * dj_vm_loadInfusion(dj_vm * vm, dj_di_pointer di);
+dj_infusion * dj_vm_loadInfusion(dj_vm * vm, dj_di_pointer di, dj_named_native_handler native_handlers[], unsigned char numHandlers);
 
 void dj_vm_setSystemInfusion(dj_vm *vm, dj_infusion * infusion);
 dj_infusion * dj_vm_getSystemInfusion(dj_vm * vm);
-void dj_vm_loadInfusionArchive(dj_vm * vm, dj_archive * archive, dj_named_native_handler native_handlers[], unsigned char numHandlers);
+void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named_native_handler native_handlers[], unsigned char numHandlers);
 
 dj_infusion* dj_vm_runClassInitialisers(dj_vm * vm, dj_infusion * infusion);
 

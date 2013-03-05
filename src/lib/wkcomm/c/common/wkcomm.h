@@ -36,7 +36,7 @@ extern void wkcomm_init(void);
 extern address_t wkcomm_get_node_id();
 
 // Call this periodically to receive data
-extern void wkcomm_poll(void);
+extern void wkcomm_poll(void *);
 
 // Send length bytes to dest
 extern int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length);

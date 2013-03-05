@@ -1,6 +1,7 @@
 #include "wkcomm.h"
 #include "panic.h"
 #include "debug.h"
+#include "execution.h"
 #include "wkpf.h"
 #include "wkpf_comm.h"
 #include "wkpf_config.h"
@@ -84,9 +85,8 @@ void wkpf_comm_handle_message(void *data) {
 	uint8_t response_size = 0, response_cmd = 0;
 	uint8_t retval;
 
-	// TODONR: stop processing messages during reprogramming
-	// if (nvm_runlevel != NVM_RUNLVL_VM)
-	//   return;
+	if (dj_exec_getRunlevel() == RUNLEVEL_REPROGRAMMING)
+		return;
 
 	switch (msg->command) {
 		case WKPF_COMM_CMD_GET_LOCATION: {

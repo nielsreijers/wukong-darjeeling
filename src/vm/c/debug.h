@@ -88,6 +88,9 @@
 #ifndef DBG_ZWAVETRACE
 #define DBG_ZWAVETRACE 0
 #endif
+#ifndef DBG_WKREPROG
+#define DBG_WKREPROG 0
+#endif
 
 #ifndef DARJEELING_DEBUG
 

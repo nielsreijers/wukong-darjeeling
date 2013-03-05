@@ -183,15 +183,13 @@ void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 	wuobject_t *wuobject;
 	while(true) {
 		// Process any incoming messages
-		// TODONR: find a better way to call this at various points in the VM
-		wkcomm_poll();
+		dj_hook_call(dj_vm_pollingHook, NULL);
 		// // TODONR: implement group stuff
 		// #ifdef NVM_USE_GROUP
 		// 	// Send out a heartbeat message if it's due, and check for failed nodes.
 		// 	group_heartbeat();
 		// #endif // NVM_USE_GROUP
-		// TODONR: implement runlevels (needed when we start to do the bytecode upgrade)
-		// if (nvm_runlevel == NVM_RUNLVL_VM) {
+		if (dj_exec_getRunlevel() == RUNLEVEL_RUNNING) {
 			// Propagate any dirty properties
 			wkpf_propagate_dirty_properties();
 			// Check if any wuobjects need updates
@@ -200,7 +198,7 @@ void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 				DEBUG_LOG(DBG_WKPF, "WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
 				return;
 			}
-		// }
+		}
 	}
 }
 
