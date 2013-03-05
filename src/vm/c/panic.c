@@ -19,37 +19,44 @@
  * along with Darjeeling.  If not, see <http://www.gnu.org/licenses/>.
  */
  
- 
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include "execution.h"
-#include "hooks.h"
-#include "panic.h"
-#include "nesc.h"
 
-#include "config.h"
-//TODO: check if exit (-1) terminates the node
+#include "execution.h"
+#include "panic.h"
+#include "debug.h"
+#include "hooks.h"
+
 void dj_panic(int32_t panictype)
 {
-	switch(panictype)
-	{
-		case DJ_PANIC_OUT_OF_MEMORY:
-			nesc_printf("PANIC: OUT OF MEMORY\n");
-			break;
-		case DJ_PANIC_ILLEGAL_INTERNAL_STATE:
-			nesc_printf("PANIC: ILLEGAL INTERNAL STATE\n");
-			break;
-		case DJ_PANIC_UNIMPLEMENTED_FEATURE:
-			nesc_printf("PANIC: UNIMPLEMENTED FEATURE\n");
-			break;
-		case DJ_PANIC_UNCAUGHT_EXCEPTION:
-			nesc_printf("PANIC: UNCAUGHT EXCEPTION\n");
-			break;
-		default:
-			nesc_printf("PANIC: UNKNOWN TYPE\n");
-			break;
-	}
+    switch(panictype)
+    {
+        case DJ_PANIC_OUT_OF_MEMORY:
+        	DEBUG_LOG(true, "PANIC: out of memory!\n");
+            break;
+        case DJ_PANIC_ILLEGAL_INTERNAL_STATE:
+        	DEBUG_LOG(true, "PANIC: illegal internal state!\n");
+            break;
+        case DJ_PANIC_UNIMPLEMENTED_FEATURE:
+        	DEBUG_LOG(true, "PANIC: unimplemented feature!\n");
+            break;
+        case DJ_PANIC_UNCAUGHT_EXCEPTION:
+        	DEBUG_LOG(true, "PANIC: uncaught exception!\n");
+        case DJ_PANIC_UNSATISFIED_LINK:
+            DEBUG_LOG(true, "PANIC: unsatisfied link!\n");
+            break;
+        case DJ_PANIC_MALFORMED_INFUSION:
+        	DEBUG_LOG(true, "PANIC: malformed infusion!\n");
+            break;
+        case DJ_PANIC_ASSERTION_FAILURE:
+            DEBUG_LOG(true, "PANIC: assertion failed!\n");
+            break;
+        case DJ_PANIC_SAFE_POINTER_OVERFLOW:
+            DEBUG_LOG(true, "PANIC: safe pointer overflow!\n");
+            break;
+        default:
+            DEBUG_LOG(true, "PANIC: unknown panic type %d!\n", panictype);
+            break;
+    }
     if (dj_exec_getRunlevel() < RUNLEVEL_PANIC) {
         dj_exec_setRunlevel(panictype);
         while (true) // Still allow remote access through wkcomm when in panic state.
