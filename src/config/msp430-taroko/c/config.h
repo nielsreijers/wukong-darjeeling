@@ -24,36 +24,46 @@
 #include <sys/types.h>
 #include "msp430.h"
 
-// Allocate 4k heap for the VM
-#define HEAPSIZE 4096
+// Allocate 2k heap for the VM
+#define HEAPSIZE 2048
 
+// 'Time slices' are 128 instructions
+#define RUNSIZE 128
+
+//Use 64-bit values to store time
+typedef int64_t dj_time_t;
+
+// #define PACK_STRUCTS
+#define ALIGN_16
+
+// TODONR: refactor this (darjeeling2 lib will break if I just remove it now)
 // Program flash block size
 #define PROGFLASH_BLOCKSIZE 256
 #define PROGFLASH_SIZE (64lu*1024lu)
 #define PROGFLASH_BLOCKCOUNT (PROGFLASH_SIZE / PROGFLASH_BLOCKSIZE)
 
-// 'Time slices' are 128 instructions
-#define RUNSIZE 128
-
-// #define PACK_STRUCTS
-#define ALIGN_16
-
-//Use 64-bit values to store time
-typedef int64_t dj_time_t;
 /* Please see common/debug.h */
-
 // #define DARJEELING_DEBUG
 // #define DARJEELING_DEBUG_FRAME
 // #define DARJEELING_DEBUG_MEM_TRACE
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
+// #define DBG_DARJEELING true
+// #define DBG_DARJEELING_GC true
+// #define DBG_WKPF true
+// #define DBG_WKPFGC true
+// #define DBG_WKPFUPDATE true
+// #define DBG_WKCOMM true
+// #define DBG_WKREPROG true
+// #define DBG_ZWAVETRACE true
+
 #define DARJEELING_PRINTF msp430_serialPrintf
 
-//#define ASSEMBLY_DEBUGGING 1
-//#define ASSEMBLY_DEBUG printf
-
 #define DARJEELING_PGMSPACE_MACRO
-// #define IS_SIMULATOR
+
+// Radios
+// #define RADIO_USE_ZWAVE
+// #define RADIO_USE_XBEE
 
 #endif

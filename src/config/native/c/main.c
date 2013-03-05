@@ -131,7 +131,7 @@ int main(int argc,char* argv[])
 	char* di_app_infusion_data = load_infusion_archive("app_infusion.di");
 
 	// initialise memory manager
-	void *mem = malloc(MEMSIZE);
+	void *mem = malloc(HEAPSIZE);
 	ref_t_base_address = (char*)mem - 42;
 
 	// Initialise the simulated program flash
@@ -148,7 +148,7 @@ int main(int argc,char* argv[])
 		};
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 
-	dj_vm_main(mem, MEMSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
+	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
 
 	// Listen to the radio
 	while(true)

@@ -22,75 +22,52 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
-#include "jlib_base.h"
-// #include "jlib_darjeeling2.h"
-
-#include "types.h"
+#include "debug.h"
 #include "vm.h"
 #include "heap.h"
+#include "infusion.h"
+#include "types.h"
+#include "vmthread.h"
+#include "djtimer.h"
 #include "execution.h"
-#include "config.h"
-#include "debug.h"
+#include "hooks.h"
+
+#include "jlib_base.h"
+#include "jlib_darjeeling2.h"
+#include "jlib_uart.h"
+#include "jlib_wkcomm.h"
+#include "jlib_wkpf.h"
+#include "jlib_wkreprog.h"
 
 #include "pointerwidth.h"
 
-extern const unsigned char di_archive_data[];
-extern const unsigned char di_archive_data_end[];
-extern const size_t di_archive_size;
+extern unsigned char di_lib_infusions_archive_data[];
+extern unsigned char di_app_infusion_data[];
 
 unsigned char mem[HEAPSIZE];
 
-void initLed();
-void dj_timer_init();
-
-int main(int argc,char* argv[])
+int main()
 {
-
-	dj_vm * vm;
-	dj_object * obj;
-
-	// initialise timer
-	dj_timer_init();
-
-	// initialise memory manager
-	dj_mem_init(mem, HEAPSIZE);
-
-	// Create a new VM
-	vm = dj_vm_create();
-
-	// tell the execution engine to use the newly created VM instance
-	dj_exec_setVM(vm);
+	// TODONR How does this work on Taroko?
+	// initialise serial port
+	// avr_serialInit(115200);
 
 	dj_named_native_handler handlers[] = {
 			{ "base", &base_native_handler },
-			// { "darjeeling2", &darjeeling2_native_handler },
+			{ "darjeeling2", &darjeeling2_native_handler },
+			{ "uart", &uart_native_handler },
+			{ "wkcomm", &wkcomm_native_handler },
+			{ "wkpf", &wkpf_native_handler },
+			{ "wkreprog", &wkreprog_native_handler },
 		};
+	uint16_t length = sizeof(handlers)/ sizeof(handlers[0]);
 
-	int length = sizeof(handlers)/ sizeof(handlers[0]);
-	dj_archive archive;
-	archive.start = (dj_di_pointer)di_archive_data;
-	archive.end = (dj_di_pointer)(di_archive_data + di_archive_size);
+	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
 
-	dj_vm_loadInfusionArchive(vm, &archive, handlers, length);
-	
-	// pre-allocate an OutOfMemoryError object
-	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
-	dj_mem_setPanicExceptionObject(obj);
-
-	// start the main execution loop
-	while (dj_vm_countLiveThreads(vm)>0)
-	{
-		dj_vm_schedule(vm);
-		if (vm->currentThread!=NULL)
-			if (vm->currentThread->status==THREADSTATUS_RUNNING)
-				dj_exec_run(RUNSIZE);
-	}
-
-	dj_vm_schedule(vm);
-	dj_mem_gc();
-	dj_vm_destroy(vm);
+	// Listen to the radio
+	while(true)
+		dj_hook_call(dj_vm_pollingHook, NULL);
 
 	return 0;
 }

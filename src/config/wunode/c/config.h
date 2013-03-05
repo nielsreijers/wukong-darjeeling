@@ -22,19 +22,21 @@
 #ifndef __config_h
 #define __config_h
 
+// Allocate 2k heap for the VM
 #define HEAPSIZE 2048
+
+// 'Time slices' are 128 instructions
 #define RUNSIZE 128
+
+typedef unsigned long long int dj_time_t;
 
 #define PACK_STRUCTS
 #define ALIGN_16
 
-typedef unsigned long long int dj_time_t;
-
 /* Please see common/debug.h */
-
-void avr_serialPrintf(char * format, ...);
-
 // #define DARJEELING_DEBUG
+// #define DARJEELING_DEBUG_FRAME
+// #define DARJEELING_DEBUG_MEM_TRACE
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
@@ -44,10 +46,12 @@ void avr_serialPrintf(char * format, ...);
 // #define DBG_WKPFGC true
 // #define DBG_WKPFUPDATE true
 // #define DBG_WKCOMM true
+// #define DBG_WKREPROG true
 // #define DBG_ZWAVETRACE true
 
+void avr_serialPrintf(char * format, ...);
 #define DARJEELING_PRINTF avr_serialPrintf
-// #define DARJEELING_PRINTF
+
 #define DARJEELING_PGMSPACE_MACRO
 
 // Radios

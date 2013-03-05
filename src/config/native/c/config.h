@@ -23,25 +23,28 @@
 #define __config_h
 #include <sys/types.h>
 
-// Allocate 4k heap for the VM
-#define MEMSIZE 4096
+// Allocate 2k heap for the VM
+#define HEAPSIZE 2048
 
+// 'Time slices' are 32 instructions
+#define RUNSIZE 32
+
+//Use 64-bit values to store time
+typedef int64_t dj_time_t;
+
+// #define PACK_STRUCTS
+// #define ALIGN_16
+
+// TODONR: refactor this (darjeeling2 lib will break if I just remove it now)
 // Program flash block size
 #define PROGFLASH_BLOCKSIZE 256
 #define PROGFLASH_SIZE (64*1024)
 #define PROGFLASH_BLOCKCOUNT (PROGFLASH_SIZE / PROGFLASH_BLOCKSIZE)
 
-// 'Time slices' are 128 instructions
-#define RUNSIZE 32
-
-// #define PACK_STRUCTS
-// #define ALIGN_16
-
-//Use 64-bit values to store time
-typedef int64_t dj_time_t;
 /* Please see common/debug.h */
-
-#define DARJEELING_DEBUG
+// #define DARJEELING_DEBUG
+// #define DARJEELING_DEBUG_FRAME
+// #define DARJEELING_DEBUG_MEM_TRACE
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
@@ -50,12 +53,11 @@ typedef int64_t dj_time_t;
 // #define DBG_WKPF true
 // #define DBG_WKPFGC true
 // #define DBG_WKPFUPDATE true
-#define DBG_WKCOMM true
-#define DBG_ZWAVETRACE true
+// #define DBG_WKCOMM true
+// #define DBG_WKREPROG true
+// #define DBG_ZWAVETRACE true
 
 #define DARJEELING_PRINTF printf
-//#define ASSEMBLY_DEBUGGING 1
-//#define ASSEMBLY_DEBUG printf
 
 #define DARJEELING_PGMSPACE_MACRO
 #define IS_SIMULATOR
