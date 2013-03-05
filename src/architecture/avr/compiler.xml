@@ -108,6 +108,7 @@
 		<attribute name="outputfile"/>
 		<attribute name="arrayname"/>
 		<sequential>
+			<!-- local variables -->
 			<local name="keywords"/>
 			<condition property="keywords" value="PROGMEM __attribute__ ((aligned (SPM_PAGESIZE)))" else="PROGMEM">
 				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
@@ -116,6 +117,7 @@
 			<condition property="arraysize" value="${app-archive-size}" else="0">
 				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
 			</condition>
+
 			<!-- compile the binary file to a .c file -->
 			<carray
 				src="@{inputfile}"
@@ -124,6 +126,7 @@
 				arraysize="${arraysize}"
 				keywords="${keywords}"
 			/>
+			
 			<!-- compile -->
 			<cc
 				name="gcc"

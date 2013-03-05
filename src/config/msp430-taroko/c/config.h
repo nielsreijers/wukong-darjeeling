@@ -36,12 +36,6 @@ typedef int64_t dj_time_t;
 // #define PACK_STRUCTS
 #define ALIGN_16
 
-// TODONR: refactor this (darjeeling2 lib will break if I just remove it now)
-// Program flash block size
-#define PROGFLASH_BLOCKSIZE 256
-#define PROGFLASH_SIZE (64lu*1024lu)
-#define PROGFLASH_BLOCKCOUNT (PROGFLASH_SIZE / PROGFLASH_BLOCKSIZE)
-
 /* Please see common/debug.h */
 // #define DARJEELING_DEBUG
 // #define DARJEELING_DEBUG_FRAME

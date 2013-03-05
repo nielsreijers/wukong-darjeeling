@@ -39,7 +39,7 @@
 					<compilerarg value="-Os"/>
 					<compilerarg value="-finline-limit-1"/>
                     <compilerarg value="${compiler.standard}"/>
-                    <compilerarg value="${compiler.debug.format}"/>
+                    <!-- <compilerarg value="${compiler.debug.format}"/> -->
 				</compiler>
 
 				<compile-elements/>
@@ -66,6 +66,10 @@
 				
 				<link-elements/>
 			</cc>
+
+			<exec executable="msp430-size">
+				<arg line="@{outputfile}"/>
+			</exec>
 		</sequential>
 	</macrodef>
 
@@ -83,18 +87,28 @@
 	<macrodef name="platform-objcopy">
 		<attribute name="inputfile"/>
 		<attribute name="outputfile"/>
+		<attribute name="arrayname"/>
 		<sequential>
-			<!--
-			<exec executable="avr-objcopy">
-				<arg line="-I binary -O elf32-avr @{inputfile} @{outputfile}"/>
-			</exec>
-			-->
+			<!-- local variables -->
+			<local name="keywords"/>
+			<!-- TODONR: findout how to put the infusions in flash only and align on page boundary -->
+			<condition property="keywords" value="" else="">
+				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
+			</condition>
+			<local name="arraysize"/>
+			<condition property="arraysize" value="${app-archive-size}" else="0">
+				<equals arg1="@{arrayname}" arg2="di_app_infusion"/>
+			</condition>
+
 			<!-- compile the binary file to a .c file -->
 			<carray
 				src="@{inputfile}"
-				dest="temp.c"
-				arrayname="di_archive"
+				dest="temp_@{arrayname}.c"
+				arrayname="@{arrayname}"
+				arraysize="${arraysize}"
+				keywords="${keywords}"
 			/>
+
 			<!-- compile -->
 			<cc
 				name="gcc"
@@ -104,10 +118,10 @@
 					<compilerparam value="msp430" name="target"/>
 					<compilerarg value="-mmcu=${mcu}"/>
 				</compiler>
-				<fileset includes="temp.c" dir="."/>
+				<fileset includes="temp_@{arrayname}.c" dir="."/>
 			</cc>
 			<exec executable="mv">
-				<arg line="temp.o @{outputfile}"/>
+				<arg line="temp_@{arrayname}.o @{outputfile}"/>
 			</exec>
 		</sequential>
 	</macrodef>
