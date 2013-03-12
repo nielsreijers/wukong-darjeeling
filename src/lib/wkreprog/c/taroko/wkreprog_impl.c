@@ -8,10 +8,12 @@ int wkreprog_impl_pos;
 
 uint16_t wkreprog_impl_get_page_size() {
 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	return 0;
 }
 
 bool wkreprog_impl_open(uint16_t size_to_upload) {
 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
+	return false;
 }
 
 void wkreprog_impl_write(uint8_t size, uint8_t* data) {

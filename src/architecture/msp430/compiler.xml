@@ -32,6 +32,7 @@
 				<compiler classname="net.sf.antcontrib.cpptasks.gcc.cross.GccCCompiler">
 					<compilerparam value="msp430" name="target"/>
 					<compilerarg value="-Wall"/>
+					<compilerarg value="-Werror"/>
 					<compilerarg value="-mmcu=${mcu}"/>
                     <compilerarg value="-DPLATFORM=${platform}"/>
                     <compilerarg value="-DARCHITECTURE=${architecture}"/>

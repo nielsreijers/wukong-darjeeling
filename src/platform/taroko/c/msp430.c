@@ -19,7 +19,6 @@
  * along with Darjeeling.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#include "msp430.h"
 
 // TODONR: copied from arduino platform. need to port to msp430.
 
@@ -142,6 +141,6 @@ void msp430_serialPrintf(char * format, ...)
 
 void msp430_serialWrite(unsigned char value)
 {
-	// while (!((UCSR0A) & (1 << UDRE0)));
-	// UDR0 = value;
+	while (!(IFG1 & UTXIFG0)); // USART0 TX buffer ready?
+	TXBUF0 = value;
 }
