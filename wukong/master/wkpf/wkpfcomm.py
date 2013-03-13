@@ -410,6 +410,7 @@ class Communication:
         else:
           print "Send last packet of this page and wait for a REPRG_DJ_WRITE_R after each full page"
           reply = self.zwave.send(destination, pynvc.REPRG_DJ_WRITE, payload_pos+payload_data, [pynvc.REPRG_DJ_WRITE_R])
+          print "Reply: ", reply
           if reply == None:
             print "No reply received. Code update failed. :-("
             return False
@@ -425,6 +426,7 @@ class Communication:
         if pos == len(bytecode):
           print "Send REPRG_DJ_COMMIT after last packet"
           reply = self.zwave.send(destination, pynvc.REPRG_DJ_COMMIT, [pos%256, pos/256], [pynvc.REPRG_DJ_COMMIT_R])
+          print "Reply: ", reply
           if reply == None:
             print "No reply, commit failed."
             return False
