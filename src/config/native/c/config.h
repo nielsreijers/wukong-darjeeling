@@ -36,7 +36,7 @@ typedef int64_t dj_time_t;
 // #define ALIGN_16
 
 /* Please see common/debug.h */
-// #define DARJEELING_DEBUG
+#define DARJEELING_DEBUG
 // #define DARJEELING_DEBUG_FRAME
 // #define DARJEELING_DEBUG_MEM_TRACE
 // #define DARJEELING_DEBUG_TRACE
@@ -46,8 +46,8 @@ typedef int64_t dj_time_t;
 // #define DBG_DARJEELING_GC true
 // #define DBG_WKPF true
 // #define DBG_WKPFGC true
-// #define DBG_WKPFUPDATE true
-// #define DBG_WKCOMM true
+#define DBG_WKPFUPDATE true
+#define DBG_WKCOMM true
 // #define DBG_WKREPROG true
 // #define DBG_ZWAVETRACE true
 
@@ -57,7 +57,7 @@ typedef int64_t dj_time_t;
 #define IS_SIMULATOR
 
 // Radios
-// #define RADIO_USE_ZWAVE
+#define RADIO_USE_ZWAVE
 // #define RADIO_USE_XBEE
 
 #endif
