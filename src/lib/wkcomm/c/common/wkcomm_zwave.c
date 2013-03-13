@@ -39,6 +39,7 @@
 #define FUNC_ID_MEMORY_GET_ID  0x20
 
 #define ZWAVE_ACK              0x06
+#define ZWAVE_NAK              0x15
 
 #define WKCOMM_PANIC_INIT_FAILED 100 // Need to make sure these codes don't overlap with other libs or the definitions in panic.h
 
@@ -90,6 +91,8 @@ void wkcomm_zwave_init(void) {
     uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 
     // Clear existing queue on Zwave
+    DEBUG_LOG(DBG_WKCOMM, "Sending NAK\n");
+    uart_write_byte(ZWAVE_UART, ZWAVE_NAK);
     DEBUG_LOG(DBG_WKCOMM, "Clearing leftovers\n");
     while (uart_available(ZWAVE_UART)) {
         uart_read_byte(ZWAVE_UART);
@@ -401,7 +404,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 
         // get SerialAPI ack
         i = 0;
-        while(!uart_available(ZWAVE_UART) && i++<100)
+        while(!uart_available(ZWAVE_UART) && i++<1000)
             delay(1);
         if (uart_available(ZWAVE_UART)) {
             wkcomm_zwave_poll();			

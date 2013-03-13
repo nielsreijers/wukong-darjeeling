@@ -15,7 +15,6 @@ void uart_init(uint8_t uart, uint32_t baudrate) {
 		abort();
 	}
 
-	printf("opening ...\n");
 	int fd = open(posix_uart_filenames[uart], O_RDWR | O_NOCTTY);
 	if (uart_fd[uart] < 0) {
 		printf("open %s error\n", posix_uart_filenames[uart]);
@@ -23,7 +22,6 @@ void uart_init(uint8_t uart, uint32_t baudrate) {
 	}
 	uart_fd[uart] = fd;
 
-	printf("tcgetattr ...\n");
     struct termios newtio;
 	if (tcgetattr(uart_fd[uart], &newtio) < 0) {
 		printf("errors:tcgetattr.\n");
@@ -34,12 +32,11 @@ void uart_init(uint8_t uart, uint32_t baudrate) {
 	cfsetospeed(&newtio, baudrate);
 
 	tcflush(uart_fd[uart], TCIFLUSH);
-	printf("tcsetattr ...\n");
 	if (tcsetattr(uart_fd[uart], TCSANOW, &newtio) < 0) {
 		printf("errors:tcsetattr.\n");
 		abort();
 	}
-	printf("done ...\n");
+	printf("Opened %s as UART %d ...\n", posix_uart_filenames[uart], uart);
 }
 
 void uart_write_byte(uint8_t uart, uint8_t byte) {
@@ -59,7 +56,7 @@ bool uart_available(uint8_t uart) {
 	struct timeval to;
 	fd_set rs;
 	to.tv_sec = 0;
-	to.tv_usec = 10000;
+	to.tv_usec = 0;
 	FD_ZERO(&rs);
 	FD_SET(uart_fd[uart],&rs);
 
