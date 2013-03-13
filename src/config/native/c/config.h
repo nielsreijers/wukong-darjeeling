@@ -23,8 +23,8 @@
 #define __config_h
 #include <sys/types.h>
 
-// Allocate 2k heap for the VM
-#define HEAPSIZE 2048
+// Allocate 4k heap for the VM
+#define HEAPSIZE 4096
 
 // 'Time slices' are 32 instructions
 #define RUNSIZE 32
