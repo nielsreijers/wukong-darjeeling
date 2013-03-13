@@ -133,7 +133,7 @@ void wkpf_comm_handle_message(void *data) {
 		break;
 		case WKPF_COMM_CMD_GET_FEATURES: {
 			int count = 0;
-			for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) { // Needs to be changed if we have more features than fits in a single message, but for now it will work fine.
+			for (int i=0; i<WKPF_NUMBER_OF_FEATURES; i++) { // Needs to be changed if we have more features than fits in a single message, but for now it will work fine.
 				if (wkpf_config_get_feature_enabled(i)) {
 					payload[1+count++] = i;
 				}

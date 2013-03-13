@@ -11,7 +11,7 @@
 #define WPKF_FEATURE_LIGHT_ACTUATOR       1
 #define WPKF_FEATURE_NUMERIC_CONTROLLER   2
 #define WPKF_FEATURE_NATIVE_THRESHOLD     3
-#define WKPF_MAX_FEATURE_NUMBER           3
+#define WKPF_NUMBER_OF_FEATURES           4
 
 // Stores a part of the location in EEPROM, or returns WKPF_ERR_LOCATION_TOO_LONG if the string is too long.
 extern uint8_t wkpf_config_set_part_of_location_string(char* src, uint8_t offset, uint8_t length);

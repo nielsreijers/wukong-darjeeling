@@ -4,7 +4,7 @@
 #include "wkpf.h"
 #include "wkpf_config.h"
 
-#define WKPF_FEATURE_ARRAY_SIZE           (WKPF_MAX_FEATURE_NUMBER/8 + 1)
+#define WKPF_FEATURE_ARRAY_SIZE           (WKPF_NUMBER_OF_FEATURES/8 + 1)
 
 static char EEMEM eeprom_location[LOCATION_MAX_LENGTH] = ""; // Currently can only handle locations that fit into a single message
 static uint8_t EEMEM eeprom_wkpf_features[WKPF_FEATURE_ARRAY_SIZE];
@@ -46,7 +46,7 @@ uint8_t wkpf_config_get_part_of_location_string(char* dest, uint8_t offset, uint
 }
 
 uint8_t wkpf_config_set_feature_enabled(uint8_t feature, bool enabled) {
-  if (feature > WKPF_MAX_FEATURE_NUMBER)
+  if (feature >= WKPF_NUMBER_OF_FEATURES)
     return WKPF_ERR_UNKNOWN_FEATURE;
   if (enabled)
     enable_feature(feature);
@@ -56,7 +56,7 @@ uint8_t wkpf_config_set_feature_enabled(uint8_t feature, bool enabled) {
 }
 
 bool wkpf_config_get_feature_enabled(uint8_t feature) {
-  return feature <= WKPF_MAX_FEATURE_NUMBER
+  return feature < WKPF_NUMBER_OF_FEATURES
           && get_feature_enabled(feature) > 0;
 }
 
