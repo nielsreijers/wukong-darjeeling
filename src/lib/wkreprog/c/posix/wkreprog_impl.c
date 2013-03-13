@@ -16,6 +16,7 @@ uint16_t wkreprog_impl_get_page_size() {
 
 bool wkreprog_impl_open(uint16_t size_to_upload) {
 	wkreprog_impl_buffer = malloc(size_to_upload);
+	memset(wkreprog_impl_buffer, 0, size_to_upload);
 	wkreprog_impl_pos = 0;
 	return (wkreprog_impl_buffer != NULL);
 }
