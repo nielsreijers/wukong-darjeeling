@@ -80,7 +80,7 @@ void delay(uint32_t msec) {
 }
 
 void wkcomm_zwave_poll(void) {
-    if (uart_available(ZWAVE_UART))
+    if (uart_available(ZWAVE_UART, 0))
     {    
         DEBUG_LOG(DBG_ZWAVETRACE, "data_available\n");
         Zwave_receive(1);
@@ -94,7 +94,7 @@ void wkcomm_zwave_init(void) {
     DEBUG_LOG(DBG_WKCOMM, "Sending NAK\n");
     uart_write_byte(ZWAVE_UART, ZWAVE_NAK);
     DEBUG_LOG(DBG_WKCOMM, "Clearing leftovers\n");
-    while (uart_available(ZWAVE_UART)) {
+    while (uart_available(ZWAVE_UART, 0)) {
         uart_read_byte(ZWAVE_UART);
     }
 
@@ -189,8 +189,8 @@ int ZW_GetRoutingInformation(uint8_t id);
 // Calls the callback for .... messages?
 void Zwave_receive(int processmessages) {
     //DEBUG_LOG(DBG_ZWAVETRACE, "zwave receive!!!!!!!!!!!");
-    while (!uart_available(ZWAVE_UART)) { }
-    while (uart_available(ZWAVE_UART)) {
+    while (!uart_available(ZWAVE_UART, 0)) { }
+    while (uart_available(ZWAVE_UART, 0)) {
         // TODO    expire = now + 1000;
         uint8_t c = uart_read_byte(ZWAVE_UART);
         DEBUG_LOG(DBG_ZWAVETRACE, "c=%d state=%d\n\r", c, state);
@@ -370,7 +370,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 
     while (1) {
         // read out pending request from Z-Wave
-        if (uart_available(ZWAVE_UART))
+        if (uart_available(ZWAVE_UART, 0))
             Zwave_receive(0); // Don't process received messages
         if (state != ZWAVE_STATUS_WAIT_SOF) {	// wait for WAIT_SOF state (idle state)
             DEBUG_LOG(DBG_WKCOMM, "SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", state);
@@ -403,10 +403,7 @@ int SerialAPI_request(unsigned char *buf, int len)
         ack_got = 0;
 
         // get SerialAPI ack
-        i = 0;
-        while(!uart_available(ZWAVE_UART) && i++<1000)
-            delay(1);
-        if (uart_available(ZWAVE_UART)) {
+        if (uart_available(ZWAVE_UART, 1000)) {
             wkcomm_zwave_poll();			
             if (ack_got == 1) {
                 return 0;

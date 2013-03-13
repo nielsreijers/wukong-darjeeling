@@ -131,8 +131,16 @@ void uart_write_byte(uint8_t uart, uint8_t byte) {
   *UDR[uart] = byte;
 }
 
-bool uart_available(uint8_t uart) {
-  return(UART_BUFFER_MASK & (uart_wr[uart] - uart_rd[uart]));
+bool uart_available(uint8_t uart, uint16_t wait_ms) {
+  if (wait_ms == 0)
+    return(UART_BUFFER_MASK & (uart_wr[uart] - uart_rd[uart]));
+
+  dj_time_t timeout = dj_timer_getTimeMillis() + wait_ms;
+  while (dj_timer_getTimeMillis() < timeout) {
+    if (UART_BUFFER_MASK & (uart_wr[uart] - uart_rd[uart]))
+      return true;
+  }
+  return false;
 }
 
 uint8_t uart_read_byte(uint8_t uart) {

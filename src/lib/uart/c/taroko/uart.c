@@ -21,7 +21,7 @@ void uart_write_byte(uint8_t uart, uint8_t byte) {
 
 }
 
-bool uart_available(uint8_t uart) {
+bool uart_available(uint8_t uart, uint16_t wait_ms) {
 
 }
 

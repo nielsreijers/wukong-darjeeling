@@ -47,7 +47,7 @@ void uart_write_byte(uint8_t uart, uint8_t byte) {
 	write(uart_fd[uart], &byte, 1);
 }
 
-bool uart_available(uint8_t uart) {
+bool uart_available(uint8_t uart, uint16_t wait_ms) {
 	if(uart_fd[uart] == 0) {
 		printf("uart_available: uart %d not opened\n", uart);
 		abort();
@@ -55,8 +55,8 @@ bool uart_available(uint8_t uart) {
 
 	struct timeval to;
 	fd_set rs;
-	to.tv_sec = 0;
-	to.tv_usec = 0;
+	to.tv_sec = wait_ms / 1000;
+	to.tv_usec = (wait_ms % 1000) * 1000;
 	FD_ZERO(&rs);
 	FD_SET(uart_fd[uart],&rs);
 
