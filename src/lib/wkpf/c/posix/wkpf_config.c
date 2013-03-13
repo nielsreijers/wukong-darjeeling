@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "debug.h"
 #include "wkcomm.h"
 #include "wkpf.h"
 #include "wkpf_config.h"
@@ -68,7 +69,7 @@ void load_features_data() {
 					abort();
 				}
 				features.master_node_id = master_node_id;
-				printf("CONFIG: master id = %d\n", features.master_node_id);
+				DEBUG_LOG(DBG_WKPF, "CONFIG: master id = %d\n", features.master_node_id);
 			} else if (prefix("Feature", line)) {
 				int feature;
 				int is_enabled;
@@ -77,13 +78,13 @@ void load_features_data() {
 					abort();
 				}
 				features.feature_enabled[feature] = is_enabled;
-        		printf("CONFIG: feature %d is %s\n", feature, features.feature_enabled[feature] ? "enabled" : "disabled");
+        		DEBUG_LOG(DBG_WKPF, "CONFIG: feature %d is %s\n", feature, features.feature_enabled[feature] ? "enabled" : "disabled");
 			} else if (prefix("Location", line)) {
 				for (int i=0; i<LOCATION_MAX_LENGTH; i++)
 					features.location[i] = fgetc(fp);
 				fgetc(fp); // read \n
         	} else
-        		printf("CONFIG: ignoring line '%s'\n", line);
+        		DEBUG_LOG(DBG_WKPF, "CONFIG: ignoring line '%s'\n", line);
         }
 
 		if (line)
@@ -102,7 +103,7 @@ uint8_t wkpf_config_set_part_of_location_string(char* src, uint8_t offset, uint8
 	if (offset + length > LOCATION_MAX_LENGTH)
 		return WKPF_ERR_LOCATION_TOO_LONG;
 	memcpy(features.location+offset, src, length);
-	printf("CONFIG set part of location string. offset:%d length%d", offset, length);
+	DEBUG_LOG(DBG_WKPF, "CONFIG: set part of location string. offset:%d length%d\n", offset, length);
 
 	save_features_data();
 	return WKPF_OK;
@@ -119,7 +120,7 @@ uint8_t wkpf_config_get_part_of_location_string(char* dest, uint8_t offset, uint
 			length = LOCATION_MAX_LENGTH - offset;
 	}
 	memcpy(dest, features.location+offset, length);
-	printf("CONFIG get part of location string. offset:%d length%d", offset, length);
+	DEBUG_LOG(DBG_WKPF, "CONFIG: get part of location string. offset:%d length%d\n", offset, length);
 
 	return length;
 }
