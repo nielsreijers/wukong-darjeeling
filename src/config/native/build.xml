@@ -13,7 +13,7 @@
 	<property name="architecture" value="native"/>
 	<property name="configuration" value="native"/>
 
-	<property name="app-archive-size" value="1024"/>
+	<property name="app-archive-size" value="4096"/>
 
 	<!-- Import the rest from config.xml (magic) -->
 	<import file="../config.xml"/>	
