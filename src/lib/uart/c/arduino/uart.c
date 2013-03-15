@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "types.h"
+#include "djtimer.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
