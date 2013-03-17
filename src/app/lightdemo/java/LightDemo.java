@@ -1,4 +1,5 @@
 import javax.wukong.wkpf.*;
+import javax.wukong.virtualwuclasses.*;
 
 public class LightDemo {
 
