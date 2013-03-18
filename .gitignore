@@ -21,3 +21,14 @@ WKDeploy.java
 wukong/apps
 master.cfg
 src/config/native/config.txt
+stk500boot.eep
+stk500boot.elf
+stk500boot.lss
+stk500boot.lst
+stk500boot.map
+stk500boot.o
+stk500boot.sym
+stk500boot_v2_mega2560.hex
+stk500boot.o.d
+darjeeling_flash_page.o
+darjeeling_flash_page.hex
