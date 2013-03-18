@@ -57,7 +57,7 @@ typedef int64_t dj_time_t;
 #define IS_SIMULATOR
 
 // Radios
-// #define RADIO_USE_ZWAVE
+#define RADIO_USE_ZWAVE
 // #define RADIO_USE_XBEE
 
 #endif
