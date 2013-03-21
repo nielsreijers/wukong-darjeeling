@@ -12,8 +12,6 @@
 
 typedef int16_t   wkpf_refresh_rate_t; // TODONR: should be changed later when I have a better implementation of the property store
 
-extern void wkpf_init();
-
 #define WKPF_PROPERTY_TYPE_SHORT         0
 #define WKPF_PROPERTY_TYPE_BOOLEAN       1
 #define WKPF_PROPERTY_TYPE_REFRESH_RATE  2
