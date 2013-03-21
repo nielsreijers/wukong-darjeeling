@@ -202,16 +202,6 @@ void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 	}
 }
 
-void javax_wukong_wkpf_WKPF_void_loadComponentToWuObjectAddrMap_java_lang_Object__() {
-	dj_ref_array *map = REF_TO_VOIDP(dj_exec_stackPopRef());
-	wkpf_error_code = wkpf_load_component_to_wuobject_map(map);
-}
-
-void javax_wukong_wkpf_WKPF_void_loadLinkDefinitions_byte__() {
-	dj_int_array *links = REF_TO_VOIDP(dj_exec_stackPopRef());
-	wkpf_error_code = wkpf_load_links(links);    
-}
-
 void javax_wukong_wkpf_WKPF_byte_getPortNumberForComponent_short() {
 	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
 	address_t node_id;

@@ -29,10 +29,6 @@ public class WKPF {
   // Select function for main loop
   public static native VirtualWuObject select();
 
-  // Load component-wuobject map and link definitions
-  public static native void loadComponentToWuObjectAddrMap(Object[] map);
-  public static native void loadLinkDefinitions(byte[] links);
-
   // component-wuobject map related functions
   public static native byte getPortNumberForComponent(short componentId);
   public static native boolean isLocalComponent(short componentId);
