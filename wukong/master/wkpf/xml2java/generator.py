@@ -57,7 +57,7 @@ class Generator:
                 return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
 
 
-        print 'generating', os.path.join(JAVA_OUTPUT_DIR, name+".java")
+        print 'generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
         jinja2_env.filters['nodeinjava'] = nodeinjava
         jinja2_env.filters['wuobjectinjava'] = wuobjectinjava
@@ -68,6 +68,6 @@ class Generator:
         jinja2_env.filters['wuclassgenclassname'] = wuclassgenclassname
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
-        output = open(os.path.join(JAVA_OUTPUT_DIR, name + ".java"), 'w')
+        output = open(os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java"), 'w')
         output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()
