@@ -4,6 +4,20 @@ import sys
 import os
 from configuration import *
 
+
+REPRG_DJ_OPEN                = 0x10
+REPRG_DJ_OPEN_R              = 0x11
+REPRG_DJ_WRITE               = 0x12
+REPRG_DJ_WRITE_R             = 0x13
+REPRG_DJ_COMMIT              = 0x14
+REPRG_DJ_COMMIT_R            = 0x15
+REPRG_DJ_REBOOT              = 0x16
+
+REPRG_DJ_RETURN_OK                 = 0x00
+REPRG_DJ_RETURN_REQUEST_RETRANSMIT = 0x01
+REPRG_DJ_RETURN_TOO_LARGE          = 0x02
+REPRG_DJ_RETURN_FAILED             = 0x03
+
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11
 REPRG_WRITE                  = 0x20
