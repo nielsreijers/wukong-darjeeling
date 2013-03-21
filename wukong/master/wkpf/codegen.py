@@ -531,8 +531,8 @@ class CodeGen:
           ''' % (wuClass.getCName(), 
                 wuClass.getCConstName(),
                 wuClass.getCUpdateName(),
-                len(wuClass.getProperties()), 
-                wuclass_native_impl_properties_lines()))
+                len(wuClass.getProperties()),
+                wuclass_native_impl_properties_lines))
 
           wuclass_native_impl_lines.append('''
           #endif
