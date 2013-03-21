@@ -153,15 +153,6 @@ public class CArrayTask extends Task
 				Math.max(arraysize, length)
 		);
 
-		// First print the size of the archive
-		out.printf("\t/* size: " + length + " bytes */\n");
-		out.print("\t");
-		out.printf("0x%02x, ", (length>>0)%256);
-		out.printf("0x%02x, ", (length>>8)%256);
-		out.printf("0x%02x, ", (length>>16)%256);
-		out.printf("0x%02x, ", (length>>24)%256);
-		out.print("\n");
-
 		// Print the actual data.
 		int left = bytes.length;
 		int pos = 0;

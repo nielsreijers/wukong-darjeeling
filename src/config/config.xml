@@ -3,8 +3,8 @@
 
 	<property name="executable" value="darjeeling.elf"/>
 	<property name="outputfile" value="darjeeling.a"/>
-	<property name="lib_infusionarchive" value="lib_infusions_archive"/>
-	<property name="app_infusionarchive" value="app_infusion.di"/>
+	<property name="lib_infusionarchive" value="lib_infusions.dja"/>
+	<property name="app_infusionarchive" value="app_infusion.dja"/>
 	<property name="infusionelf" value="infusions.o"/>
 
 	<!-- Get the directory where config.xml is located -->
@@ -129,38 +129,15 @@
             <map from="" to="${configpath}"/>
 		</pathconvert>
 		
-		<!-- Archive the files using gnu ar -->
+		<!-- Archive the files using darjeeling archive task -->
 		<delete file="${lib_infusionarchive}"/>
 		<delete file="${app_infusionarchive}"/>
-		<exec executable="${ar}">
-			<arg line="rc ${lib_infusionarchive} ${dilibs}"/>
-		</exec>
-
-		<!--
-			Changed the application archive to a single infusion.
-			Originally, Darjeeling could load a list of applications,
-			but I'm not sure the binary "ar" produces is platform
-			independent.
-			Since WuKong only needs to upload a single application,
-			I'm just packing the infusion directly here.
-			If we want to get the option to pack multiple applications
-			back at a later stage, it should be easy to define a simple
-			archive format containing a series of infusions, each prepended
-			with 4 bytes containing their size. (actually this would be
-			a good idea to do for the library archive as well to save
-			some space)
-		<exec executable="${ar}">
-			<arg line="rc ${app_infusionarchive} ${diapps}"/>
-		</exec>	
-		-->
-		<copy
-			file="${diapps}"
-			tofile="${app_infusionarchive}"
-		/>
+		<djarchive dest="${lib_infusionarchive}" libInfusions="${dilibs}" />
+		<djarchive dest="${app_infusionarchive}" libInfusions="${diapps}" />
 
 		<!-- Use objcopy to turn the archive into an elf file so it can be linked into the final executable -->
 		<platform-objcopy inputfile="${lib_infusionarchive}" outputfile="${temp}/infusions/lib_infusions.o" arrayname="di_lib_infusions_archive"/>
-		<platform-objcopy inputfile="${app_infusionarchive}" outputfile="${temp}/infusions/app_infusions.o" arrayname="di_app_infusion"/>
+		<platform-objcopy inputfile="${app_infusionarchive}" outputfile="${temp}/infusions/app_infusions.o" arrayname="di_app_infusion_archive"/>
 	</target>
 		
 	<!-- Unpack the static libraries for the different libraries and the VM into the build directory -->

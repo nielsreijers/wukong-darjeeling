@@ -28,6 +28,7 @@
 #include "panic.h"
 #include "djtimer.h"
 #include "vm.h"
+#include "djarchive.h"
 #include "jlib_base.h"
 
 /**
@@ -44,7 +45,7 @@
 void dj_vm_main(void *mem,
  				uint32_t memsize,
  				dj_di_pointer di_lib_infusions_archive_data,
- 				dj_di_pointer di_app_infusion_data,
+ 				dj_di_pointer di_app_infusion_archive_data,
  				dj_named_native_handler handlers[],
  				uint8_t handlers_length) {
 	dj_vm *vm;
@@ -65,7 +66,8 @@ void dj_vm_main(void *mem,
 	dj_exec_setRunlevel(RUNLEVEL_RUNNING);
 
 	dj_vm_loadInfusionArchive(vm, di_lib_infusions_archive_data, handlers, handlers_length);
-	dj_vm_loadInfusion(vm, di_app_infusion_data + 4, NULL, 0);
+	dj_di_pointer di_app_infusion_data = dj_archive_get_file(di_app_infusion_archive_data, 0);
+	dj_vm_loadInfusion(vm, di_app_infusion_data, NULL, 0);
 
 	// pre-allocate an OutOfMemoryError object
 	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
@@ -477,58 +479,18 @@ typedef struct
         dj_di_pointer end;
 } dj_archive;
 
-void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive_start, dj_named_native_handler native_handlers[], unsigned char numHandlers)
+void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive, dj_named_native_handler native_handlers[], unsigned char numHandlers)
 {
-	dj_infusion * infusion = NULL;
-
-	dj_di_pointer archive_end = archive_start + dj_di_getU32(archive_start);
-	archive_start += 4; // Skip archive size
-
-	unsigned char digit;
-	unsigned long size, pos;
-
-	// skip header, we'll just assume you're not passing something silly into this method
-	archive_start += 8;
-
-	while (archive_start<archive_end-1)
-	{
-		// read size
-		size = 0;
-		pos = AR_EHEADER_SIZE_START;
-		while (((digit=dj_di_getU8(archive_start+pos))!=' ')&&(pos<AR_EHEADER_SIZE_END))
-		{
-			size *= 10;
-			size += digit - '0';
-			pos++;
-		}
-
-		// if filename starts with '/' skip this entry, since it's part of a
-		// GNU extension on the common AR format
-		if (dj_di_getU8(archive_start)!='/')
-		{
-			infusion = dj_vm_loadInfusion(vm, archive_start + AR_EHEADER_SIZE, native_handlers, numHandlers);
-
-			// If infusion is not loaded a critical error has occured
-			if (infusion == NULL){
-				DARJEELING_PRINTF("Not enough space to create the infusion : %c%c%c%c%c%c%c%c\n",
-						dj_di_getU8(archive_start+0),
-						dj_di_getU8(archive_start+1),
-						dj_di_getU8(archive_start+2),
-						dj_di_getU8(archive_start+3),
-						dj_di_getU8(archive_start+4),
-						dj_di_getU8(archive_start+5),
-						dj_di_getU8(archive_start+6),
-						dj_di_getU8(archive_start+7)
-				);
+	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
+		dj_di_pointer file = dj_archive_get_file(archive, i);
+		if (dj_archive_filetype(file) == FILETYPE_LIB_INFUSION) {
+			dj_infusion * infusion = dj_vm_loadInfusion(vm, file, native_handlers, numHandlers);
+			if (infusion == NULL) {
+				DARJEELING_PRINTF("Not enough space to create the infusion nr %d in archive.\n", i);
 		        dj_panic(DJ_PANIC_OUT_OF_MEMORY);
-			}
+		    }
 		}
-
-		// files are 2-byte aligned
-		if (size&1) size++;
-		archive_start += size + AR_EHEADER_SIZE;
 	}
-
 }
 
 /**

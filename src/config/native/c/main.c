@@ -39,6 +39,7 @@
 #include "execution.h"
 #include "config.h"
 #include "hooks.h"
+#include "djarchive.h"
 
 #include "pointerwidth.h"
 char * ref_t_base_address;
@@ -108,14 +109,10 @@ char* load_infusion_archive(char *filename) {
 		printf("Unable to allocate memory to load the program flash file.\n");
 		exit(1);
 	}
-	di_archive_data[0] = (length >> 0) % 256;
-	di_archive_data[1] = (length >> 8) % 256;
-	di_archive_data[2] = (length >> 16) % 256;
-	di_archive_data[3] = (length >> 24) % 256;
 
 	// Read the file into memory
 	rewind(fp);
-	fread(di_archive_data+4, sizeof(char), length, fp); // Skip 4 bytes that contain the archive length
+	fread(di_archive_data, sizeof(char), length, fp); // Skip 4 bytes that contain the archive length
 	fclose(fp);
 
 	return di_archive_data;
@@ -127,8 +124,8 @@ int main(int argc,char* argv[])
 	posix_argv = argv;
 
 	// Read the lib and app infusion archives from file
-	char* di_lib_infusions_archive_data = load_infusion_archive("lib_infusions_archive");
-	char* di_app_infusion_data = load_infusion_archive("app_infusion.di");
+	char* di_lib_infusions_archive_data = load_infusion_archive("lib_infusions.dja");
+	char* di_app_infusion_archive_data = load_infusion_archive("app_infusion.dja");
 
 	// initialise memory manager
 	void *mem = malloc(HEAPSIZE);
@@ -148,7 +145,7 @@ int main(int argc,char* argv[])
 		};
 	int length = sizeof(handlers)/ sizeof(handlers[0]);
 
-	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_data, handlers, length);
+	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, handlers, length);
 
 	// Listen to the radio
 	while(true)

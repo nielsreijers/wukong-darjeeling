@@ -17,6 +17,11 @@
 		<classpath path="${taskdefspath}/infuser/build/infuser.jar"/>
 	</taskdef>
 
+	<!-- DJArchive Task -->
+	<taskdef name="djarchive" classname="org.csiro.darjeeling.djarchive.ant.DJArchiveTask">
+		<classpath path="${taskdefspath}/infuser/build/infuser.jar"/>
+	</taskdef>
+
 	<!-- Task for the switch statement  -->
 	<path id="antcontrib-classpath" path="${taskdefspath}/../ant/ant-contrib-1.0b3.jar"/>
 	<taskdef name="switch" classname="net.sf.antcontrib.logic.Switch" loaderRef="swithtask" classpathref="antcontrib-classpath">

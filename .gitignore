@@ -2,7 +2,7 @@
 *.pyc
 GENERATED*
 history.xml
-temp_di_app_infusion.c
+temp_di_app_infusion_archive.c
 temp_di_lib_infusions_archive.c
 darjeeling.elf
 darjeeling.ihex
@@ -10,8 +10,8 @@ darjeeling_eeprom.ihex
 darjeeling.a
 darjeeling-avr.map
 build
-app_infusion.di
-lib_infusions_archive
+app_infusion.dja
+lib_infusions.dja
 programflash.data
 .tags
 .tags_sorted_by_file
