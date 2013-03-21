@@ -516,7 +516,7 @@ class CodeGen:
               line += ","
 
             line += "\n"
-          wuclass_native_impl_properties_lines += line
+            wuclass_native_impl_properties_lines += line
 
           wuclass_native_impl_lines.append('''
           wuclass_t %s = {
