@@ -1,5 +1,5 @@
 /*
- * CArrayTask.java
+ * DJArchiveTask.java
  * 
  * Copyright (c) 2008-2010 CSIRO, Delft University of Technology.
  * 
@@ -79,9 +79,7 @@ public class DJArchiveTask extends Task
 			appendFiles(fout, libInfusions, FILETYPE_LIB_INFUSION);
 			appendFiles(fout, appInfusions, FILETYPE_APP_INFUSION);
 			appendFiles(fout, wkpfTables, FILETYPE_WKPF_TABLE);
-			// Close the file with a 00 00 00 00
-			fout.write((byte)0);
-			fout.write((byte)0);
+			// Close the file with a 00 00
 			fout.write((byte)0);
 			fout.write((byte)0);
 			fout.close();

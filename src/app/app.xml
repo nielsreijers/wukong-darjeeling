@@ -35,8 +35,15 @@
 	</pathconvert>
 	
 	<!-- Meta-target -->
-	<target name="all" depends="compile-java, package, infuse"/>
+	<target name="all" depends="compile-java, package, infuse, add-wkpftable"/>
 	
+	<!-- WuKong specific: add some binary data containing the link table and 
+	     component map to the end of the infusion -->
+	<target name="add-wkpftable" if="wkpftable">
+		<wkpftable
+			src="${java-src}/${wkpftable}"
+			dest="${build}/${name}.wkpftable"/>
+	</target>
 	
 	<apply executable="ls">
 		<filelist files="${javac-classpath}" dir="${apppath}/../lib/"/>

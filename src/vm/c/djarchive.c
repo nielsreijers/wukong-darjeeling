@@ -16,5 +16,5 @@ dj_di_pointer dj_archive_get_file(dj_di_pointer archive, uint8_t filenumber) {
 		archive += 3; // Skip over the size (2 bytes) and type (1 byte)
 		filenumber--;
 	}
-	return archive+3; // +5 to skip the size and type at the beginning of each file
+	return archive+3; // +3 to skip the size and type at the beginning of each file
 }
