@@ -22,6 +22,11 @@
 		<classpath path="${taskdefspath}/infuser/build/infuser.jar"/>
 	</taskdef>
 
+	<!-- WKPFTable Task -->
+	<taskdef name="wkpftable" classname="org.csiro.darjeeling.wkpftable.ant.WKPFTableTask">
+		<classpath path="${taskdefspath}/infuser/build/infuser.jar"/>
+	</taskdef>
+
 	<!-- Task for the switch statement  -->
 	<path id="antcontrib-classpath" path="${taskdefspath}/../ant/ant-contrib-1.0b3.jar"/>
 	<taskdef name="switch" classname="net.sf.antcontrib.logic.Switch" loaderRef="swithtask" classpathref="antcontrib-classpath">
