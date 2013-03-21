@@ -31,8 +31,7 @@ void wkreprog_impl_close() {
   if (fp== NULL) {
 	  printf("Error in opening file to write infusion to...\n");
   }
-  // Skip first 4 bytes we get, which contain the length of the archive (needed for targets like AVR, but not for native since we'll just read the file from disk)
-  fwrite(wkreprog_impl_buffer+4, wkreprog_impl_pos-4, 1, fp);
+  fwrite(wkreprog_impl_buffer, wkreprog_impl_pos, 1, fp);
   fclose(fp);
 }
 
