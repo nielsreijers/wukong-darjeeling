@@ -32,3 +32,4 @@ stk500boot_v2_mega2560.hex
 stk500boot.o.d
 darjeeling_flash_page.o
 darjeeling_flash_page.hex
+wkdeploy.dja

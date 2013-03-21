@@ -372,17 +372,6 @@ class Communication:
         print "Can't read infusion file"
         return False
 
-      # Prepend 4 bytes containing the infusion length:
-      bytecode = [infusion_length >>  0 & 0xFF,
-                  infusion_length >>  8 & 0xFF,
-                  infusion_length >> 16 & 0xFF,
-                  infusion_length >> 24 & 0xFF
-                 ] + bytecode
-
-      if len(bytecode) > 0xFFFF:
-        print "Too large"
-        return False
-
       # Start the reprogramming process
       print "Sending REPRG_OPEN command with image size ", len(bytecode)
       reply = self.zwave.send(destination, pynvc.REPRG_DJ_OPEN, [len(bytecode) >> 8 & 0xFF, len(bytecode) & 0xFF], [pynvc.REPRG_DJ_OPEN_R])
