@@ -1,6 +1,3 @@
 from wkpf.wkpfcomm import *
 c=Communication()
-c.setLocation(2, 'rotterdam')
-x=c.getLocation(2)
-print x
-print len(x)
+c.reprogram(2, '/Users/niels/git/darjeeling/src/app/wkdeploy/build/wkdeploy.dja')

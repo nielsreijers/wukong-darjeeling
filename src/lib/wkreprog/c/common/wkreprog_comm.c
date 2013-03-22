@@ -36,7 +36,6 @@ void wkreprog_comm_handle_message(void *data) {
 				response_size = 1;
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_OPEN_R;
-			wkcomm_send_reply(msg, response_cmd, payload, response_size);
 		}
 		break;
 		case WKREPROG_COMM_CMD_REPROG_WRITE: {
@@ -58,9 +57,7 @@ void wkreprog_comm_handle_message(void *data) {
 					payload[2] = (uint8_t)(wkreprog_pos>>8);
 					response_size = 3;
 				}
-				// Sending the reply first, then writing to flash is faster since both can take some time and can be done in parallel
 				response_cmd = WKREPROG_COMM_CMD_REPROG_WRITE_R;
-				wkcomm_send_reply(msg, response_cmd, payload, response_size);
 			}
 			if (pos_in_message == wkreprog_pos) {
 				DEBUG_LOG(DBG_WKREPROG, "Write %d bytes at position 0x%x.\n", codelength, wkreprog_pos);
@@ -91,7 +88,6 @@ void wkreprog_comm_handle_message(void *data) {
 				DEBUG_LOG(DBG_WKREPROG, "Flushing pending writes to flash.\n");
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_COMMIT_R;
-			wkcomm_send_reply(msg, response_cmd, payload, response_size);
 
 			if (reprogramming_ok)
 				wkreprog_impl_close();
@@ -102,4 +98,6 @@ void wkreprog_comm_handle_message(void *data) {
 			wkreprog_impl_reboot();
 		}
 	}
+	if (response_cmd != 0)
+		wkcomm_send_reply(msg, response_cmd, payload, response_size);
 }

@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../master"))
 from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString
-from wkpf.wkapplication import *
+from wkpf.mapper import *
 from jinja2 import Template
 from jinja2 import Environment, FileSystemLoader
 
@@ -371,12 +371,11 @@ def generateJava(application):
     jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
     output = open(os.path.join(application.destinationDir, "WKDeploy.java"), 'w')
     wuObjects = sorted(application.wuObjects.values(), key=lambda obj: obj[0].getInstanceIndex())
-
+        
     print 'generating', os.path.join(application.destinationDir, "WKDeploy.java")
     print wuObjects[0][0].getProperties()
 
-    output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName,
-          wuObjects=wuObjects, wuLinks=application.wuLinks,
+    output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName, wuObjects=wuObjects, wuLinks=application.wuLinks,
           heartbeatGroups=application.heartbeatGroups))
     output.close()
 
