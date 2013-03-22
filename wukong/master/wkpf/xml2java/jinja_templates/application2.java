@@ -10,30 +10,6 @@ public class WKDeploy {
     {%- endfor %}
     */
 
-    //link table
-    // fromComponentIndex(2 bytes), fromPropertyId(1 byte), toComponentIndex(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)
-    //eg. (byte)0,(byte)0, (byte)0, (byte)2,(byte)0, (byte)1, (byte)1,(byte)0
-    private final static byte[] linkDefinitions = {
-        // Note: Component instance id and wuclass id are little endian
-        // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
-        // Connect input controller to threshold
-        {%- for link in changesets.links %}
-        {{ link|linkinjava }}{{ ',' if not loop.last else '' }}
-        {%- endfor %}
-    };
-
-    //component node id and port number table
-    // each row corresponds to the component index mapped from component ID above
-    // each row has two items: node id, port number
-    private final static Object[] componentInstanceToWuObjectAddrMap = {
-      {%- for component in changesets.components %}
-      new byte[]{ {%- for wuobject in component.instances %}
-        {{ wuobject|wuobjectinjava }}{{ ',' if not loop.last else '' }}
-        {%- endfor %}
-      },
-      {%- endfor %}
-    };
-
     private final static Object[] heartbeatToNodeAddrMap = {
       {%- for heartbeatgroup in changesets.heartbeatgroups %}
       new byte[]{ {%- for node in heartbeatgroup.nodes %}
@@ -55,8 +31,6 @@ public class WKDeploy {
         System.out.println("My node id: " + WKPF.getMyNodeId());
         // WKPF.loadHeartbeatToNodeAddrMap(heartbeatToNodeAddrMap);
         // WKPF.loadHeartbeatPeriods(heartbeatGroupPeriods);
-        WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
-        WKPF.loadLinkDefinitions(linkDefinitions);
         initialiseLocalWuObjects();
 
         while(true){
