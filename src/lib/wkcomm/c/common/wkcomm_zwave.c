@@ -273,8 +273,11 @@ void Zwave_receive(int processmessages) {
                 // }
             }
             if (cmd == FUNC_ID_MEMORY_GET_ID) {
-                wkcomm_zwave_my_address = wkcomm_zwave_receive_buffer[4];
-                wkcomm_zwave_my_address_loaded = true;
+                if (!wkcomm_zwave_my_address_loaded) {
+                    wkcomm_zwave_my_address = wkcomm_zwave_receive_buffer[4];
+                    wkcomm_zwave_my_address_loaded = true;
+                } else
+                    DEBUG_LOG(true, "!!!! ignore unexpected FUNC_ID_MEMORY_GET_ID\n");
             }
             // if (cmd == 0x49 && f_nodeinfo)
             //     f_nodeinfo(wkcomm_zwave_receive_buffer, payload_length);
