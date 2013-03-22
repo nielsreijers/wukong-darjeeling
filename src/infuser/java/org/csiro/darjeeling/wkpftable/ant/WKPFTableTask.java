@@ -109,8 +109,6 @@ public class WKPFTableTask extends Task
 					links_bytes.add((byte)(Short.parseShort(link.getAttribute("toComponent")) % 256));
 					links_bytes.add((byte)(Short.parseShort(link.getAttribute("toComponent")) / 256));
 					links_bytes.add(Byte.parseByte(link.getAttribute("toProperty")));
-					links_bytes.add((byte)(Short.parseShort(link.getAttribute("wuclass")) % 256));
-					links_bytes.add((byte)(Short.parseShort(link.getAttribute("wuclass")) / 256));
 				}
 			}
 

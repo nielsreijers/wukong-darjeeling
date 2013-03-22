@@ -94,6 +94,8 @@ public class DJArchiveTask extends Task
 			return;
 		String[] filenames = files.split(" ");
 		for (String filename: filenames) {
+			if (filename == null || filename.isEmpty() || filename.trim().isEmpty())
+				continue;
 			System.out.println("Adding '" + filename + "'");
 			byte[] bytes;
 			// open input file

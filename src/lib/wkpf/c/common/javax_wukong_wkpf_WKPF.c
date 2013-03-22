@@ -33,6 +33,9 @@ void javax_wukong_wkpf_WKPF_void__init() {
 	wkpf_comm_handleMessageHook.function = wkpf_comm_handle_message;
 	dj_hook_add(&wkcomm_handle_message_hook, &wkpf_comm_handleMessageHook);
 
+	dj_vm *vm = dj_exec_getVM();
+	wkpf_load_tables_from_archive(vm->di_app_infusion_archive_data);
+
 	if (wkpf_native_wuclasses_init() != WKPF_OK)
 		dj_panic(DJ_PANIC_OUT_OF_MEMORY);
 }

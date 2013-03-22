@@ -3,13 +3,6 @@
 
 #include "types.h"
 
-// #include "wkpf_wuclasses.h"
-// #include "wkpf_wuobjects.h"
-// #include "wkpf_properties.h"
-// #include "wkpf_links.h"
-// #include "GENERATEDwkpf_wuclass_library.h"
-// #include "wkpf_comm.h"
-
 typedef int16_t   wkpf_refresh_rate_t; // TODONR: should be changed later when I have a better implementation of the property store
 
 #define WKPF_PROPERTY_TYPE_SHORT         0

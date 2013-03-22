@@ -60,6 +60,9 @@ void dj_vm_main(void *mem,
 	// create a new VM
 	vm = dj_vm_create();
 
+	// store the application archive
+	vm->di_app_infusion_archive_data = di_app_infusion_archive_data;
+
 	// tell the execution engine to use the newly created VM instance
 	dj_exec_setVM(vm);
 	// set run level before loading libraries since they need to execute initialisation code

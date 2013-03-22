@@ -129,11 +129,24 @@
             <map from="" to="${configpath}"/>
 		</pathconvert>
 		
+		<!-- Construct a list of application .wkpftable files based on a comma separated list of applications (ie 'blink, hello world') -->
+ 		<!-- There should be a better way to do this. I want to select all .wkpftable files if they exist.
+			 Current solution looks messy and only works for a single file, but then the framework doesn't support multiple tables anyway. -->
+		<pathconvert property="wkpftablefile-tmp" pathsep=" ">
+			<filelist dir="/" files="${apps}"/>
+			<regexpmapper from="\${file.separator}(.*)" to="/../app/\1/build/\1.wkpftable"/>
+            <map from="" to="${configpath}"/>
+		</pathconvert>
+		<pathconvert property="wkpftablefile" pathsep=" ">
+			<fileset dir="/" file="${wkpftablefile-tmp}" />
+		</pathconvert>
+
+
 		<!-- Archive the files using darjeeling archive task -->
 		<delete file="${lib_infusionarchive}"/>
 		<delete file="${app_infusionarchive}"/>
 		<djarchive dest="${lib_infusionarchive}" libInfusions="${dilibs}" />
-		<djarchive dest="${app_infusionarchive}" libInfusions="${diapps}" />
+		<djarchive dest="${app_infusionarchive}" appInfusions="${diapps}" wkpfTables="${wkpftablefile}"/>
 
 		<!-- Use objcopy to turn the archive into an elf file so it can be linked into the final executable -->
 		<platform-objcopy inputfile="${lib_infusionarchive}" outputfile="${temp}/infusions/lib_infusions.o" arrayname="di_lib_infusions_archive"/>

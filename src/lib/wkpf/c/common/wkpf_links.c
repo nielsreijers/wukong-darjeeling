@@ -1,6 +1,8 @@
 #include "types.h"
 #include "program_mem.h"
 #include "debug.h"
+#include "djarchive.h"
+#include "panic.h"
 #include "wkcomm.h"
 #include "wkpf.h"
 #include "wkpf_wuobjects.h"
@@ -8,8 +10,9 @@
 #include "wkpf_comm.h"
 #include "wkpf_links.h"
 
-void *wkpf_links_store = NULL;
-void *wkpf_component_map_store = NULL;
+
+dj_di_pointer wkpf_links_store = 0;
+dj_di_pointer wkpf_component_map_store = 0;
 uint16_t wkpf_number_of_links = 0; // To be set when we load the table
 uint16_t wkpf_number_of_components = 0; // To be set when we load the map
 
@@ -20,13 +23,13 @@ uint16_t wkpf_number_of_components = 0; // To be set when we load the map
 //		1 byte src port number
 //		2 byte little endian dest component id
 //		1 byte dest port number
-//		2 byte little endian wuclass id (TODO: not used -> refactor)
-#define WKPF_LINK_ENTRY_SIZE								8
+#define WKPF_LINK_ENTRY_SIZE								6
 #define WKPF_LINK_SRC_COMPONENT_ID(i)						(dj_di_getU16(wkpf_links_store + 2 + WKPF_LINK_ENTRY_SIZE*i))
 #define WKPF_LINK_SRC_PROPERTY(i)							(dj_di_getU8(wkpf_links_store + 2 + WKPF_LINK_ENTRY_SIZE*i + 2))
 #define WKPF_LINK_DEST_COMPONENT_ID(i)						(dj_di_getU16(wkpf_links_store + 2 + WKPF_LINK_ENTRY_SIZE*i + 3))
 #define WKPF_LINK_DEST_PROPERTY(i)							(dj_di_getU8(wkpf_links_store + 2 + WKPF_LINK_ENTRY_SIZE*i + 5))
-#define WKPF_LINK_DEST_WUCLASS_ID(i)						(dj_di_getU8(wkpf_links_store + 2 + WKPF_LINK_ENTRY_SIZE*i + 6))
+// TODONR: refactor
+#define WKPF_LINK_DEST_WUCLASS_ID(i)						0
 
 // Component map format
 // 2 bytes little endian number of components
@@ -38,11 +41,11 @@ uint16_t wkpf_number_of_components = 0; // To be set when we load the map
 //			1 byte node address
 //			1 byte port number
 #define WKPF_COMPONENT_ADDRESS(i)							((dj_di_pointer)(wkpf_component_map_store + dj_di_getU16(wkpf_component_map_store + 2 + 2*i)))
-#define WKPF_NUMBER_OF_ENDPOINTS(i)							(dj_di_getU16(WKPF_COMPONENT_ADDRESS(i)))
-#define WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j)				(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i) + 2 + 2*j))
-#define WKPF_COMPONENT_ENDPOINT_PORT(i, j)					(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i) + 2 + 2*j + 1))
-#define WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(i)			(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i) + 2))
-#define WKPF_COMPONENT_LEADER_ENDPOINT_PORT(i)				(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i) + 2 + 1))
+#define WKPF_NUMBER_OF_ENDPOINTS(i)							(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i)))
+#define WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j)				(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i) + 1 + 2*j))
+#define WKPF_COMPONENT_ENDPOINT_PORT(i, j)					(dj_di_getU8(WKPF_COMPONENT_ADDRESS(i) + 1 + 2*j + 1))
+#define WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(i)			(WKPF_COMPONENT_ENDPOINT_NODE_ID(i, 0))
+#define WKPF_COMPONENT_LEADER_ENDPOINT_PORT(i)				(WKPF_COMPONENT_ENDPOINT_PORT(i, 0))
 
 bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 	for(int i=0; i<wkpf_number_of_components; i++) {
@@ -57,7 +60,7 @@ bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 	return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
 }
 
-uint8_t wkpf_load_component_to_wuobject_map(void *map) {
+uint8_t wkpf_load_component_to_wuobject_map(dj_di_pointer map) {
 	wkpf_component_map_store = map;
 	wkpf_number_of_components = dj_di_getU16(wkpf_component_map_store);
 
@@ -65,7 +68,7 @@ uint8_t wkpf_load_component_to_wuobject_map(void *map) {
 	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %x components\n", wkpf_number_of_components);
 #ifdef DARJEELING_DEBUG
 	for (int i=0; i<wkpf_number_of_components; i++) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: Component %d -> ", i);
+		DEBUG_LOG(DBG_WKPF, "WKPF: Component %d, %d endpoints -> ", i, WKPF_NUMBER_OF_ENDPOINTS(i));
 		for (int j=0; j<WKPF_NUMBER_OF_ENDPOINTS(i); j++) {
 			DEBUG_LOG(DBG_WKPF, "  (node %d, port %d)", WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j), WKPF_COMPONENT_ENDPOINT_PORT(i, j));
 		}
@@ -95,7 +98,7 @@ uint8_t wkpf_load_component_to_wuobject_map(void *map) {
 	return WKPF_OK;
 }
 
-uint8_t wkpf_load_links(void *links) {
+uint8_t wkpf_load_links(dj_di_pointer links) {
 	// This works on AVR and x86 since they're both little endian. To port WKPF to a big endian
 	// platform we would need to do some swapping.
 	wkpf_links_store = links;
@@ -105,7 +108,7 @@ uint8_t wkpf_load_links(void *links) {
 	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %d links\n", (int)wkpf_number_of_links); // Need a cast here because the type may differ depending on architecture.
 #ifdef DARJEELING_DEBUG
 	for (int i=0; i<wkpf_number_of_links; i++) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d)\n", WKPF_LINK_DEST_COMPONENT_ID(i), WKPF_LINK_DEST_PROPERTY(i), WKPF_LINK_SRC_COMPONENT_ID(i), WKPF_LINK_SRC_PROPERTY(i));
+		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d)\n", WKPF_LINK_SRC_COMPONENT_ID(i), WKPF_LINK_SRC_PROPERTY(i), WKPF_LINK_DEST_COMPONENT_ID(i), WKPF_LINK_DEST_PROPERTY(i));
 	}
 #endif // DARJEELING_DEBUG
 	return WKPF_OK;
@@ -241,4 +244,23 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
 bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
 	return WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(component_id) == node_id;
 }
+
+void wkpf_load_tables_from_archive(dj_di_pointer archive) {
+	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
+		dj_di_pointer file = dj_archive_get_file(archive, i);
+		if (dj_archive_filetype(file) == FILETYPE_WKPF_TABLE) {
+			wkpf_load_links(file);
+			uint16_t number_of_links = dj_di_getU16(file);
+			// Number of links is now loaded, so we can calculate the address of the component map.
+			// Maybe I should refactor this into distinct files.
+			wkpf_load_component_to_wuobject_map(file + 2 + 6*number_of_links);
+			return;
+		}
+	}
+	DEBUG_LOG(DBG_WKPF, "WKPF: ---->>>> WARNING: NO TABLES FOUND IN APPLICATION ARCHIVE <<<<----\n");
+}
+
+
+
+
 
