@@ -4,20 +4,6 @@ import sys
 import os
 from configuration import *
 
-
-REPRG_DJ_OPEN                = 0x10
-REPRG_DJ_OPEN_R              = 0x11
-REPRG_DJ_WRITE               = 0x12
-REPRG_DJ_WRITE_R             = 0x13
-REPRG_DJ_COMMIT              = 0x14
-REPRG_DJ_COMMIT_R            = 0x15
-REPRG_DJ_REBOOT              = 0x16
-
-REPRG_DJ_RETURN_OK                 = 0x00
-REPRG_DJ_RETURN_REQUEST_RETRANSMIT = 0x01
-REPRG_DJ_RETURN_TOO_LARGE          = 0x02
-REPRG_DJ_RETURN_FAILED             = 0x03
-
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11
 REPRG_WRITE                  = 0x20
@@ -72,11 +58,11 @@ RUNLVL_CONF                  = 0x03
 RUNLVL_RESET                 = 0x04
 
 # Keep this list in sync with wkpf_config.h
-WPKF_FEATURE_LIGHT_SENSOR         = 0
-WPKF_FEATURE_LIGHT_ACTUATOR       = 1
-WPKF_FEATURE_NUMERIC_CONTROLLER   = 2
-WPKF_FEATURE_NATIVE_THRESHOLD     = 3
-WPKF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR = 4
+WKPF_FEATURE_LIGHT_SENSOR         = 0
+WKPF_FEATURE_LIGHT_ACTUATOR       = 1
+WKPF_FEATURE_NUMERIC_CONTROLLER   = 2
+WKPF_FEATURE_NATIVE_THRESHOLD     = 3
+WKPF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR = 4
 
 pymodule = 0
 

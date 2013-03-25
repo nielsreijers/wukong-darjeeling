@@ -202,6 +202,9 @@ class WuClass:
     def getCUpdateName(self):
         return self.getCName() + "_update"
 
+    def getCPropertyName(self):
+        return self.getCName() + "_properties"
+
     def getCConstName(self):
         return "WKPF_" + self.getJavaConstName()
 
@@ -326,9 +329,9 @@ class WuObject:
 class CodeGen:
     @staticmethod
     def generate(logger, component_string, project_dir):
-        global_vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common')
-        vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
-        java_dir = os.path.join('wukong', 'javax', 'wukong', 'virtualwuclasses')
+        global_vm_dir = os.path.join('vm', 'src')
+        vm_dir = os.path.join('vm', 'src', 'native_wuclasses')
+        java_dir = os.path.join('java', 'nanovm', 'wkpf')
 
         plugin_dir = os.path.join(project_dir, 'plugins')
         template_dir = os.path.join(plugin_dir, 'templates')
@@ -359,7 +362,7 @@ class CodeGen:
         logger.info("==================Begin TypeDefs=====================")
         # Boilerplate for Java global constants file
         global_virtual_constants_lines.append('''
-        package javax.wukong.virtualwuclasses;
+            package nanovm.wkpf;
 
             public class GENERATEDWKPF {
         ''')
@@ -439,9 +442,7 @@ class CodeGen:
           # Parsing to WuKong Profile Framework Component Library header in Java
           if wuclass.getAttribute('virtual') == 'true':
             wuclass_virtual_super_lines.append('''
-            package javax.wukong.virtualwuclasses;
-            import javax.wukong.wkpf.VirtualWuObject;
-            import javax.wukong.wkpf.WKPF;
+            package nanovm.wkpf;
 
             public abstract class %s extends VirtualWuObject {
               public static byte[] properties = new byte[] {
@@ -476,12 +477,13 @@ class CodeGen:
 
           # Generate C header for each native component implementation
           wuclass_native_header_lines.append('''
+          #include <wkpf.h>
           #include "native_wuclasses.h"
 
           #ifndef %sH
           #define %sH
 
-          extern wuclass_t %s;
+          extern wkpf_wuclass_definition %s;
 
           #endif
           ''' % (
@@ -492,18 +494,20 @@ class CodeGen:
 
           # Generate C implementation for each native component implementation
           wuclass_native_impl_lines.append('''
+          #include <wkpf.h>
           #include "native_wuclasses.h"
 
           #ifdef ENABLE_%s
 
-          extern void %s(wuobject_t *wuobject);
+          extern void %s(wkpf_local_wuobject *wuobject);
 
+          uint8_t %s[] = {
           ''' % (
                   wuClass.getCDefineName(),
                   wuClass.getCUpdateName(),
+                  wuClass.getCPropertyName(),
                 ))
 
-          wuclass_native_impl_properties_lines = ''
           for ind, property in enumerate(wuClass.getProperties().values()):
             datatype = property.getDataType()
             access = property.getAccess()
@@ -516,23 +520,24 @@ class CodeGen:
               line += ","
 
             line += "\n"
-            wuclass_native_impl_properties_lines += line
+            wuclass_native_impl_lines.append(line)
 
           wuclass_native_impl_lines.append('''
-          wuclass_t %s = {
+          };
+          ''')
+
+          wuclass_native_impl_lines.append('''
+          wkpf_wuclass_definition %s = {
             %s,
             %s,
             %d,
-            NULL,
-            {
             %s
-            }
           };
           ''' % (wuClass.getCName(), 
                 wuClass.getCConstName(),
                 wuClass.getCUpdateName(),
-                len(wuClass.getProperties()),
-                wuclass_native_impl_properties_lines))
+                len(wuClass.getProperties()), 
+                wuClass.getCPropertyName()))
 
           wuclass_native_impl_lines.append('''
           #endif
