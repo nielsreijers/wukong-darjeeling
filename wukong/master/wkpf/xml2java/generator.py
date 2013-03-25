@@ -71,7 +71,7 @@ class Generator:
                 return False
 
 
-        print 'generating', os.path.join(JAVA_OUTPUT_DIR, name+".java")
+        print 'generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
         jinja2_env.filters['nodeinjava'] = nodeinjava
         jinja2_env.filters['wuobjectinjava'] = wuobjectinjava
@@ -83,6 +83,6 @@ class Generator:
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
         jinja2_env.filters['getPropertyByName'] = getPropertyByName
-        output = open(os.path.join(JAVA_OUTPUT_DIR, name + ".java"), 'w')
+        output = open(os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java"), 'w')
         output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()

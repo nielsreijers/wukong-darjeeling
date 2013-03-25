@@ -369,10 +369,10 @@ public class {{ CLASS_NAME }} {
 def generateJava(application):
     application.setOutputDir(JAVA_OUTPUT_DIR)
     jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
-    output = open(os.path.join(application.destinationDir, application.applicationName+".java"), 'w')
+    output = open(os.path.join(application.destinationDir, "WKDeploy.java"), 'w')
     wuObjects = sorted(application.wuObjects.values(), key=lambda obj: obj[0].getInstanceIndex())
         
-    print 'generating', os.path.join(application.destinationDir, application.applicationName+".java")
+    print 'generating', os.path.join(application.destinationDir, "WKDeploy.java")
     print wuObjects[0][0].getProperties()
 
     output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName, wuObjects=wuObjects, wuLinks=application.wuLinks,

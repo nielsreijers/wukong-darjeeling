@@ -320,14 +320,93 @@ class Communication:
       if retry < 0:
         retry = 1
 
-      ret = self.reprogramNvmdefault(destination, filename)
+      ret = self.reprogramInfusion(destination, filename)
       while retry and not ret:
         print "Retrying after 5 seconds..."
         time.sleep(5)
-        ret = self.reprogramNvmdefault(destination, filename)
+        ret = self.reprogramInfusion(destination, filename)
         retry -= 1
       master_available()
       return ret
+
+    def reprogramInfusion(self, destination, filename):
+      MESSAGESIZE = 30
+
+      bytecode = []
+      with open(filename, "rb") as f:
+        byte = f.read(1)
+        while byte != "":
+          bytecode.append(ord(byte))
+          byte = f.read(1)
+
+      infusion_length = len(bytecode)
+      if infusion_length == 0:
+        print "Can't read infusion file"
+        return False
+
+      # Start the reprogramming process
+      print "Sending REPRG_OPEN command with image size ", len(bytecode)
+      reply = self.zwave.send(destination, pynvc.REPRG_DJ_OPEN, [len(bytecode) >> 8 & 0xFF, len(bytecode) & 0xFF], [pynvc.REPRG_DJ_OPEN_R])
+
+      if reply == None:
+        print "No reply from node to REPRG_OPEN command"
+        return False
+
+      if reply.payload[2] != pynvc.REPRG_DJ_RETURN_OK:
+        print "Got error in response to REPRG_OPEN: " + reply.payload[2]
+
+      pagesize = reply.payload[3] + reply.payload[4]*256
+
+      print "Uploading", len(bytecode), "bytes."
+
+      pos = 0
+      while not pos == len(bytecode):
+        payload_pos = [pos%256, pos/256]
+        payload_data = bytecode[pos:pos+MESSAGESIZE]
+        print "Uploading bytes", pos, "to", pos+MESSAGESIZE, "of", len(bytecode)
+        print pos/pagesize, (pos+len(payload_data))/pagesize, "of pagesize", pagesize
+        if pos/pagesize == (pos+len(payload_data))/pagesize:
+          self.zwave.send(destination, pynvc.REPRG_DJ_WRITE, payload_pos+payload_data, [])
+          pos += len(payload_data)
+        else:
+          print "Send last packet of this page and wait for a REPRG_DJ_WRITE_R after each full page"
+          reply = self.zwave.send(destination, pynvc.REPRG_DJ_WRITE, payload_pos+payload_data, [pynvc.REPRG_DJ_WRITE_R])
+          print "Reply: ", reply
+          if reply == None:
+            print "No reply received. Code update failed. :-("
+            return False
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_OK:
+            print "Received REPRG_DJ_RETURN_OK in reply to packet writing at", payload_pos
+            pos += len(payload_data)
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_REQUEST_RETRANSMIT:
+            pos = reply.payload[3] + reply.payload[4]*256
+            print "===========>Received REPRG_DJ_WRITE_R_RETRANSMIT request to retransmit from ", pos
+          else:
+            print "Unexpected reply:", reply.payload
+            return False
+        if pos == len(bytecode):
+          print "Send REPRG_DJ_COMMIT after last packet"
+          reply = self.zwave.send(destination, pynvc.REPRG_DJ_COMMIT, [pos%256, pos/256], [pynvc.REPRG_DJ_COMMIT_R])
+          print "Reply: ", reply
+          if reply == None:
+            print "No reply, commit failed."
+            return False
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_FAILED:
+            print "Received REPRG_DJ_RETURN_FAILED, commit failed."
+            return False
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_REQUEST_RETRANSMIT:
+            pos = reply.payload[3] + reply.payload[4]*256
+            print "===========>Received REPRG_COMMIT_R_RETRANSMIT request to retransmit from ", pos
+            if pos >= len(bytecode):
+              print "Received REPRG_DJ_RETURN_REQUEST_RETRANSMIT >= the image size. This shoudn't happen!"
+          elif reply.payload[2] == pynvc.REPRG_DJ_RETURN_OK:
+            print "Commit OK.", reply.payload
+          else:
+            print "Unexpected reply:", reply.payload
+            return False
+      self.zwave.send(destination, pynvc.REPRG_DJ_REBOOT, [], [])
+      print "Sent reboot.", reply.payload
+      return True;
 
     def reprogramNvmdefault(self, destination, filename):
       print "Reprogramming Nvmdefault..."

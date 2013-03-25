@@ -7,7 +7,7 @@ import logging
 from configuration import *
 
 def addHead():
-	head_path = os.path.join(ROOT_PATH, "master/templates/fbp.html")
+	head_path = os.path.join(ROOT_PATH, "wukong/master/templates/fbp.html")
 	g = open(head_path, "a")
 	g.write('\n'+
             '<html>'+'\n'+
@@ -36,7 +36,7 @@ def addMiddle(aList):
         g.close()
 
 def addEnd():
-    end_path = os.path.join(ROOT_PATH, "master/templates/fbp.html")
+    end_path = os.path.join(ROOT_PATH, "wukong/master/templates/fbp.html")
     g = open(end_path, "a")
     g.write(
                 '\t'+'</head>'+'\n'+

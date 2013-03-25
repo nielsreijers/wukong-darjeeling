@@ -1,5 +1,6 @@
 *.class
 *.pyc
+__comp__*
 GENERATED*
 history.xml
 temp_di_app_infusion_archive.c

@@ -283,16 +283,16 @@ class WuApplication:
       self.status = "Compressing java to bytecode format"
       gevent.sleep(0)
 
-      # Generate nvmdefault.h
+      # Build the Java code
       self.info('==Compressing application code to bytecode format')
-      pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
+      pp = Popen('cd %s/..; ant clean; ant master-create-deploy-archive' % (JAVA_OUTPUT_DIR), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       (infomsg,errmsg) = pp.communicate()
 
       self.version += 1
       if pp.returncode != 0:
-        self.error('==Error generating nvmdefault.h')
-        self.status = "Error generating nvmdefault.h"
+        self.error('==Error generating wkdeploy.dja')
+        self.status = "Error generating wkdeploy.dja"
         self.info(infomsg)
         self.error(errmsg)
         gevent.sleep(0)
@@ -312,7 +312,7 @@ class WuApplication:
         remaining_ids.remove(node_id)
         self.status = "Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids))
         self.info('==Deploying to node id: %d' % (node_id))
-        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=3):
+        if not comm.reprogram(node_id, os.path.join(JAVA_OUTPUT_DIR, '..', 'build', 'wkdeploy.dja'), retry=3):
           self.status = "Deploy unsucessful for node %d" % (node_id)
           self.error('==Node not deployed successfully')
           return False
