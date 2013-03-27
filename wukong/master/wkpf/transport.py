@@ -1,6 +1,6 @@
 # vim: ts=4 sw=4
 import sys, os, fcntl
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import pickle
 import tornado.ioloop
 import hashlib
@@ -35,34 +35,45 @@ def new_deliver(*args):
     return Message(*args)
 
 class DeferredQueue:
+    _defer_queue = None
+    @classmethod
+    def init(cls):
+        if not cls._defer_queue:
+            cls._defer_queue = DeferredQueue()
+        return cls._defer_queue
+
     def __init__(self):
         self.queue = {}
 
     def removeTimeoutDefer(self):
         for key, defer in self.queue.items():
             if defer.timeout < int(round(time.time() * 1000)):
+                print 'remove timeouted defer', defer
                 # call error cb
                 defer.error_cb()
                 del self.queue[key]
 
     def find_defer(self, deliver):
+        print 'finding defer for message in queue', self.queue
         for defer_id, defer in self.queue.items():
             if defer.verify(deliver, defer):
+                print 'found'
                 return defer_id, defer
             else:
-                log = "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
-                logging.warning(log)
+                print "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
+        print 'not found'
         return False, False
 
     def add_defer(self, defer):
         queue_id = str(len(self.queue)) + hashlib.md5(str(defer.message.destination) + str(defer.message.command)).hexdigest()
-        log = "adding to queue: queue_id " + str(queue_id)
-        logging.debug(log)
+        print "adding to queue: queue_id ", str(queue_id)
         self.queue[queue_id] = defer
         return queue_id
 
     def remove_defer(self, defer_id):
+        print 'remove_defer'
         if defer_id in self.queue:
+            print 'removing defer', self.queue[defer_id]
             del self.queue[defer_id]
             return defer_id
         else:
@@ -106,13 +117,12 @@ class TransportAgent:
         pass
 
 class ZwaveAgent(TransportAgent):
-    agent = None
-
+    _zwave_agent = None
     @classmethod
     def init(cls):
-        if not cls.agent:
-            cls.agent = ZwaveAgent()
-        return cls.agent
+        if not cls._zwave_agent:
+            cls._zwave_agent = ZwaveAgent()
+        return cls._zwave_agent
 
     def __init__(self):
         self._mode = 'stop'
@@ -242,13 +252,13 @@ class ZwaveAgent(TransportAgent):
                     # with seq number
                     deliver = new_deliver(src, reply[0], reply[1:])
                     messages.put_nowait(deliver)
-                    logging.debug('receive: put a message to messages')
+                    print 'receive: put a message to messages'
             except:
-                logging.exception('receive exception')
+                print 'receive exception'
 
-            defer_queue.removeTimeoutDefer()
+            getDeferredQueue().removeTimeoutDefer()
 
-            #logging.debug('receive: going to sleep')
+            #logger.debug('receive: going to sleep')
             gevent.sleep(0.01) # sleep for at least 10 msec
 
 
@@ -256,10 +266,10 @@ class ZwaveAgent(TransportAgent):
     def handler(self):
         while 1:
             defer = tasks.get()
-            logging.debug('handler: getting defer from task queue')
+            print 'handler: getting defer from task queue'
 
             if defer.message.command == "discovery":
-                logging.debug('handler: processing discovery request')
+                print 'handler: processing discovery request'
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
                 total_nodes = nodes[1]
@@ -271,7 +281,7 @@ class ZwaveAgent(TransportAgent):
                     pass # sometimes gateway_id is not in the list
                 defer.callback(discovered_nodes)
             elif defer.message.command == "routing":
-                logging.debug('handler: processing routing request')
+                print 'handler: processing routing request'
                 routing = {}
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
@@ -288,86 +298,89 @@ class ZwaveAgent(TransportAgent):
                         pass
                 defer.callback(routing)
             else:
-                logging.debug('handler: processing send request')
+                print 'handler: processing send request'
                 retries = 1
                 destination = defer.message.destination
                 command = defer.message.command
                 payload = defer.message.payload
 
+                # prevent pyzwave send got preempted and defer is not in queue
+                if len(defer.allowed_replies) > 0:
+                    print "handler: appending defer", defer, "to queue"
+                    getAgent().append(defer)
+
                 while retries > 0:
                     try:
-                        logging.debug("handler: sending message from defer")
+                        print "handler: sending message from defer"
                         pyzwave.send(destination, [0x88, command] + payload)
-
-                        if len(defer.allowed_replies) > 0:
-                            BrokerAgent.init().append(defer)
 
                         break
                     except Exception as e:
                         log = "==IOError== retries remaining: " + str(retries)
-                        logging.exception(log)
+                        print log
                     retries -= 1
 
                 if retries == 0 or len(defer.allowed_replies) == 0:
-                    logging.error("handler: returns immediately to handle failues, or defer has no expected replies")
+                    print "handler: returns immediately to handle failues, or defer has no expected replies"
                     defer.callback(None)
 
             gevent.sleep(0)
 
 class BrokerAgent:
-    agent = None
-
+    _broker_agent = None
     @classmethod
     def init(cls):
-        if not cls.agent:
-            cls.agent = BrokerAgent()
-        return cls.agent
+        if not cls._broker_agent:
+            cls._broker_agent = BrokerAgent()
+        return cls._broker_agent
 
     def __init__(self):
-        #tornado.ioloop.PeriodicCallback(self.run, 100) # in a new ioloop instance
-        self._agents = []
         gevent.spawn(self.run)
-        self._defer_queue = defer_queue
-        logging.info('BrokerAgent init')
+        print 'BrokerAgent init'
 
     def append(self, defer):
-        self._defer_queue.add_defer(defer)
-
-    def add(self, agent):
-        self._agents.append(agent)
+        getDeferredQueue().add_defer(defer)
 
     def run(self):
         while 1:
             # monitor pipes from receive
             deliver = messages.get()
-            logging.debug('getting messages from nodes')
-            logging.debug(str(deliver))
+            print 'getting messages from nodes'
+            print str(deliver)
 
             # display logs from nodes if received
             if deliver.command == pynvc.LOGGING:
-                logging.info('[LOGGING] node %d : %s' % (deliver.destination,
-                            str(bytearray(deliver.payload))))
+                print '[logger] node %d : %s' % (deliver.destination,
+                            str(bytearray(deliver.payload)))
 
             # find out which defer it is for
-            defer_id, defer = self._defer_queue.find_defer(deliver)
+            defer_id, defer = getDeferredQueue().find_defer(deliver)
 
             if defer_id and defer:
                 # call callback
                 defer.callback(deliver)
 
                 # remove it
-                self._defer_queue.remove_defer(defer_id)
+                getDeferredQueue().remove_defer(defer_id)
             else:
                 # if it is special messages
                 if not is_master_busy():
                     if deliver.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
-                        logging.info("reconfiguration message received")
+                        print "reconfiguration message received"
                         wusignal.signal_reconfig()
+                    else:
+                        print "what?"
                 else:
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
-                    logging.debug("message discarded")
-                    logging.debug(str(deliver))
+                    print "message discarded"
+                    print str(deliver)
             gevent.sleep(0)
 
-defer_queue = DeferredQueue()
-agent = BrokerAgent.init()
+def getAgent():
+    return BrokerAgent.init()
+
+def getZwaveAgent():
+    return ZwaveAgent.init()
+
+def getDeferredQueue():
+    return DeferredQueue.init()

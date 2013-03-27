@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <errno.h>
 #include <termios.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -36,7 +37,7 @@ int server_port;
 #define closesocket close
 #endif //_WIN32
 
-#define CHECK_ME() printf("%s():%d\n", __FUNCTION__, __LINE__)
+#define SHOW_ERRNO() printf("%s():%d errno=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO))
 
 #define WAIT_ACK 1
 #define WAIT_SOF 2
@@ -72,6 +73,11 @@ int main_ret = 0;
 int repeat_cmd;
 int repeat_nodeid;
 int repeat_value;
+
+char re_type;			// SerialAPI type: ZW_REQ or ZW_RES 
+int curcmd;			// SerialAPI command ID
+unsigned char zdata[256];	// SerialAPI command data
+int zdataptr;			// SerialAPI command data length
 
 void zwave_check_state(unsigned char c);
 #define ZW_ACK 0x06
@@ -316,7 +322,6 @@ int g_flood = 0;
 #define NEXT_SEQ() (++zseq?zseq:++zseq) // avoid 0 since SerialAPI won't callback if zseq(funcID) == 0
 
 
-static int SerialAPI_request(unsigned char *buf, int len);
 static void zwavecmd_configuration_set(unsigned int id, unsigned int no, int v);
 static void zwavecmd_configuration_get(unsigned int id,unsigned int no);
 static void zwavecmd_configuration_dump(unsigned int id,int num);
@@ -425,23 +430,54 @@ char * cmd_class_string(int cls)
 	}
 }
 
+int select_read(int sfd, char * buf, int len, int timeout_ms)
+{
+	struct timeval tv;
+	fd_set readfds;
+	int pos = 0;
+	int ret;
+
+	while (pos < len) {
+		FD_ZERO(&readfds);
+		FD_SET(sfd, &readfds);
+	
+		tv.tv_sec = timeout_ms/1000;
+		tv.tv_usec = (timeout_ms%1000)*1000;
+				
+		ret = select(sfd+1, &readfds, NULL, NULL, &tv);
+		if (ret < 0) {
+			SHOW_ERRNO();
+			return -1;
+		}
+		else if (ret == 0) {	// timeout
+			break;
+		}
+
+		if (FD_ISSET(sfd, &readfds)) {
+			ret = read(sfd, buf+pos, len-pos); 
+			if (ret < 0) {
+				SHOW_ERRNO();
+				return -1;
+			}
+			else if (ret == 0) {	// closed by peer
+				exit(0);
+				//break;
+			}
+			pos += ret;
+		}
+	}
+	return pos;
+}
 void clear_serial_api_queue(void)
 {
 	unsigned char ack = ZW_ACK;
 	unsigned char c;
-	struct timeval to;
-	fd_set rs;
 	int n;
 
 	write(zwavefd, &ack, 1);	// ack previous frames
 
 	while(1) {
-		to.tv_sec = 0;
-		to.tv_usec = 1000;
-			
-		FD_ZERO(&rs);
-		FD_SET(zwavefd,&rs);
-		n = select(zwavefd+1,&rs,NULL,NULL,&to);
+		n = select_read(zwavefd, (char*)&c, 1, 1);
 		if (n == 0) {
 			break;
 		}
@@ -449,30 +485,98 @@ void clear_serial_api_queue(void)
 			printf("select() error\n");
 			exit(1);
 		}
-		n = read(zwavefd, &c,1);
-		if (n != 1) {
-			printf("read error !!!!!!!!!!!!!! n=%d\n", n);
-			exit(1);
-		}
 		zwave_check_state(c);
 	}
+}
 
-	/*
-	write(zwavefd, &ack, 1);	// ack previous frames
+int SerialAPI_request(unsigned char *buf, int len)
+{
+	unsigned char c = 1;
+	int i,n;
+	unsigned char crc;
+	int wlen;
+	int retry = 1;
+	int wait = 5;
+
+	while (1) {
+		// read out pending request from Z-Wave
+		while (1) {
+			n = select_read(zwavefd, (char*)&c, 1, 0);
+			if (n != 1)
+				break;
+			zwave_check_state(c);
+		}
+		
+		// wait for WAIT_SOF state (idle state)
+		if (zstate != WAIT_SOF) {
+			if (wait--) {
+				printf("SerialAPI is not ready. zstate=%d\n", zstate);
+				usleep(100*1000);
+				continue;
+			}
+			else {
+				printf("Try to send SerialAPI command in a wrong state......\n");
+				wait = 5;
+			}
+		}
 	
-	while(1) {
-		FD_ZERO(&rs);
-		FD_SET(zwavefd, &rs);	
-		to.tv_sec = 0;
-		to.tv_usec = 1000;
-		if ((n=select(zwavefd+1,&rs,NULL,NULL, &to))<=0) {
-			break;
+		// send SerialAPI request
+		c=1;
+		write(zwavefd, &c, 1);	// SOF (start of frame)
+		c = len+1;
+		write(zwavefd, &c, 1);	// len (length of frame)
+		wlen = write(zwavefd, buf,len);	// REQ, cmd, data
+		if (wlen != len) {
+			printf("write fail %d %d\n", len,wlen);
 		}
-		if (FD_ISSET(zwavefd,&rs)) {
-			read(zwavefd, buf, sizeof(buf));
+		crc = 0xff;
+		crc = crc ^ (len+1);
+		for(i=0;i<len;i++)
+			crc = crc ^ buf[i];
+		write(zwavefd,&crc,1);	// LRC checksum
+
+		if (print) {
+			printf("Send len=%d ", len+1);
+			for(i=0;i<len;i++) 
+				printf("%02x ", buf[i]);
+			printf("CRC=0x%x\n", crc);
 		}
+		zstate = WAIT_ACK;
+		ack_got = 0;
+
+		// get SerialAPI ack
+		while (1) {
+			n = select_read(zwavefd, (char*)&c, 1, 500);
+			if (n < 0) {
+				SHOW_ERRNO();
+				exit(1);
+			}
+			if (n == 0) {
+				printf("timeout.... SerialAPI without ACK !!!\n");
+				break;
+			}
+			zwave_check_state(c);
+			if (ack_got) {
+				// SerialAPI is sent and got ack. It's successful.
+				return 0;
+			} else {
+				printf("Ack error!!! zstate=%d ack_got=%d\n", zstate, ack_got);
+				break;
+			}
+		}
+
+		if (!retry--) {
+			printf("SerialAPI request:\n");
+			for (i=0; i<len; i++) {
+				printf("%02x ", buf[i]);
+			}
+			printf("\n");
+			printf("%s() error!!!\n", __FUNCTION__);
+			return -1;
+		}
+		printf("%s() retry......\n", __FUNCTION__);
 	}
-	*/
+	return -1;
 }
 
 int ZW_sendData(unsigned id,unsigned char *in,int len)
@@ -826,116 +930,6 @@ int SerialAPI_soft_reset(void)
 	buf[1] = 0x08;	// FUNC_ID_SERIAL_API_SOFT_RESET
 	return SerialAPI_request(buf, 2);
 }
-int SerialAPI_request(unsigned char *buf, int len)
-{
-	unsigned char c = 1;
-	int i,n;
-	unsigned char crc;
-	fd_set rs;
-	struct timeval to;
-	int wlen;
-	int retry = 5;
-
-
-	//if (1) {
-	while (1) {
-		// read out pending request from Z-Wave
-		while(1) {
-			to.tv_sec = 0;
-			to.tv_usec = 0;
-			
-			FD_ZERO(&rs);
-			FD_SET(zwavefd,&rs);
-			n = select(zwavefd+1,&rs,NULL,NULL,&to);
-			if (n == 0) {
-				break;
-			}
-			else if (n < 0) {
-				printf("select() error\n");
-				exit(1);
-			}
-			n = read(zwavefd, &c,1);
-			if (n != 1) {
-				printf("read error !!!!!!!!!!!!!! n=%d\n", n);
-				exit(1);
-			}
-			zwave_check_state(c);
-		}
-		if (zstate != WAIT_SOF) {	// wait for WAIT_SOF statie (idle state)
-			printf("SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", zstate);
-			printf("Try to send SerialAPI command in a wrong state......\n");
-			usleep(100*1000);
-			//continue;
-		}
-	
-		// send SerialAPI request
-		c=1;
-		write(zwavefd, &c, 1);	// SOF (start of frame)
-		c = len+1;
-		write(zwavefd, &c, 1);	// len (length of frame)
-		wlen = write(zwavefd, buf,len);	// REQ, cmd, data
-		if (wlen != len) {
-			printf("write fail %d %d\n", len,wlen);
-		}
-		
-		crc = 0xff;
-		crc = crc ^ (len+1);
-		for(i=0;i<len;i++)
-			crc = crc ^ buf[i];
-		write(zwavefd,&crc,1);	// LRC checksum
-		if (print) {
-			printf("Send len=%d ", len+1);
-			for(i=0;i<len;i++) 
-				printf("%02x ", buf[i]);
-			printf("CRC=0x%x\n", crc);
-		}
-		zstate = WAIT_ACK;
-		ack_got = 0;
-
-		// get SerialAPI ack
-		while(1) {
-			to.tv_sec = 1;
-			to.tv_usec = 0;
-			
-			FD_ZERO(&rs);
-			FD_SET(zwavefd,&rs);
-			n = select(zwavefd+1,&rs,NULL,NULL,&to);
-			if (n == 0) {
-				printf("timeout.... SerialAPI without ACK !!!\n");
-				break;
-			}
-			else if (n < 0) {
-				printf("select() error\n");
-				exit(1);
-			}
-			n = read(zwavefd, &c,1);
-			if (n != 1) {
-				printf("read error !!!!!!!!!!!!!! n=%d\n", n);
-				exit(1);
-			}
-			zwave_check_state(c);
-
-			if (ack_got) {
-				return 0;
-			} else {
-				printf("Ack error!!! zstate=%d ack_got=%d\n", zstate, ack_got);
-				break;
-			}
-		}
-		if (!retry--) {
-			printf("SerialAPI request:\n");
-			for (i=0; i<len; i++) {
-				printf("%02x ", buf[i]);
-			}
-			printf("\n");
-			printf("%s() error!!!\n", __FUNCTION__);
-			exit(1);
-		}
-		printf("%s() retry......\n", __FUNCTION__);
-	}
-	return -1;
-}
-
 void zwave_sendClassCommand(unsigned char id,unsigned char cls, unsigned char cmd, unsigned char *args, int len)
 {
 	int i=0,j=0;
@@ -2639,10 +2633,8 @@ void zwavecmd_manufacture_get(unsigned int id)
 	zwave_sendClassCommand(id, COMMAND_CLASS_MANUFACTURER_SPECIFIC, MANUFACTURER_SPECIFIC_GET,NULL,0);
 	register_class_callback(COMMAND_CLASS_MANUFACTURER_SPECIFIC, manufacture_dump, NULL);
 }
-int zlen;
-unsigned char zdata[256];
-int zdataptr;
-int curcmd;
+
+
 int zwave_init()
 {
 #ifndef _WIN32		
@@ -3085,91 +3077,11 @@ void dumpRouteInformation()
 	printf("\n");
 }
 
-void zwave_check_state(unsigned char c)
+void SerialAPI_proc_command(void)
 {
 	int i;
-	unsigned char ack = ZW_ACK;
-	static unsigned char cksum;
 
-	if (verbose) printf("cur state %d token %x\n", zstate,c);
-
-	switch(zstate) {
-	case WAIT_ACK:
-		if (c == ZW_ACK) {
-			zstate = WAIT_SOF;
-			ack_got=1;
-		}
-		else if (c == ZW_NAK) {
-			// The NAK frame is used to de-acknowlege an 
-			// unsuccessful transmission of a data frame. 
-			// Only a frame with a LRC checksum error is 
-			// de-acknowledged with a NAK frame.
-			printf("[NAK] SerialAPI LRC checksum error!!!\n");
-			zstate = WAIT_SOF;
-		}
-		else if (c == ZW_CAN) {
-			// The CAN frame is used by the ZW to instruct
-			// the host that a host transmitted data frame 
-			// has been dropped.
-			printf("[CAN] SerialAPI frame is dropped by ZW!!!\n");
-			usleep(100*1000);
-			zstate = WAIT_SOF;
-		}
-		else if (c == ZW_SOF) {
-			printf("       WAIT_ACK: SerialAPI got SOF without ACK ????????\n");
-			zstate = WAIT_LEN;
-		}
-		else {
-			printf("       WAIT_ACK: SerialAPI got unexpected byte 0x%x ?????????\n", c);
-		}
-		break;
-	case WAIT_SOF:
-		if (c == ZW_SOF) {
-			zstate = WAIT_LEN;
-			ack_got=1;
-		} else if (c == ZW_ACK) {
-			printf("       WAIT_SOF: SerialAPI got unknown ACK ????????\n");
-			ack_got = 1;
-		}
-		else {
-			printf("       WAIT_SOF: SerialAPI got unexpected byte 0x%x ?????????\n", c);
-		}
-		break;
-	case WAIT_LEN:
-		zlen = c-2;
-		cksum = 0xff;
-		cksum ^= c;
-		zstate = WAIT_TYPE;
-		break;
-	case WAIT_TYPE:
-		if (c == 1)
-			zstate = WAIT_COMMAND;	// response
-		else if (c == 0)
-			zstate = WAIT_REQUEST;	// request
-		cksum ^= c;
-		break;
-	case WAIT_COMMAND:	// get the response command
-		curcmd = c;
-		zstate = WAIT_DATA;
-		zdataptr=0;
-		cksum ^= c;
-		break;
-	case WAIT_REQUEST:	// get the request command
-		curcmd = c;
-		zstate = WAIT_EOF;
-		zdataptr = 0;
-		cksum ^= c;
-		break;
-	case WAIT_DATA:		// get the data of response
-		zlen--;
-		zdata[zdataptr] = c;
-		zdataptr++;
-		if (zlen == 0) {
-			if (c != cksum) {
-				printf("CRC ERROR!!! crc1=%x crc2=%x\n", c, cksum);
-			}
-			write(zwavefd, &ack,1);
-			zstate = WAIT_SOF;
+	if (re_type == ZW_RES) {
 			if (curcmd == GetControllerCapability) {
 				printf("The capabiity is\n\t");
 				capability_string(zdata[0]);
@@ -3200,18 +3112,8 @@ void zwave_check_state(unsigned char c)
 					printf("]\n");
 				}
 			}
-		}
-		else {
-			cksum ^= c;
-		}
-		break;
-	case WAIT_EOF:		// get the data of request
-		zlen--;
-		zdata[zdataptr] = c;
-		zdataptr++;
-		if (zlen == 0) {
-			write(zwavefd, &ack,1);
-			zstate = WAIT_SOF;
+	}
+	else if (re_type == ZW_REQ) {
 			if (curcmd == 4) {	// ApplicationCommandHandler
 				ApplicationCommandHandler(zdata, zdataptr);
 			} else if (curcmd == 0x49) {	// ApplicationSlaveUpdate
@@ -3325,7 +3227,98 @@ void zwave_check_state(unsigned char c)
 					printf("]\n");
 				}
 			} 
+	}
+}
+
+void zwave_check_state(unsigned char c)
+{
+	unsigned char ack = ZW_ACK;
+	static unsigned char cksum;
+	static int zlen;
+
+	if (verbose) printf("cur state %d token %x\n", zstate,c);
+
+	switch(zstate) {
+	case WAIT_ACK:
+		if (c == ZW_ACK) {
+			zstate = WAIT_SOF;
+			ack_got=1;
 		}
+		else if (c == ZW_NAK) {
+			// The NAK frame is used to de-acknowlege an 
+			// unsuccessful transmission of a data frame. 
+			// Only a frame with a LRC checksum error is 
+			// de-acknowledged with a NAK frame.
+			printf("[NAK] SerialAPI LRC checksum error!!!\n");
+			zstate = WAIT_SOF;
+		}
+		else if (c == ZW_CAN) {
+			// The CAN frame is used by the ZW to instruct
+			// the host that a host transmitted data frame 
+			// has been dropped.
+			printf("[CAN] SerialAPI frame is dropped by ZW!!!\n");
+			usleep(100*1000);
+			zstate = WAIT_SOF;
+		}
+		else if (c == ZW_SOF) {
+			printf("       WAIT_ACK: SerialAPI got SOF without ACK ????????\n");
+			zstate = WAIT_LEN;
+		}
+		else {
+			printf("       WAIT_ACK: SerialAPI got unexpected byte 0x%x ?????????\n", c);
+		}
+		break;
+	case WAIT_SOF:
+		if (c == ZW_SOF) {
+			zstate = WAIT_LEN;
+			ack_got=1;
+		} else if (c == ZW_ACK) {
+			printf("       WAIT_SOF: SerialAPI got unknown ACK ????????\n");
+			ack_got = 1;
+		}
+		else {
+			printf("       WAIT_SOF: SerialAPI got unexpected byte 0x%x ?????????\n", c);
+		}
+		break;
+	case WAIT_LEN:
+		zlen = c-2;
+		cksum = 0xff;
+		cksum ^= c;
+		zstate = WAIT_TYPE;
+		break;
+	case WAIT_TYPE:
+		if ((c==ZW_RES) || (c==ZW_REQ)) {
+			re_type = c;
+			zstate = WAIT_COMMAND;	// response
+		}
+		else { 
+			zstate = WAIT_SOF;	// request
+			printf("SerialAPI ERROR !!! Not RES nor REQ.\n");
+		}
+
+		zstate = WAIT_COMMAND;
+		cksum ^= c;
+		break;
+	case WAIT_COMMAND:	// get command ID
+		curcmd = c;
+		zstate = WAIT_DATA;
+		zdataptr=0;
+		cksum ^= c;
+		break;
+	case WAIT_DATA:		// get command data
+		zlen--;
+		zdata[zdataptr] = c;
+		zdataptr++;
+		if (zlen) {
+			cksum ^= c;
+			break;	// wait for remaining data
+		}
+		if (c != cksum) {	// verify CRC
+			printf("CRC ERROR!!! crc1=%x crc2=%x\n", c, cksum);
+		}
+		write(zwavefd, &ack,1);
+		zstate = WAIT_SOF;
+		SerialAPI_proc_command();	// process request or response
 		break;
 	default:
 		printf("Unknown state %d\n", zstate);
@@ -3427,7 +3420,7 @@ void usage(void)
 	printf("    thermostat setpoint <id> <type> <value>\n");
 	printf("    thermostat getpoint <id> <type>\n");
 	printf("    sceneactivation set <id> <scene>\n");
-	printf("    multichannel wuobject get <id>\n");
+	printf("    multichannel endpoint get <id>\n");
 	printf("    multichannel capability get <id>\n");
 	printf("    multichannel find <id> <generic> <specific>\n");
 	printf("    proprietary learn <id> <itemid> <key>\n");
@@ -3438,6 +3431,57 @@ void usage(void)
         printf("    removefail <id>\n");
 			
 	
+}
+void do_test1()
+{
+	int succ=0,fail=0;
+	struct timeval to;
+	fd_set rs;
+	int i;
+	int id,v;
+
+	txoptions |= TRANSMIT_OPTION_ACK;
+	v = 0;
+	
+	for(i=2;i<232;i++) {
+		id = i;
+		zwavecmd_basic_set(id,v);
+		cmd_succ=-1;
+		while(1) {
+			char c;
+			int n;
+	
+			FD_ZERO(&rs);
+			FD_SET(zwavefd, &rs);	
+			to.tv_sec = 2;
+			to.tv_usec = 0;
+			if ((n=select(zwavefd+1,&rs,NULL,NULL, &to))<=0) {
+				fail++;
+				break;
+			}
+			if (FD_ISSET(zwavefd,&rs)) {
+				int len=read(zwavefd,&c,1);
+				if (len > 0) {
+					zwave_check_state(c);
+				}
+			}
+			if (cmd_succ==1) {
+				succ++;
+				printf("%d has device\n",id);
+				break;
+			}
+			if (cmd_succ==0) {
+				fail++;
+				break;
+			}
+		}
+	}
+	if ((succ*100/(succ+fail)) >= 90) {	// > 90% successful
+		main_ret = 0;
+	}
+	else {
+		main_ret = 1;
+	}
 }
 void do_test(int id,int v,int loop)
 {
@@ -3695,6 +3739,10 @@ int process_cmd(int argc, char * argv[])
 			v = atoi(argv[i+2]);
 			do_test(id,v,atoi(argv[i+3]));
 			i+=3;
+		} else if (strcmp(argv[i],"test1")==0) {
+			print = 0;
+			do_test1();
+			i++;
 		} else if (strcmp(argv[i],"instance")==0) {
 			g_instance = atoi(argv[i+1]);
 			i++;
@@ -3704,7 +3752,7 @@ int process_cmd(int argc, char * argv[])
 				i+=3;
 			}
 		} else if (strcmp(argv[i],"multichannel")==0) {
-			if (strcmp(argv[i+1],"wuobject")==0) {
+			if (strcmp(argv[i+1],"endpoint")==0) {
 				if (strcmp(argv[i+2],"get")==0) {
 					zwavecmd_multi_channel_end_point_get(atoi(argv[i+3]));
 					i += 3;
@@ -3734,21 +3782,23 @@ int process_cmd(int argc, char * argv[])
 				id = atoi(argv[i+2]);
 				i+=2;
 				ZW_RequestNodeInfo(id);
-			} else if (strcmp(argv[i+1],"SUC")==0) {
+			} else if (strcasecmp(argv[i+1],"SUC")==0) {
 				if (strcmp(argv[i+2],"set")==0) {
 					unsigned char id = atoi(argv[i+3]);
 					unsigned char suc = atoi(argv[i+4]);
-					unsigned char power,type;
-					if (strcmp(argv[i+5],"high")==0) {
-						power = 0;
-					} else {
+					unsigned char power = 0;
+					unsigned char type = 1;
+					if (strcasecmp(argv[i+5],"low")==0)
 						power = 1;
-					}
-					if (strcmp(argv[i+6],"suc")==0) {
+					else
+						power = 0;
+					
+					if (strcasecmp(argv[i+6],"suc")==0)
 						type = 0;
-					} else if (strcmp(argv[i+6],"sis")==0) {
+					else if (strcasecmp(argv[i+6],"sis")==0)
 						type = 1;
-					}
+					else
+						printf("ERROR!!! Unknown type\n");
 					ZW_SetSUCNodeID(id,suc,power,type);
 					i += 7;
 				} else if (strcmp(argv[i+2],"get")==0) {
@@ -3756,9 +3806,9 @@ int process_cmd(int argc, char * argv[])
 					i+=3;
 				}
 			} else if (strcmp(argv[i+1], "enable")==0) {
-				if (strcmp(argv[i+2],"suc")==0) {
+				if (strcasecmp(argv[i+2],"suc")==0) {
 					ZW_EnableSUC(1,0);
-				} else if (strcmp(argv[i+2],"sis")==0) {
+				} else if (strcasecmp(argv[i+2],"sis")==0) {
 					ZW_EnableSUC(1,1);
 				} else {
 					ZW_EnableSUC(0,0);

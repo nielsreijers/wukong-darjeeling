@@ -1,14 +1,11 @@
-# vim: ts=2 sw=2
 #!/usr/bin/python
 from optparse import OptionParser
 import xml.dom.minidom
 import os
 from wkpfcomm import *
-import wkpf.parser
+from wkpf.parser import *
 import wkpf.pynvc
 import copy
-
-# this whole file is deprecated, need to rewrite to integrate with WuKong
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
@@ -57,8 +54,8 @@ def getFlow(path):
   return xml.dom.minidom.parse(path)
 
 def getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions):
-  componentInstanceName = getComponentInstanceName(wuObjectInfo.getNodeId(), wuObjectInfo.getPortNumber(), mapping)
-  propertyName = propertyInfo.getName()
+  componentInstanceName = getComponentInstanceName(wuObjectInfo.id, wuObjectInfo.port_number, mapping)
+  propertyName = propertyInfo.name
   #propertyName = getComponentPropertyName(wuObjectInfo.getWuClassId(), propertyInfo.getId(), componentDefinitions)
   links = []
   for component in flowDefinition.getElementsByTagName('component'):
@@ -88,83 +85,66 @@ def getNodeAndPortForComponent(componentName, mapping):
   raise Error('Component not found: %s', (componentName))
 
 ## Functions to read data from the nodes
-def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
-  name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
-  wkpfcommData = comm.getProperty(wuObject, propertyNumber)
-  for candidate in WuClass.all():
-    for property in candidate:
-      if property.getName() == name:
-        ret_prop = copy.deepcopy(property)
-        ret_prop.setCurrentValue(wkpfcommData[0])
-        ret_prop.setDataType(wkpfcommData[1])
-        ret_prop.setPropertyStatus(wkpfcommData[2])
-        ret_prop.setId(propertyNumber)
-
-
-  '''
-  propertyInfo.value = wkpfcommData[0]
-  propertyInfo.datatype = wkpfcommData[1]
-  propertyInfo.status = wkpfcommData[2]
-  propertyInfo.propertyNumber = propertyNumber
-  '''
-  return ret_prop
+def readPropertyInfo(wuObject, property):
+  wkpfcommData = comm.getProperty(wuObject, property.id)
+  property.value = wkpfcommData[0]
+  property.status = wkpfcommData[2]
+  property.save()
 
 def readNodeInfo(nodeId, componentDefinitions):
   wkpfcommNodeInfo = comm.getNodeInfo(nodeId)
   if wkpfcommNodeInfo.isResponding():
-    '''
-    for wuClass in wkpfcommNodeInfo.wuClasses:
-      wuClass.name = getComponentName(wuClass.getId(), componentDefinitions)
-    '''
-    for wuObject in wkpfcommNodeInfo.wuObjects:
-      #wuObject.wuClassName = getComponentName(wuObject.getWuClassId(), componentDefinitions)
-      wuObject.setProperties([readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.getWuClassId(), componentDefinitions))])
+    for wuObject in wkpfcommNodeInfo.wuobjects:
+      properties = wuObject.wuclass.properties
+      for property in properties:
+        readPropertyInfo(wuObject, property)
   return wkpfcommNodeInfo
 
 ## Print functions
 def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
-  for nodeInfo in sorted(nodeInfos, key=lambda x:x.nodeId):
+  for nodeInfo in sorted(nodeInfos, key=lambda x:x.id):
     print "============================="
-    print "NodeID: %d" % (nodeInfo.nodeId)
-    if not nodeInfo.isResponding:
+    print "NodeID: %d" % (nodeInfo.id)
+    if not nodeInfo.isResponding():
       print "NOT RESPONDING"
     else:
       print "WuClasses:"
-      for wuClassInfo in sorted(nodeInfo.wuClasses, key=lambda x:x.getId()):
-        print "\tClass name %s %s" % (wuClassInfo.getName(), "VIRTUAL" if wuClassInfo.isVirtual() else "NATIVE")
+      def pt(wuClassInfo): 
+        print wuClassInfo
+      map(pt, sorted(nodeInfo.wuclasses, key=lambda x:x.id))
       print "WuObjects:"
-      for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.getWuClassId()):
+      for wuObjectInfo in sorted(nodeInfo.wuobjects, key=lambda x:x.wuclass.id):
         if mapping:
-          componentInstanceName = getComponentInstanceName(nodeInfo.nodeId, wuObjectInfo.getPortNumber(), mapping)
+          componentInstanceName = getComponentInstanceName(nodeInfo.id, wuObjectInfo.port_number, mapping)
           if componentInstanceName:
             print "\tComponent instance name: %s" % (componentInstanceName)
-        print "\tClass name %s" % (wuObjectInfo.getWuClassName())
-        print "\tPort number %d" % (wuObjectInfo.getPortNumber())
+        print "\tClass name %s" % (wuObjectInfo.wuclass.name)
+        print "\tPort number %d" % (wuObjectInfo.port_number)
         print "\tPropNr  Datatype         Name      value (status) [(remote property value, status)]"
-        for propertyInfo in wuObjectInfo:
-          propertyInfoString = "\t   %d %8s %15s %10s (%s)" % (propertyInfo.getId(),
+        for propertyInfo in wuObjectInfo.wuclass.properties:
+          propertyInfoString = "\t   %d %8s %15s %10s (%s)" % (propertyInfo.id,
                                                #wkpf.datatypeToString(propertyInfo.getDataType()),
-                                               propertyInfo.getDataType(),
-                                               propertyInfo.getName(),
+                                               propertyInfo.datatype,
+                                               propertyInfo.name,
                                                #stringRepresentationIfEnum(wuObjectInfo.getWuClassId(), propertyInfo.getId(), componentDefinitions, propertyInfo.getCurrentValue()),
-                                               propertyInfo.getCurrentValue(),
-                                               propertyInfo.getPropertyStatus())
+                                               propertyInfo.value,
+                                               propertyInfo.status)
           remoteLinkAndValue = ""
           if mapping and flowDefinition:
             remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
             for remoteLink in remoteLinks:
               try:
                 remoteNodeId, remotePortNumber = getNodeAndPortForComponent(remoteLink[1], mapping)
-                remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
+                remoteNodeInfo = find(nodeInfos, lambda x:x.id == remoteNodeId)
                 if remoteNodeInfo == None:
                   propertyInfoString += " NODE NOT FOUND"
-                elif not remoteNodeInfo.isResponding:
-                  propertyInfoString += " NODE %d NOT RESPONDING" % (remoteNodeInfo.nodeId)                
+                elif not remoteNodeInfo.isResponding():
+                  propertyInfoString += " NODE %d NOT RESPONDING" % (remoteNodeInfo.id)
                 else:
-                  remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.getPortNumber() == remotePortNumber)
-                  remotePropertyInfo = find(remoteWuObject.getProperties(), lambda x:x.getName() == remoteLink[2])
-                  propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.getCurrentValue(), remotePropertyInfo.getAccess())
-                  if propertyInfo.getCurrentValue() != remotePropertyInfo.getCurrentValue():
+                  remoteWuObject = find(remoteNodeInfo.wuobjects, lambda x:x.port_number == remotePortNumber)
+                  remotePropertyInfo = find(remoteWuObject.wuclass.properties, lambda x:x.name() == remoteLink[2])
+                  propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value, remotePropertyInfo.access)
+                  if propertyInfo.value != remotePropertyInfo.value:
                     propertyInfoString += " !!!!"
               except:
                 propertyInfoString += " REMOTE PROPERTY NOT FOUND!!!!"
@@ -172,10 +152,10 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
         print ""
 
 class Inspector:
-  def __init__(self, mapping_results):
-    self.mapping_results = mapping_results
+  def __init__(self, changesets):
+    self.changesets = changesets
     self.comm = Communication(0)
-    self.node_infos = comm.getAllNodeInfos([wuobject.getNodeId() for wuobject in self.mapping_results.values()])
+    self.node_infos = comm.getAllNodeInfos()
 
   def readAllLog(self):
     logs = []
@@ -184,17 +164,18 @@ class Inspector:
 
   def readLog(self, node_id):
     logs = []
-    if node_id and node_id in [info.nodeId for info in self.node_infos]:
+    if node_id and node_id in [info.id for info in self.node_infos]:
       pass
 
   def inspectAllProperties():
     properties = []
-    for wuobject in self.mapping_results.values():
-      properties += wuobject.getProperties()
+    for component in self.changesets.components:
+      for wuobject in component.instances:
+        properties += wuobject.properties
 
     for property in properties:
       for node_info in node_infos:
-        if node_info.isResponding:
+        if node_info.isResponding():
           node_info.wuObjects
         else:
           properties.append()
@@ -216,6 +197,7 @@ if __name__ == "__main__":
     optionParser.error("invalid component xml, please refer to -h for help")
 
   comm = getComm()
+  Parser.parseLibrary(options.pathComponentXml)
   componentDefinitions = getComponentDefinitions(options.pathComponentXml)
   mapping = getMapping(options.pathMappingXml) if options.pathMappingXml else None
   flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None

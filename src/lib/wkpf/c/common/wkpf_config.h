@@ -7,11 +7,12 @@
 #define LOCATION_MAX_LENGTH 128
 
 // Keep this list in sync with pynvc.py
-#define WPKF_FEATURE_LIGHT_SENSOR         0
-#define WPKF_FEATURE_LIGHT_ACTUATOR       1
-#define WPKF_FEATURE_NUMERIC_CONTROLLER   2
-#define WPKF_FEATURE_NATIVE_THRESHOLD     3
-#define WKPF_NUMBER_OF_FEATURES           4
+#define WPKF_FEATURE_LIGHT_SENSOR         			0
+#define WPKF_FEATURE_LIGHT_ACTUATOR       			1
+#define WPKF_FEATURE_NUMERIC_CONTROLLER   			2
+#define WPKF_FEATURE_NATIVE_THRESHOLD     			3
+#define WPKF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR 	4
+#define WKPF_NUMBER_OF_FEATURES           			5
 
 // Stores a part of the location in EEPROM, or returns WKPF_ERR_LOCATION_TOO_LONG if the string is too long.
 extern uint8_t wkpf_config_set_part_of_location_string(char* src, uint8_t offset, uint8_t length);

@@ -1,6 +1,5 @@
-# vim: ts=4 sw=4
 import sys, os, traceback, copy
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from parser import *
 from locationTree import *
 from xml.dom.minidom import parse, parseString
@@ -9,7 +8,6 @@ import simplejson as json
 import logging, logging.handlers, wukonghandler
 from collections import namedtuple
 from locationParser import *
-from wkpfcomm import *
 from codegen import CodeGen
 from xml2java.generator import Generator
 import copy
@@ -121,6 +119,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         # use existing wuobject
                         for wuobject in node.wuobjects:
                             if wuobject.wuclass.id == wuclass.id:
+                                wuobject.properties_with_default_values = component.properties_with_default_values
+                                wuobject.save()
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -133,6 +133,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                             if wuclass_node.id == wuclass.id:
                                 wuclass_alternate = wuclass_node
                         wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
             else:
@@ -143,6 +144,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         # use existing wuobject
                         for wuobject in node.wuobjects:
                             if wuobject.wuclass.id == wuclass.id:
+                                wuobject.properties_with_default_values = component.properties_with_default_values
+                                wuobject.save()
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -155,6 +158,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                             if wuclass_node.id == wuclass.id:
                                 wuclass_alternate = wuclass_node
                         wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
                 else:
@@ -163,6 +167,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         # use existing virtual wuobject
                         for wuobject in node.wuobjects:
                             if wuobject.wuclass.id == wuclass.id:
+                                wuobject.properties_with_default_values = component.properties_with_default_values
+                                wuobject.save()
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -175,6 +181,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         port_number = sensorNode.reserveNextPort()
                         wuclass_alternate = wuclass # node_id is not important, just a placeholder
                         wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
                         '''
@@ -195,8 +202,11 @@ def firstCandidate(logger, changesets, routingTable, locTree):
           return False
 
     # sort candidates
-    # TODO: think about it, probably not going to used for this thesis
+    # TODO:simple sorting, first fit, last fit, hardware fit, etc
     #sortCandidates(changesets.components)
+
+    # limit to min candidate if possible
+    component.instances = component.instances[:mincandidates]
 
     # construct heartbeat groups plus period assignment
     allcandidates = set()

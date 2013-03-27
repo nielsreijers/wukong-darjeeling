@@ -3,14 +3,14 @@
 
 import os, sys
 from xml.etree import ElementTree
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../..")))
 from jinja2 import Template, Environment, FileSystemLoader
 from struct import pack
 
-from models import WuType
+from wkpf.models import *
 
 from configuration import *
-from util import *
+from wkpf.util import *
 
 
 class Generator:
@@ -52,6 +52,7 @@ class Generator:
             return "GENERATEDVirtual" + Convert.to_java(wuclass.name) + "WuObject"
 
         def propertyconstname(property):
+            print 'propertyconstname'
             return "PROPERTY_" + Convert.to_constant(property.wuclass.name) + "_" + Convert.to_constant(property.name)
 
         # doesn't really matter to check since basic types are being take care of in application.java
@@ -61,6 +62,19 @@ class Generator:
                 return wutype[0].type.upper() + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
             else:
                 return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
+
+        def generateProperties(wuclass_properties, component_properties):
+            properties = []
+            for property in wuclass_properties:
+                if property.value.strip() != "" and (not property.name in [x.name for x in properties]):
+                    properties.append(property)
+
+            for property in properties:
+                if property.name in component_properties:
+                    if component_property[property.name].strip() != "":
+                        property.value = component_property[property.name]
+            return properties
+
 
         # Generate the Java code
         print 'generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
@@ -72,6 +86,7 @@ class Generator:
         jinja2_env.filters['wuclassgenclassname'] = wuclassgenclassname
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
+        jinja2_env.filters['generateProperties'] = generateProperties
         output = open(os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java"), 'w')
         output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()

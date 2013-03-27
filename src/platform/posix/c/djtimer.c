@@ -20,6 +20,7 @@
  */
  
 #include <time.h>
+#include <unistd.h>
 
 #include "types.h"
 
@@ -32,3 +33,9 @@ uint32_t dj_timer_getTimeMillis()
 {
 	return clock() / (CLOCKS_PER_SEC / 1000);
 }
+
+void dj_timer_delay(unsigned long msec)
+{
+	usleep(1000 * msec);
+}
+
