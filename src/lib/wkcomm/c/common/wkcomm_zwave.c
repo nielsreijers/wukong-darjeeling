@@ -73,12 +73,6 @@ bool addr_zwave_to_wkcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
     return true;
 }
 
-///// temporary?
-void delay(uint32_t msec) {
-    dj_time_t start = dj_timer_getTimeMillis();
-    while (dj_timer_getTimeMillis() < start+msec);
-}
-
 void wkcomm_zwave_poll(void) {
     if (uart_available(ZWAVE_UART, 0))
     {    
@@ -204,7 +198,7 @@ void Zwave_receive(int processmessages) {
                 if (wait_CAN_NAK != 128)
                     wait_CAN_NAK *= 2;
                 DEBUG_LOG(DBG_WKCOMM, "[NAK] SerialAPI LRC checksum error!!! delay: %dms\n", wait_CAN_NAK);
-                delay(wait_CAN_NAK);
+                dj_timer_delay(wait_CAN_NAK);
                 state = ZWAVE_STATUS_WAIT_SOF;
                 ack_got=0;
             } else if (c == 0x18) {
@@ -212,7 +206,7 @@ void Zwave_receive(int processmessages) {
                 if (wait_CAN_NAK != 128)
                     wait_CAN_NAK *= 2;
                 DEBUG_LOG(DBG_WKCOMM, "[CAN] SerialAPI frame is dropped by ZW!!! delay: %dms\n", wait_CAN_NAK);
-                delay(wait_CAN_NAK);
+                dj_timer_delay(wait_CAN_NAK);
                 state = ZWAVE_STATUS_WAIT_SOF;
                 ack_got=0;
             } else if (c == 1) {
@@ -375,7 +369,7 @@ int SerialAPI_request(unsigned char *buf, int len)
         if (state != ZWAVE_STATUS_WAIT_SOF) {	// wait for WAIT_SOF state (idle state)
             DEBUG_LOG(DBG_WKCOMM, "SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", state);
             DEBUG_LOG(DBG_WKCOMM, "Try to send SerialAPI command in a wrong state......\n");
-            delay(100);
+            dj_timer_delay(100);
             //continue;
         }
 
@@ -469,7 +463,7 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
         return -1;
     while (zwsend_ack_got == -1 && timeout-->0) {
         wkcomm_zwave_poll();
-        delay(1);
+        dj_timer_delay(1);
     }
     if (zwsend_ack_got == 0) // ACK 0 indicates success
         return 0;
@@ -557,7 +551,7 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
 // void offack(byte *b,int len)
 // {
 //   if (ZWave.getType() == 0) {
-//     delay(500);
+//     dj_timer_delay(500);
 //     ZWave.callback(onack);
 //     ZWave.set(last_node,255,5);
 //   } else if (ZWave.getType() == 2) {
@@ -570,7 +564,7 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
 // void onack(byte *b,int len)
 // {
 //   if (ZWave.getType() == 0) {
-//     delay(500);
+//     dj_timer_delay(500);
 //     ZWave.callback(offack);
 //     ZWave.set(last_node,0,5);
 //   } else if (ZWave.getType() == 2) {
