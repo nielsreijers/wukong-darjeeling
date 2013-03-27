@@ -15,6 +15,8 @@
 #include "wiring_digital.c"
 #include "wiring.c"
 
+#include "djtimer.h"
+
 void SHT1x(int dataPin, int clockPin)
 {
   _dataPin = dataPin;
@@ -141,7 +143,7 @@ int shiftIn(int _dataPin, int _clockPin, int _numBits)
   for (i=0; i<_numBits; ++i)
   {
      digitalWrite(_clockPin, HIGH);
-     delay(10);  // I don't know why I need this, but without it I don't get my 8 lsb of temp
+     dj_timer_delay(10);  // I don't know why I need this, but without it I don't get my 8 lsb of temp
      ret = ret*2 + digitalRead(_dataPin);
      digitalWrite(_clockPin, LOW);
   }
@@ -192,13 +194,13 @@ void waitForResultSHT(int _dataPin)
 
   pinMode(_dataPin, INPUT);
 
-delay(10);
+dj_timer_delay(10);
 
 ack = digitalRead(_dataPin);
 
   for(i= 0; i < 100; ++i)
   {
-    delay(10);
+    dj_timer_delay(10);
     ack = digitalRead(_dataPin);
 
     if (ack == LOW) {

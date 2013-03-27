@@ -52,12 +52,12 @@ uint8_t wkpf_native_wuclasses_init() {
     wkpf_register_wuclass(&wuclass_threshold);
   }
 
-  if (wkpf_config_get_feature_enabled(WPKF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR)) {
-    wkpf_register_wuclass(&wuclass_temperature_humidity_sensor);
-    /*retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_sensor, 1);*/
-    if (retval != WKPF_OK)
-      return retval;
-  }
+  // if (wkpf_config_get_feature_enabled(WPKF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR)) {
+  //   wkpf_register_wuclass(&wuclass_temperature_humidity_sensor);
+  //   /*retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_sensor, 1);*/
+  //   if (retval != WKPF_OK)
+  //     return retval;
+  // }
 
   return WKPF_OK;
 }
