@@ -38,3 +38,9 @@ dj_time_t dj_timer_getTimeMillis()
 {
 	return (dj_time_t)avr_millis();
 }
+
+void dj_timer_delay(unsigned long msec)
+{
+	return avr_delay(msec);
+}
+

@@ -32,3 +32,9 @@ uint32_t dj_timer_getTimeMillis()
 {
 	return clock() / (CLOCKS_PER_SEC / 1000);
 }
+
+void dj_timer_delay(unsigned long msec)
+{
+	return avr_delay(msec);
+}
+
