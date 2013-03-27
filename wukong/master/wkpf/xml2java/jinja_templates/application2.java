@@ -81,18 +81,16 @@ public class WKDeploy {
                 VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
                 WKPF.registerWuClass(GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
                 WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
-                {%- for property_tp in wuobject.properties_with_default_values -%}
-                {%- set property = property_tp[0]|getPropertyByName -%}
-                {%- if property -%}
+
+                {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
                 {% if property.datatype.lower() == 'boolean' %}
-                WKPF.setPropertyBoolean(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property_tp[1] }});
+                WKPF.setPropertyBoolean(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property.value }});
                 {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-                WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property_tp[1] }});
+                WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
                 {% elif property.datatype.lower() == 'refresh_rate' %}
-                WKPF.setPropertyRefreshRate(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property_tp[1] }});
+                WKPF.setPropertyRefreshRate(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
                 {% else %}
                 WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, GENERATEDWKPF.{{ property|propertyconstantvalue }});
-                {%- endif -%}
                 {%- endif -%}
                 {%- endfor -%}
 
@@ -100,18 +98,16 @@ public class WKDeploy {
 
                 // Native WuClasses (C)
                 WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), null);
-                {%- for property_tp in wuobject.properties_with_default_values -%}
-                {%- set property = property_tp[0]|getPropertyByName -%}
-                {%- if property -%}
+
+                {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
                 {% if property.datatype.lower() == 'boolean' %}
-                WKPF.setPropertyBoolean((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property_tp[1] }});
+                WKPF.setPropertyBoolean((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property.value }});
                 {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-                WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property_tp[1] }});
+                WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
                 {% elif property.datatype.lower() == 'refresh_rate' %}
-                WKPF.setPropertyRefreshRate((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property_tp[1] }});
+                WKPF.setPropertyRefreshRate((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
                 {% else %}
                 WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, GENERATEDWKPF.{{ property|propertyconstantvalue }});
-                {%- endif -%}
                 {%- endif -%}
                 {%- endfor -%}
 
