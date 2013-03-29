@@ -180,7 +180,7 @@ uint8_t wkpf_propagate_property(wuobject_t *wuobject, uint8_t property_number, v
 			uint16_t dest_component_id = link->dest_component_id;
 			uint8_t dest_property_number = link->dest_property_number;
 			uint8_t dest_port_number = wkpf_leader_for_component(dest_component_id).port_number;
-			address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
+			wkcomm_address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
 			if (dest_node_id == wkcomm_get_node_id()) {
 				// Local
 				wuobject_t *dest_wuobject;
@@ -238,7 +238,7 @@ uint8_t wkpf_propagate_dirty_properties() {
 }
 
 // TODONR: proper definition for this function.
-uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *node_id, uint8_t *port_number) {
+uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, wkcomm_address_t *node_id, uint8_t *port_number) {
 	if (component_id > wkpf_number_of_components)
 		return WKPF_ERR_COMPONENT_NOT_FOUND;
 	wkpf_component_t *component = wkpf_get_component(component_id);
@@ -248,7 +248,7 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
 	return WKPF_OK;
 }
 
-bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
+bool wkpf_node_is_leader(uint16_t component_id, wkcomm_address_t node_id) {
 	return wkpf_get_endpoint_for_component(wkpf_get_component(component_id), 0)->node_id == node_id;
 }
 

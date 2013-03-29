@@ -31,7 +31,7 @@ void wkcomm_init(void) {
 }
 
 // Get my own node id
-address_t wkcomm_get_node_id() {
+wkcomm_address_t wkcomm_get_node_id() {
 	// TODO: This doesn't work for xbee yet, but it didn't in nanovm either.
 	#ifdef RADIO_USE_ZWAVE
 		return wkcomm_zwave_get_node_id();
@@ -53,28 +53,17 @@ void wkcomm_poll(void *dummy) {
 }
 
 // Send length bytes to dest
-int wkcomm_do_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
+int wkcomm_do_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
 	if (length > WKCOMM_MESSAGE_SIZE) {
 		DEBUG_LOG(DBG_WKCOMM, "message oversized\n");
 		return WKCOMM_SEND_ERR_TOO_LONG; // Message too large
 	}
 	int retval = WKCOMM_SEND_ERR_NOT_HANDLED;
 	DEBUG_LOG(DBG_WKCOMM, "wkcomm_send\n");
-	#ifdef RADIO_USE_ZWAVE
-		retval = wkcomm_zwave_send(dest, command, payload, length, seqnr);
-		if (retval == 0)
-			return retval;
-	#endif
-	#ifdef RADIO_USE_XBEE
-		retval = wkcomm_xbee_send(dest, command, payload, length, seqnr);
-		if (retval == 0)
-			return retval;
-	#endif
-
-	return retval;
+	return routing_send(dest, command, payload, length, seqnr);
 }
 
-int wkcomm_send(address_t dest, uint8_t command, uint8_t *payload, uint8_t length) {
+int wkcomm_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length) {
 	return wkcomm_do_send(dest, command, payload, length, ++wkcomm_last_seqnr);
 }
 
@@ -83,7 +72,7 @@ int wkcomm_send_reply(wkcomm_received_msg *received_msg, uint8_t command, uint8_
 }
 
 // Send length bytes to dest and wait for a specific reply (and matching sequence nr)
-int wkcomm_send_and_wait_for_reply(address_t dest, uint8_t command, uint8_t *payload, uint8_t length,
+int wkcomm_send_and_wait_for_reply(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length,
 							uint16_t wait_msec, uint8_t *reply_commands, uint8_t number_of_reply_commands, wkcomm_received_msg **reply) {
 
 	// Set global variables to wait for the required message types
