@@ -4,7 +4,12 @@
 
 #include "types.h"
 #include "panic.h"
-#include "wkcomm.h"
+#include "radio_xbee.h"
+
+// Here we have a circular dependency between radio_X and routing.
+// Bit of a code smell, but since the two are supposed to be used together I'm leaving it like this for now.
+// (routing requires at least 1 radio_ library to be linked in)
+#include "routing.h"
 
 void wkcomm_xbee_init(void) {
 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);

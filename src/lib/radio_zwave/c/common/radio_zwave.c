@@ -6,6 +6,9 @@
 #include "djtimer.h"
 #include "uart.h"
 
+// Here we have a circular dependency between radio_X and routing.
+// Bit of a code smell, but since the two are supposed to be used together I'm leaving it like this for now.
+// (routing requires at least 1 radio_ library to be linked in)
 #include "routing.h"
 
 #define ZWAVE_UART                   2
@@ -112,7 +115,7 @@ radio_zwave_address_t radio_zwave_get_node_id() {
 	return radio_zwave_my_address;
 }
 
-uint8_t radio_zwave_send(radio_zwave_address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
+uint8_t radio_zwave_send(radio_zwave_address_t dest, uint8_t *payload, uint8_t length) {
     uint8_t txoptions = ZWAVE_TRANSMIT_OPTION_ACK + ZWAVE_TRANSMIT_OPTION_AUTO_ROUTE;
 
 #ifdef DBG_WKCOMM
@@ -123,11 +126,7 @@ uint8_t radio_zwave_send(radio_zwave_address_t dest, uint8_t command, uint8_t *p
     DEBUG_LOG(DBG_WKCOMM, "\n");
 #endif // DBG_WKCOMM
 
-    uint8_t zwave_addr;
-    if (addr_wkcomm_to_zwave(dest, &zwave_addr))
-        return ZW_sendData(zwave_addr, command, payload, length, txoptions, seqnr);
-    else
-        return -1; // Not a ZWave address
+    return ZW_sendData(zwave_addr, payload, length, txoptions);
 }
 
 
@@ -232,22 +231,9 @@ void Zwave_receive(int processmessages) {
                 zwsend_ack_got = radio_zwave_receive_buffer[1];
             }
             if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER) {
-                wkcomm_received_msg msg;
-
-                if (addr_zwave_to_wkcomm(&msg.src, radio_zwave_receive_buffer[1]) && processmessages==1) {
-                    msg.command = radio_zwave_receive_buffer[4];
-                    msg.seqnr = radio_zwave_receive_buffer[5] + (((uint16_t)radio_zwave_receive_buffer[6]) << 8);
-                    msg.payload = radio_zwave_receive_buffer+7;
-                    msg.length = payload_length-7;
-
-                    routing_handle_message(&msg);
-                }
-                // Old nanovm code:
-                // if (f!=NULL) {
-                //     radio_zwave_address_t nvmcomm_addr;
-                //     if (addr_zwave_to_wkcomm(&nvmcomm_addr, radio_zwave_receive_buffer[1]) && processmessages==1)
-                //         f(nvmcomm_addr, radio_zwave_receive_buffer[4], radio_zwave_receive_buffer+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
-                // }
+                routing_handle_zwave_message(radio_zwave_receive_buffer[1],
+                                             radio_zwave_receive_buffer+4,
+                                             payload_length-4);
             }
             if (cmd == FUNC_ID_MEMORY_GET_ID) {
                 radio_zwave_my_address = radio_zwave_receive_buffer[4];
@@ -419,7 +405,7 @@ int ZW_GetRoutingInformation(uint8_t id)
 }
 */
 
-int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr)
+int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions)
 {
     unsigned char buf[WKCOMM_MESSAGE_SIZE+10];
     int i;
@@ -431,18 +417,11 @@ int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t t
     buf[2] = id;
     buf[3] = len+4;
     buf[4] = COMMAND_CLASS_PROPRIETARY;
-    buf[5] = command; // See nvmcomm.h
-    // We have two sequence numbers here.
-    // "seqnr" is used by the wkcomm code to check received replies correspond to the right request.
-    // "seq" is used by zwave itself.
-    // It would have been nicer to put seqnr in the payload before calling ZW_sendData, but that would have meant copying the data one more time and wasting memory.
-    buf[6] = seqnr % 256;
-    buf[7] = seqnr / 256;
     for(i=0; i<len; i++)
-        buf[i+8] = in[i];
-    buf[8+len] = txoptions;
-    buf[9+len] = seq++;
-    if (SerialAPI_request(buf, len + 10) != 0)
+        buf[i+5] = in[i];
+    buf[5+len] = txoptions;
+    buf[6+len] = seq++;
+    if (SerialAPI_request(buf, len + 7) != 0)
         return -1;
     while (zwsend_ack_got == -1 && timeout-->0) {
         radio_zwave_poll();
