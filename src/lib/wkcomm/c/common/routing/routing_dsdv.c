@@ -1,6 +1,9 @@
 #include "config.h"
 
-#ifdef ROUTING_USE_NONE
+#ifdef ROUTING_USE_DSDV
+
+// Just as an example of where dsdv or other protocols could be implemented.
+// It's a copy of routing_none.c for now.
 
 #include "types.h"
 #include "routing.h"
@@ -17,7 +20,8 @@
 #ifdef RADIO_USE_ZWAVE
 #include "../radios/radio_zwave.h"
 radio_zwave_address_t addr_wkcomm_to_zwave(wkcomm_address_t wkcomm_addr) {
-    return (radio_zwave_address_t)wkcomm_addr;
+    // return (radio_zwave_address_t)wkcomm_addr;
+    return 1;
 }
 wkcomm_address_t addr_zwave_to_wkcomm(radio_zwave_address_t zwave_addr) {
 	return (wkcomm_address_t)zwave_addr;
@@ -32,6 +36,7 @@ radio_xbee_address_t addr_wkcomm_to_xbee(wkcomm_address_t wkcomm_addr) {
 wkcomm_address_t addr_xbee_to_wkcomm(radio_xbee_address_t xbee_addr) {
 	return (wkcomm_address_t)xbee_addr;
 }
+
 #endif // RADIO_USE_XBEE
 
 
@@ -103,6 +108,6 @@ void routing_poll() {
 	#endif
 }
 
-#endif // ROUTING_USE_NONE
+#endif // ROUTING_USE_DSDV
 
 

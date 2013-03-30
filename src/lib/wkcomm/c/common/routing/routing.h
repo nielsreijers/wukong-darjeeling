@@ -26,7 +26,7 @@ extern void routing_handle_zwave_message(radio_zwave_address_t zwave_addr, uint8
 #endif // RADIO_USE_ZWAVE
 
 #ifdef RADIO_USE_XBEE
-#include "radios/radio_zwave.h"
+#include "radios/radio_xbee.h"
 extern void routing_handle_xbee_message(radio_xbee_address_t xbee_addr, uint8_t *payload, uint8_t length);
 #endif // RADIO_USE_XBEE
 

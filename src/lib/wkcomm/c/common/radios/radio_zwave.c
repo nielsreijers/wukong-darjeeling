@@ -341,7 +341,7 @@ int SerialAPI_request(unsigned char *buf, int len)
             DEBUG_LOG(DBG_WKCOMM, "SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", state);
             DEBUG_LOG(DBG_WKCOMM, "Try to send SerialAPI command in a wrong state......\n");
             dj_timer_delay(100);
-            //continue;
+            // continue;
         }
 
         // send SerialAPI request
