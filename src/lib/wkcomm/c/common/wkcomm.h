@@ -31,8 +31,8 @@ extern void wkcomm_handle_message(wkcomm_address_t addr, uint8_t *payload, uint8
 // Initialise wkcomm and whatever protocols are enabled. Called from javax_wukong_wkcomm_WKComm_void__init()
 extern void wkcomm_init(void);
 
-// Get my own node id, directly from routing library but included here so wkpf and wkreprog only need to deal with wkcomm
-#define wkcomm_get_node_id routing_get_node_id
+// Get my own node id, directly from routing
+wkcomm_address_t wkcomm_get_node_id();
 
 // Call this periodically to receive data
 extern void wkcomm_poll(void *);

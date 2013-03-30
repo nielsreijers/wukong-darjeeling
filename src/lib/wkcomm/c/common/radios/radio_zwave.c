@@ -1,5 +1,7 @@
 #include "config.h" // To get RADIO_USE_ZWAVE
 
+#ifdef RADIO_USE_ZWAVE
+
 #include "types.h"
 #include "panic.h"
 #include "debug.h"
@@ -9,7 +11,7 @@
 // Here we have a circular dependency between radio_X and routing.
 // Bit of a code smell, but since the two are supposed to be used together I'm leaving it like this for now.
 // (routing requires at least 1 radio_ library to be linked in)
-#include "routing.h"
+#include "../routing/routing.h"
 
 #define ZWAVE_UART                   2
 #define ZWAVE_UART_BAUDRATE          115200
@@ -56,7 +58,7 @@ uint8_t seq;          // Sequence number which is used to match the callback fun
 
 // Low level ZWave functions originally from testrtt.c
 int SerialAPI_request(unsigned char *buf, int len);
-int ZW_sendData(uint8_t id, uint8_t command, uint8_t *in, uint8_t len, uint8_t txoptions, uint16_t seqnr);
+int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions);
 void Zwave_receive(int processmessages);
 
 void radio_zwave_poll(void) {
@@ -115,11 +117,11 @@ radio_zwave_address_t radio_zwave_get_node_id() {
 	return radio_zwave_my_address;
 }
 
-uint8_t radio_zwave_send(radio_zwave_address_t dest, uint8_t *payload, uint8_t length) {
+uint8_t radio_zwave_send(radio_zwave_address_t zwave_addr, uint8_t *payload, uint8_t length) {
     uint8_t txoptions = ZWAVE_TRANSMIT_OPTION_ACK + ZWAVE_TRANSMIT_OPTION_AUTO_ROUTE;
 
 #ifdef DBG_WKCOMM
-    DEBUG_LOG(DBG_WKCOMM, "Sending command %d to %d, length %d: ", command, dest, length);
+    DEBUG_LOG(DBG_WKCOMM, "Sending %d bytes to %d: ", length, zwave_addr);
     for (int16_t i=0; i<length; ++i) {
         DEBUG_LOG(DBG_WKCOMM, " %d", payload[i]);
     }
@@ -589,6 +591,6 @@ int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions)
 
 
 
-#endif
+#endif // RADIO_USE_ZWAVE
 
 

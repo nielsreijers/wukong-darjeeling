@@ -5,8 +5,11 @@
 #include "hooks.h"
 #include "djtimer.h"
 
-#include "routing.h"
+#include "routing/routing.h"
 #include "wkcomm.h"
+
+// Periodically call wkcomm_poll to receive messages
+dj_hook wkcomm_pollingHook;
 
 // Keep track of sequence numbers
 uint16_t wkcomm_last_seqnr = 0;
@@ -22,18 +25,11 @@ dj_hook *wkcomm_handle_message_hook = NULL;
 
 // Initialise wkcomm and whatever protocols are enabled.
 void wkcomm_init(void) {
+	wkcomm_pollingHook.function = wkcomm_poll;
+	dj_hook_add(&dj_vm_pollingHook, &wkcomm_pollingHook);
 	routing_init();
 }
 
-// Call this periodically to receive data
-void wkcomm_poll(void *dummy) {
-	#ifdef RADIO_USE_ZWAVE
-		wkcomm_zwave_poll();
-	#endif
-	#ifdef RADIO_USE_XBEE
-		wkcomm_xbee_poll();
-	#endif
-}
 
 // Send length bytes to dest
 int wkcomm_do_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
@@ -90,7 +86,7 @@ int wkcomm_send_and_wait_for_reply(wkcomm_address_t dest, uint8_t command, uint8
 	return WKCOMM_SEND_ERR_NO_REPLY;
 }
 
-// Message handling. This function is called from the radio code (wkcomm_zwave_poll or wkcomm_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
+// Message handling. This function is called from the radio code (radio_zwave_poll or radio_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
 void wkcomm_handle_message(wkcomm_address_t addr, uint8_t *payload, uint8_t length) {
 #ifdef DEBUG
 	DEBUG_LOG(DBG_WKCOMM, "Handling command "DBG8" from "DBG8", length "DBG8":\n", message->command, message->src, message->length);
@@ -102,7 +98,7 @@ void wkcomm_handle_message(wkcomm_address_t addr, uint8_t *payload, uint8_t leng
 
 	wkcomm_received_msg msg;
 	msg.src = addr;
-	msg.command = 	payload[0]
+	msg.command = 	payload[0];
 	msg.seqnr = payload[1] + (((uint16_t)payload[2]) << 8);
 	msg.payload = payload+3;
 	msg.length = length - 3;
@@ -112,10 +108,10 @@ void wkcomm_handle_message(wkcomm_address_t addr, uint8_t *payload, uint8_t leng
 		// if this message is of that type, store it in nvmcomm_wait_received_message so nvmcomm_wait can return it.
 		// if not, handle it as a normal message
 		if (wkcomm_wait_reply_number_of_commands != 0
-				&& message->seqnr == wkcomm_last_seqnr) {
+				&& msg.seqnr == wkcomm_last_seqnr) {
 			for (int i=0; i<wkcomm_wait_reply_number_of_commands; i++) {
-				if (message->command == wkcomm_wait_reply_commands[i]) {
-					wkcomm_received_reply = *message; // Struct, so values are copied. Radio libs need to provide a pointer to a global payload buffer.
+				if (msg.command == wkcomm_wait_reply_commands[i]) {
+					wkcomm_received_reply = msg; // Struct, so values are copied. Radio libs need to provide a pointer to a global payload buffer.
 					wkcomm_wait_reply_number_of_commands = 0; // Signal we're no longer waiting for the reply.
 				}
 			}
@@ -123,6 +119,14 @@ void wkcomm_handle_message(wkcomm_address_t addr, uint8_t *payload, uint8_t leng
 	}
 
 	// Pass on to other libs. Could have a system here were libraries register for specific commands, but this seems simpler, and only a bit slower if handlers return quickly when the message isn't meant for them.
-	dj_hook_call(wkcomm_handle_message_hook, message);
+	dj_hook_call(wkcomm_handle_message_hook, &msg);
+}
+
+void wkcomm_poll(void *dummy) {
+	routing_poll();
+}
+
+wkcomm_address_t wkcomm_get_node_id() {
+	return routing_get_node_id();
 }
 

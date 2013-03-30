@@ -11,16 +11,16 @@
 // (routing requires at least 1 radio_ library to be linked in)
 #include "routing.h"
 
-void wkcomm_xbee_init(void) {
+void radio_xbee_init(void) {
 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
 }
 
-radio_xbee_address_t wkcomm_xbee_get_node_id() {
+radio_xbee_address_t xbee_get_node_id() {
 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
 	return 1; // To keep the compiler happy.
 }
 
-void wkcomm_xbee_poll(void) {
+void radio_xbee_poll(void) {
 	dj_panic(DJ_PANIC_UNIMPLEMENTED_FEATURE);
 }
 
