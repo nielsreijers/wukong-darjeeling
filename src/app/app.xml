@@ -1,5 +1,4 @@
 <project name="app" default="all">
-
 	<!-- Obtain absolute paths to the app directory, and the home directory of the application being built -->
 	<dirname property="apppath" file="${ant.file.app}"/>	
 	<dirname property="buildtargetpath" file="${ant.file}"/>
@@ -13,6 +12,7 @@
 
 	<!-- Include taskdef for the Infuser tool -->
 	<import file="${apppath}/../taskdefs.xml"/>
+	<import file="${apppath}/../djarchive_filetypes.xml"/>
 		
 	<!-- We must not compile against the JRE libraries, but use out own base library instead (contains java.lang, among other things) -->
 	<property name="bootclasspath" value="${apppath}/../lib/base/build/base.jar"/>
@@ -35,14 +35,26 @@
 	</pathconvert>
 	
 	<!-- Meta-target -->
-	<target name="all" depends="compile-java, package, infuse, add-wkpftable"/>
+	<target name="all" depends="compile-java, package, infuse, create-wkpftables, make-djarchive, add-wkpftables"/>
 	
 	<!-- WuKong specific: add some binary data containing the link table and 
 	     component map to the end of the infusion -->
-	<target name="add-wkpftable" if="wkpftable">
+	<target name="create-wkpftables" if="wkpftable">
 		<wkpftable
 			src="${java-src}/${wkpftable}"
-			dest="${build}/${name}.wkpftable"/>
+			dest="${build}/${name}"/>
+	</target>
+
+	<!-- WuKong specific: add some binary data containing the link table and 
+	     component map to the end of the infusion -->
+	<target name="make-djarchive">
+		<djarchive dest="${build}/${name}.dja" mode="create" src="${build}/${name}.di" filetype="${djarchive_type_app_infusion}"/>
+	</target>
+
+	<target name="add-wkpftables" if="wkpftable">
+		<djarchive dest="${build}/${name}.dja" mode="append" src="${build}/${name}.wkpf_linktable" filetype="${djarchive_type_wkpf_link_table}"/>
+		<djarchive dest="${build}/${name}.dja" mode="append" src="${build}/${name}.wkpf_componentmap" filetype="${djarchive_type_wkpf_component_map}"/>
+		<djarchive dest="${build}/${name}.dja" mode="append" src="${build}/${name}.wkpf_initvalues" filetype="${djarchive_type_wkpf_initvalues}"/>
 	</target>
 	
 	<apply executable="ls">

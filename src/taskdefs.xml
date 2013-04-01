@@ -1,5 +1,4 @@
 <project name="taskdefs">
-
 	<dirname property="taskdefspath" file="${ant.file.taskdefs}"/>
 
 	<!-- Task for compiling C  -->
@@ -18,7 +17,7 @@
 	</taskdef>
 
 	<!-- DJArchive Task -->
-	<taskdef name="djarchive" classname="org.csiro.darjeeling.djarchive.ant.DJArchiveTask">
+	<taskdef name="djarchive" classname="org.csiro.darjeeling.djarchive.ant.DJAddToArchiveTask">
 		<classpath path="${taskdefspath}/infuser/build/infuser.jar"/>
 	</taskdef>
 

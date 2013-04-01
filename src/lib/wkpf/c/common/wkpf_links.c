@@ -252,13 +252,11 @@ bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
 void wkpf_load_tables_from_archive(dj_di_pointer archive) {
 	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
 		dj_di_pointer file = dj_archive_get_file(archive, i);
-		if (dj_archive_filetype(file) == FILETYPE_WKPF_TABLE) {
+		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_LINK_TABLE) {
 			wkpf_load_links(file);
-			uint16_t number_of_links = dj_di_getU16(file);
-			// Number of links is now loaded, so we can calculate the address of the component map.
-			// Maybe I should refactor this into distinct files.
-			wkpf_load_component_to_wuobject_map(file + 2 + 6*number_of_links);
-			return;
+		}
+		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_COMPONENT_MAP) {
+			wkpf_load_component_to_wuobject_map(file);
 		}
 	}
 	DEBUG_LOG(DBG_WKPF, "WKPF: ---->>>> WARNING: NO TABLES FOUND IN APPLICATION ARCHIVE <<<<----\n");

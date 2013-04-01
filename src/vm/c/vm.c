@@ -486,7 +486,7 @@ void dj_vm_loadInfusionArchive(dj_vm * vm, dj_di_pointer archive, dj_named_nativ
 {
 	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
 		dj_di_pointer file = dj_archive_get_file(archive, i);
-		if (dj_archive_filetype(file) == FILETYPE_LIB_INFUSION) {
+		if (dj_archive_filetype(file) == DJ_FILETYPE_LIB_INFUSION) {
 			dj_infusion * infusion = dj_vm_loadInfusion(vm, file, native_handlers, numHandlers);
 			if (infusion == NULL) {
 				DARJEELING_PRINTF("Not enough space to create the infusion nr %d in archive.\n", i);

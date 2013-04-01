@@ -1,5 +1,5 @@
 /*
- * DJArchiveTask.java
+ * DJAddToArchiveTask.java
  * 
  * Copyright (c) 2008-2010 CSIRO, Delft University of Technology.
  * 
@@ -53,17 +53,12 @@ import org.apache.tools.ant.Task;
  *              empty we'll create an array as large as the archive. When it's set, but smaller
  *              than the archive, throw an error.
  */
-public class DJArchiveTask extends Task
+public class DJAddToArchiveTask extends Task
 {
-	private final static byte FILETYPE_LIB_INFUSION = 0;
-	private final static byte FILETYPE_APP_INFUSION = 1;
-	private final static byte FILETYPE_WKPF_TABLE = 2;
-
-	// Source, destination files and output array name.
 	private String dest;
-	private String libInfusions;
-	private String appInfusions;
-	private String wkpfTables;
+	private byte filetype;
+	private String src;
+	private String mode;
 
 	/**
 	 * Ant execute entry point.
@@ -72,13 +67,32 @@ public class DJArchiveTask extends Task
 	{
 		// make sure properties are set
 		if (dest==null) throw new BuildException("Destination file name not set");
+		if (mode==null) throw new BuildException("Mode file name not set");
 
 		try {
-			System.out.println("Creating archive '" + dest + "'");
+			byte[] oldBytes = {};
+
+			if (mode.equals("append")) {
+				// Read the data already in the file. There's probably a better way to do this in Java
+				FileInputStream fileInput = new FileInputStream(dest);
+				byte[] bytes = new byte[fileInput.available()];
+				fileInput.read(bytes);
+				fileInput.close();
+				if (bytes[bytes.length-1] != 0
+						|| bytes[bytes.length-2] != 0)
+					throw new org.apache.tools.ant.BuildException(dest + "is not a valid DJ archive (it doesn't end in 0 0).");
+				oldBytes = arrayPart(bytes, bytes.length-2); // Trim the last two bytes of the archive
+			}
+
 			FileOutputStream fout = new FileOutputStream(dest);
-			appendFiles(fout, libInfusions, FILETYPE_LIB_INFUSION);
-			appendFiles(fout, appInfusions, FILETYPE_APP_INFUSION);
-			appendFiles(fout, wkpfTables, FILETYPE_WKPF_TABLE);
+			if (mode.equals("append")) {
+				System.out.println("Adding to archive '" + dest + "'");
+				fout.write(oldBytes);
+			} else {
+				System.out.println("Creating archive '" + dest + "'");
+			}
+
+			appendFiles(fout, src, filetype);
 			// Close the file with a 00 00
 			fout.write((byte)0);
 			fout.write((byte)0);
@@ -87,6 +101,12 @@ public class DJArchiveTask extends Task
 			throw new org.apache.tools.ant.BuildException("IO error while writing: " + dest);
 		}
 		
+	}
+
+	private static byte[] arrayPart(byte[] array, int size) {
+	    byte[] part = new byte[size];
+	    System.arraycopy(array, 0, part, 0, size);
+	    return part;
 	}
 
 	public void appendFiles(FileOutputStream fout, String files, byte filetype) throws IOException {
@@ -119,40 +139,43 @@ public class DJArchiveTask extends Task
 			fout.write(bytes);
 		}
 	}
-	
+
+
 	/**
-	 * Sets the list of library infusions to include in the archive.
+	 * Sets the list of file add to the archive.
 	 * @param libInfusions list of library infusions
 	 */
-	public void setLibInfusions(String libInfusions)
+	public void setSrc(String src)
 	{
-		this.libInfusions = libInfusions;
+		this.src = src;
 	}
 
 	/**
-	 * Sets the list of application infusions to include in the archive.
+	 * Sets the filetype for the files to be added to the archive
 	 * @param appInfusions list of application infusions
 	 */
-	public void setAppInfusions(String appInfusions)
+	public void setFiletype(String filetype)
 	{
-		this.appInfusions = appInfusions;
+		this.filetype = (byte)Byte.parseByte(filetype);
 	}
 
 	/**
-	 * Sets the list of wkpf tables to include in the archive.
-	 * @param wkpfTables list of wkpf tables
-	 */
-	public void setwkpfTables(String wkpfTables)
-	{
-		this.wkpfTables = wkpfTables;
-	}
-
-	/**
-	 * Sets the destination file name.
+	 * Sets the destination archive to write to.
 	 * @param dest destination file name
 	 */
 	public void setDest(String dest)
 	{
 		this.dest = dest;
+	}
+
+	/**
+	 * "append" to append to existing DJ archive, or "create" to overwrite it if it exists
+	 * @param mode either "append" or "create"
+	 */
+	public void setMode(String mode)
+	{
+		if (!mode.equals("append") && !mode.equals("create"))
+			throw new org.apache.tools.ant.BuildException("DJAddToArchiveTask mode should be either 'append' or 'create', not " + mode);
+		this.mode = mode;
 	}
 }
