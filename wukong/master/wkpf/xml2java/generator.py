@@ -108,6 +108,8 @@ class Generator:
         for component in changesets.components:
             component_element = ElementTree.SubElement(components, 'component')
             component_element.attrib['id'] = str(component_index)
+            component_wuclass = WuClass.findByName(component.type)[0]
+            component_element.attrib['wuclassId'] = str(component_wuclass.id)
             component_index += 1
             for endpoint in component.instances:
                 endpoint_element = ElementTree.SubElement(component_element, 'endpoint')

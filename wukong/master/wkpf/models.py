@@ -340,6 +340,10 @@ class WuClass:
     def find(cls, id):
         return WuClass.where(id=id)
 
+    @classmethod
+    def findByName(cls, name):
+        return WuClass.where(name=name)
+
     def __init__(self, id, name, virtual, type, properties=[], node_id=None, identity=None):
         self.id = id
         self.name = name

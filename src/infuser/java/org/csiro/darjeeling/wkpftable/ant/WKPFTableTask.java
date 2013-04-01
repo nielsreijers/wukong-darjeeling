@@ -122,9 +122,12 @@ public class WKPFTableTask extends Task
 					int component_id = Integer.parseInt(component.getAttribute("id"));
 					if (component_id != expected_component_id)
 						throw new org.apache.tools.ant.BuildException("Unexpected component is: " + component_id + " expected: " + expected_component_id + ". Component ids should be a continuous range starting at 0.");
-					components_offsets.add(components_bytes.size());
+					components_offsets.add(components_bytes.size()); // Offset of this component
+
 					NodeList endpoints = component.getElementsByTagName("endpoint");
-					components_bytes.add((byte)endpoints.getLength());
+					components_bytes.add((byte)endpoints.getLength()); // Number of endpoints
+					components_bytes.add((byte)(Short.parseShort(component.getAttribute("wuclassId")) % 256));
+					components_bytes.add((byte)(Short.parseShort(component.getAttribute("wuclassId")) / 256));
 					for (int j=0; j<endpoints.getLength(); j++) {
 						Node node2 = endpoints.item(j);
 						if (node2.getNodeType() == Node.ELEMENT_NODE) {
