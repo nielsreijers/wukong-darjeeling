@@ -64,60 +64,6 @@ bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
 	return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
 }
 
-uint8_t wkpf_load_component_to_wuobject_map(dj_di_pointer map) {
-	wkpf_component_map_store = map;
-	wkpf_number_of_components = dj_di_getU16(wkpf_component_map_store);
-
-	// After storing the reference, only use the constants defined above to access it so that we may change the storage implementation later
-	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %x components\n", wkpf_number_of_components);
-#ifdef DARJEELING_DEBUG
-	for (int i=0; i<wkpf_number_of_components; i++) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: Component %d, %d endpoints -> ", i, WKPF_NUMBER_OF_ENDPOINTS(i));
-		for (int j=0; j<WKPF_NUMBER_OF_ENDPOINTS(i); j++) {
-			DEBUG_LOG(DBG_WKPF, "  (node %d, port %d)", WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j), WKPF_COMPONENT_ENDPOINT_PORT(i, j));
-		}
-		DEBUG_LOG(DBG_WKPF, "\n");
-	}
-#endif // DARJEELING_DEBUG
-
-// // TODONR: nieuwe constante bedenken en implementatie van group_add_node_to_watch en wkcomm_get_node_id
-// #ifdef NVM_USE_GROUP
-// 	for (int i=0; i<wkpf_number_of_components; i++) {
-// 		wkpf_component_t *component = wkpf_get_component(i);
-// 		for (int j=0; j<WKPF_NUMBER_OF_ENDPOINTS(component); j++) {
-// 			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
-// 			if (endpoint->node_id == wkcomm_get_node_id()) {
-// 				if (j == 0) {
-// 					// I'm the leader, so watch everyone
-// 					for (int k=1; k<WKPF_NUMBER_OF_ENDPOINTS(component); k++)
-// 						group_add_node_to_watch(wkpf_get_endpoint_for_component(component, k)->node_id);
-// 				} else {
-// 					// Just watch the leader
-// 					group_add_node_to_watch(wkpf_get_endpoint_for_component(component, 0)->node_id);
-// 				}
-// 			}
-// 		}
-// 	}
-// #endif // NVM_USE_GROUP
-	return WKPF_OK;
-}
-
-uint8_t wkpf_load_links(dj_di_pointer links) {
-	// This works on AVR and x86 since they're both little endian. To port WKPF to a big endian
-	// platform we would need to do some swapping.
-	wkpf_links_store = links;
-	wkpf_number_of_links =  dj_di_getU16(wkpf_links_store);
-	// After storing the reference, only use the constants defined above to access it so that we may change the storage implementation later
-
-	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %d links\n", (int)wkpf_number_of_links); // Need a cast here because the type may differ depending on architecture.
-#ifdef DARJEELING_DEBUG
-	for (int i=0; i<wkpf_number_of_links; i++) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d)\n", WKPF_LINK_SRC_COMPONENT_ID(i), WKPF_LINK_SRC_PROPERTY(i), WKPF_LINK_DEST_COMPONENT_ID(i), WKPF_LINK_DEST_PROPERTY(i));
-	}
-#endif // DARJEELING_DEBUG
-	return WKPF_OK;
-}
-
 bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t property_number) {
 	uint16_t component_id;
 	wkpf_get_component_id(port_number, &component_id);
@@ -249,26 +195,66 @@ bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
 	return WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(component_id) == node_id;
 }
 
-void wkpf_load_tables_from_archive(dj_di_pointer archive) {
-	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
-		dj_di_pointer file = dj_archive_get_file(archive, i);
-		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_LINK_TABLE) {
-			wkpf_load_links(file);
+
+// Initialisation code called from WKPF.appInit().
+uint8_t wkpf_load_component_to_wuobject_map(dj_di_pointer map) {
+	wkpf_component_map_store = map;
+	wkpf_number_of_components = dj_di_getU16(wkpf_component_map_store);
+
+	// After storing the reference, only use the constants defined above to access it so that we may change the storage implementation later
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %x components\n", wkpf_number_of_components);
+#ifdef DARJEELING_DEBUG
+	for (int i=0; i<wkpf_number_of_components; i++) {
+		DEBUG_LOG(DBG_WKPF, "WKPF: Component %d, %d endpoints -> ", i, WKPF_NUMBER_OF_ENDPOINTS(i));
+		for (int j=0; j<WKPF_NUMBER_OF_ENDPOINTS(i); j++) {
+			DEBUG_LOG(DBG_WKPF, "  (node %d, port %d)", WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j), WKPF_COMPONENT_ENDPOINT_PORT(i, j));
 		}
-		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_COMPONENT_MAP) {
-			wkpf_load_component_to_wuobject_map(file);
-		}
+		DEBUG_LOG(DBG_WKPF, "\n");
 	}
-	DEBUG_LOG(DBG_WKPF, "WKPF: ---->>>> WARNING: NO TABLES FOUND IN APPLICATION ARCHIVE <<<<----\n");
+#endif // DARJEELING_DEBUG
+
+// // TODONR: nieuwe constante bedenken en implementatie van group_add_node_to_watch en wkcomm_get_node_id
+// #ifdef NVM_USE_GROUP
+// 	for (int i=0; i<wkpf_number_of_components; i++) {
+// 		wkpf_component_t *component = wkpf_get_component(i);
+// 		for (int j=0; j<WKPF_NUMBER_OF_ENDPOINTS(component); j++) {
+// 			wkpf_endpoint_t *endpoint = wkpf_get_endpoint_for_component(component, j);
+// 			if (endpoint->node_id == wkcomm_get_node_id()) {
+// 				if (j == 0) {
+// 					// I'm the leader, so watch everyone
+// 					for (int k=1; k<WKPF_NUMBER_OF_ENDPOINTS(component); k++)
+// 						group_add_node_to_watch(wkpf_get_endpoint_for_component(component, k)->node_id);
+// 				} else {
+// 					// Just watch the leader
+// 					group_add_node_to_watch(wkpf_get_endpoint_for_component(component, 0)->node_id);
+// 				}
+// 			}
+// 		}
+// 	}
+// #endif // NVM_USE_GROUP
+	return WKPF_OK;
 }
 
+uint8_t wkpf_load_links(dj_di_pointer links) {
+	// This works on AVR and x86 since they're both little endian. To port WKPF to a big endian
+	// platform we would need to do some swapping.
+	wkpf_links_store = links;
+	wkpf_number_of_links =  dj_di_getU16(wkpf_links_store);
+	// After storing the reference, only use the constants defined above to access it so that we may change the storage implementation later
+
+	DEBUG_LOG(DBG_WKPF, "WKPF: Registering %d links\n", (int)wkpf_number_of_links); // Need a cast here because the type may differ depending on architecture.
+#ifdef DARJEELING_DEBUG
+	for (int i=0; i<wkpf_number_of_links; i++) {
+		DEBUG_LOG(DBG_WKPF, "WKPF: Link from (%d, %d) to (%d, %d)\n", WKPF_LINK_SRC_COMPONENT_ID(i), WKPF_LINK_SRC_PROPERTY(i), WKPF_LINK_DEST_COMPONENT_ID(i), WKPF_LINK_DEST_PROPERTY(i));
+	}
+#endif // DARJEELING_DEBUG
+	return WKPF_OK;
+}
 
 uint8_t wkpf_create_local_wuobjects_from_app_tables() {
 	uint8_t wkpf_error_code;
 	for (uint16_t i=0; i<wkpf_number_of_components; i++) {
-			DEBUG_LOG(DBG_WKPF, "---Component %d, number of endpoints %d\n", i, WKPF_NUMBER_OF_ENDPOINTS(i));
 		for (uint8_t j=0; j<WKPF_NUMBER_OF_ENDPOINTS(i); j++) {
-			DEBUG_LOG(DBG_WKPF, "---Component %d, endpoint %d, at node %d\n", i, j, WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j));
 			if (WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j) == wkcomm_get_node_id()) {
 				// This is a local component, so we need to create an instance if it's a native wuclass
 				// I'm still letting the virtual wuclasses be created by the Java code, since this won't
@@ -284,6 +270,57 @@ uint8_t wkpf_create_local_wuobjects_from_app_tables() {
 					return wkpf_error_code;
 			}
 		}
+	}
+	return WKPF_OK;
+}
+
+uint8_t wkpf_process_initvalues_list(dj_di_pointer initvalues) {
+	uint8_t wkpf_error_code;
+	uint16_t number_of_initvalues = dj_di_getU16(initvalues);
+	initvalues += 2; // Skip number of values
+	for (uint16_t i=0; i<number_of_initvalues; i++) {
+		uint16_t component_id = dj_di_getU16(initvalues);
+		initvalues += 2;
+		uint8_t property_number = dj_di_getU8(initvalues);
+		initvalues += 1;
+		uint8_t value_size = dj_di_getU8(initvalues);
+		initvalues += 1;
+
+		for (uint8_t j=0; j<WKPF_NUMBER_OF_ENDPOINTS(component_id); j++) {
+			if (WKPF_COMPONENT_ENDPOINT_NODE_ID(component_id, j) == wkcomm_get_node_id()) {
+				// This initvalue is for a component hosted on this node
+				// Find the wuboject
+				wuobject_t *wuobject;
+				wkpf_error_code = wkpf_get_wuobject_by_port(WKPF_COMPONENT_ENDPOINT_PORT(component_id, j), &wuobject);
+				if (wkpf_error_code != WKPF_OK)
+					return wkpf_error_code;
+				uint8_t datatype = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
+				switch (datatype) {
+					case WKPF_PROPERTY_TYPE_SHORT: {
+						int16_t value = dj_di_getU16(initvalues);
+						wkpf_error_code = wkpf_external_write_property_int16(wuobject, property_number, value);
+						break;
+					}
+					case WKPF_PROPERTY_TYPE_BOOLEAN: {
+						uint8_t value = dj_di_getU8(initvalues);
+						wkpf_error_code = wkpf_external_write_property_boolean(wuobject, property_number, value);
+						break;
+					}
+					case WKPF_PROPERTY_TYPE_REFRESH_RATE: {
+						int16_t value = dj_di_getU16(initvalues);
+						wkpf_error_code = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
+						break;
+					}
+				}
+				if (wkpf_error_code != WKPF_OK) {
+					DEBUG_LOG(DBG_WKPF, "------ ERROR %d\n", wkpf_error_code);
+					// Continue for now to process the other values since we seem to generate a write to a readonly property.
+					// This shouldn't be generated in the master
+					// return wkpf_error_code;
+				}
+			}
+		}
+		initvalues += value_size;
 	}
 	return WKPF_OK;
 }

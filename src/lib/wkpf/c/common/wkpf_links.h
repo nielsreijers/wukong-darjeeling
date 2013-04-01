@@ -10,7 +10,9 @@ extern uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, addre
 
 extern bool wkpf_node_is_leader(uint16_t component_id, address_t node_id);
 
-void wkpf_load_tables_from_archive(dj_di_pointer archive);
+uint8_t wkpf_load_links(dj_di_pointer links);
+uint8_t wkpf_load_component_to_wuobject_map(dj_di_pointer map);
 uint8_t wkpf_create_local_wuobjects_from_app_tables();
+uint8_t wkpf_process_initvalues_list(dj_di_pointer initvalues);
 
 #endif // WKPF_LINKSH

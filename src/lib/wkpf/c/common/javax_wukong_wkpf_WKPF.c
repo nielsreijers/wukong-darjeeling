@@ -6,6 +6,7 @@
 #include "execution.h"
 #include "wkcomm.h"
 #include "heap.h"
+#include "djarchive.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"
@@ -116,73 +117,35 @@ void javax_wukong_wkpf_WKPF_void_setPropertyBoolean_javax_wukong_wkpf_VirtualWuO
 	}
 }
 
-void javax_wukong_wkpf_WKPF_void_setPropertyShort_short_byte_short() {
-	int16_t value = (int16_t)dj_exec_stackPopShort();
-	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
-	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
-	address_t node_id;
-	uint8_t port_number;
-	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-	if (wkpf_error_code == WKPF_OK) {
-		if (node_id != wkcomm_get_node_id())
-			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
-		else {
-			wuobject_t *wuobject;
-			wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
-			if (wkpf_error_code == WKPF_OK) {
-				DEBUG_LOG(DBG_WKPF, "WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-				wkpf_error_code = wkpf_external_write_property_int16(wuobject, property_number, value);
-			}
-		}
-	}
-}
-
-void javax_wukong_wkpf_WKPF_void_setPropertyBoolean_short_byte_boolean() {
-	bool value = (bool)dj_exec_stackPopShort();
-	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
-	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
-	address_t node_id;
-	uint8_t port_number;
-	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-	if (wkpf_error_code == WKPF_OK) {
-		if (node_id != wkcomm_get_node_id())
-			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
-		else {
-			wuobject_t *wuobject;
-			wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
-			if (wkpf_error_code == WKPF_OK) {
-				DEBUG_LOG(DBG_WKPF, "WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-				wkpf_error_code = wkpf_external_write_property_boolean(wuobject, property_number, value);
-			}
-		}
-	}
-}
-
-void javax_wukong_wkpf_WKPF_void_setPropertyRefreshRate_short_byte_short() {
-	int16_t value = (int16_t)dj_exec_stackPopShort();
-	uint8_t property_number = (uint8_t)dj_exec_stackPopShort();
-	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
-	address_t node_id;
-	uint8_t port_number;
-	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-	if (wkpf_error_code == WKPF_OK) {
-		if (node_id != wkcomm_get_node_id())
-			wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
-		else {
-			wuobject_t *wuobject;
-			wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
-			if (wkpf_error_code == WKPF_OK) {
-				DEBUG_LOG(DBG_WKPF, "WKPF: setPropertyRefreshRate (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-				wkpf_error_code = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
-			}
-		}
-	}
-}
-
 void javax_wukong_wkpf_WKPF_void_appInit() {
+	bool found_linktable = false, found_componentmap = false, found_initvalues = false;
 	dj_vm *vm = dj_exec_getVM();
-	wkpf_load_tables_from_archive(vm->di_app_infusion_archive_data);
+	dj_di_pointer archive = vm->di_app_infusion_archive_data;
+	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
+		dj_di_pointer file = dj_archive_get_file(archive, i);
+		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_LINK_TABLE) {
+			wkpf_load_links(file);
+			found_linktable = true;
+		}
+		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_COMPONENT_MAP) {
+			wkpf_load_component_to_wuobject_map(file);
+			found_componentmap = true;
+		}
+	}
+
 	wkpf_error_code = wkpf_create_local_wuobjects_from_app_tables();
+
+	if (wkpf_error_code == WKPF_OK) {
+		for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
+			dj_di_pointer file = dj_archive_get_file(archive, i);
+			if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_INITVALUES_TABLE) {
+				wkpf_process_initvalues_list(file);
+				found_initvalues = true;
+			}
+		}
+	}
+	if (!found_linktable || !found_componentmap || !found_initvalues)
+		DEBUG_LOG(DBG_WKPF, "WKPF: ---->>>> WARNING: FILE MISSING IN APPLICATION ARCHIVE <<<<----\n");
 }
 
 void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
