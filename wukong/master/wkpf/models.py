@@ -162,6 +162,10 @@ class WuType:
     def find(cls, id):
         return WuType.where(id=id)
 
+    @classmethod
+    def findByName(cls, name):
+        return WuType.where(name=name)
+
     def __init__(self, name, type, values, identity=None):
         self.name = name
         self.type = type

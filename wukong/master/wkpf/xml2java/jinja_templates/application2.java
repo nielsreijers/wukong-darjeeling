@@ -57,34 +57,34 @@ public class WKDeploy {
                 WKPF.registerWuClass(GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
                 WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
 
-                {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
-                {% if property.datatype.lower() == 'boolean' %}
-                WKPF.setPropertyBoolean(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property.value }});
-                {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-                WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-                {% elif property.datatype.lower() == 'refresh_rate' %}
-                WKPF.setPropertyRefreshRate(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-                {% else %}
-                WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, GENERATEDWKPF.{{ property|propertyconstantvalue }});
-                {%- endif -%}
-                {%- endfor -%}
+                // {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
+                // {% if property.datatype.lower() == 'boolean' %}
+                // WKPF.setPropertyBoolean(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property.value }});
+                // {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
+                // WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                // {% elif property.datatype.lower() == 'refresh_rate' %}
+                // WKPF.setPropertyRefreshRate(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                // {% else %}
+                // WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, GENERATEDWKPF.{{ property|propertyconstname }}, GENERATEDWKPF.{{ property|propertyconstantvalue }});
+                // {%- endif -%}
+                // {%- endfor -%}
 
                 {% else %}
 
                 // Native WuClasses (C)
                 // WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), null);
 
-                {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
-                {% if property.datatype.lower() == 'boolean' %}
-                WKPF.setPropertyBoolean((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property.value }});
-                {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-                WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-                {% elif property.datatype.lower() == 'refresh_rate' %}
-                WKPF.setPropertyRefreshRate((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-                {% else %}
-                WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, GENERATEDWKPF.{{ property|propertyconstantvalue }});
-                {%- endif -%}
-                {%- endfor -%}
+                // {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
+                // {% if property.datatype.lower() == 'boolean' %}
+                // WKPF.setPropertyBoolean((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, {{ property.value }});
+                // {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
+                // WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                // {% elif property.datatype.lower() == 'refresh_rate' %}
+                // WKPF.setPropertyRefreshRate((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                // {% else %}
+                // WKPF.setPropertyShort((short){{ component.index }}, GENERATEDWKPF.{{ property|propertyconstname }}, GENERATEDWKPF.{{ property|propertyconstantvalue }});
+                // {%- endif -%}
+                // {%- endfor -%}
 
                 {% endif %}
 

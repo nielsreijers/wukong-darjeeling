@@ -75,7 +75,6 @@ class Generator:
                         property.value = component_property[property.name]
             return properties
 
-
         # Generate the Java code
         print 'generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
@@ -93,11 +92,28 @@ class Generator:
 
     @staticmethod
     def generateTablesXML(name, changesets):
+        def generateProperties(wuclass_properties, component_properties):
+            properties = []
+            for property in wuclass_properties:
+                if property.value.strip() != "" and (not property.name in [x.name for x in properties]):
+                    properties.append(property)
+
+            for property in properties:
+                if property.name in component_properties:
+                    if component_property[property.name].strip() != "":
+                        property.value = component_property[property.name]
+            return properties
+
+        # TODO: this should be in a higher level place somewhere.
+        # TODO: is 'int' really a datatype? It was used in application2.java so keeping it here for now. should check if it can go later.
+        datatype_sizes = {'boolean': 1, 'int': 2, 'short': 2, 'refresh_rate': 2}
+
         # Generate the link table and component map xml
         root = ElementTree.Element('wkpftables')
         tree = ElementTree.ElementTree(root)
         links = ElementTree.SubElement(root, 'links')
         components = ElementTree.SubElement(root, 'components')
+        initvalues = ElementTree.SubElement(root, 'initvalues')
         for link in changesets.links:
             link_element = ElementTree.SubElement(links, 'link')
             link_element.attrib['fromComponent'] = str(link.from_component_index)
@@ -115,4 +131,26 @@ class Generator:
                 endpoint_element = ElementTree.SubElement(component_element, 'endpoint')
                 endpoint_element.attrib['node'] = str(endpoint.node_id)
                 endpoint_element.attrib['port'] = str(endpoint.port_number)
+        component_index = 0
+        for component in changesets.components:
+            wuobject = component.instances[0]
+            for property in generateProperties(wuobject.wuclass.properties, wuobject.properties_with_default_values):
+                initvalue = ElementTree.SubElement(initvalues, 'initvalue')
+                initvalue.attrib['componentId'] = str(component_index)
+                initvalue.attrib['propertyNumber'] = str(property.id)
+                if property.datatype in datatype_sizes: # Basic type
+                    initvalue.attrib['valueSize'] = str(datatype_sizes[property.datatype])
+                else: # Enum
+                    initvalue.attrib['valueSize'] = '2'
+                if property.datatype == 'short' or property.datatype == 'int' or property.datatype == 'refresh_rate':
+                    initvalue.attrib['value'] = str(property.value)
+                elif property.datatype == 'boolean':
+                    initvalue.attrib['value'] = '1' if property.value else '0'
+                else: # Enum
+                    enumtype = WuType.findByName(property.datatype)[0]
+                    enumvalues = [x.value.upper() for x in enumtype.values]
+                    print enumtype
+                    print enumvalues
+                    initvalue.attrib['value'] = str(enumvalues.index(property.value.upper())) # Translate the string representation to an integer
+            component_index += 1
         tree.write(os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.xml"))
