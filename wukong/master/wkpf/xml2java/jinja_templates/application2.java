@@ -31,6 +31,7 @@ public class WKDeploy {
         System.out.println("My node id: " + WKPF.getMyNodeId());
         // WKPF.loadHeartbeatToNodeAddrMap(heartbeatToNodeAddrMap);
         // WKPF.loadHeartbeatPeriods(heartbeatGroupPeriods);
+        WKPF.appInit();
         initialiseLocalWuObjects();
 
         while(true){
@@ -71,7 +72,7 @@ public class WKDeploy {
                 {% else %}
 
                 // Native WuClasses (C)
-                WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), null);
+                // WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), null);
 
                 {%- for property in wuobject.wuclass.properties|generateProperties(wuobject.properties_with_default_values) -%}
                 {% if property.datatype.lower() == 'boolean' %}

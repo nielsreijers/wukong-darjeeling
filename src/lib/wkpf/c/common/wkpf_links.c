@@ -9,6 +9,8 @@
 #include "wkpf_properties.h"
 #include "wkpf_comm.h"
 #include "wkpf_links.h"
+#include "wkpf_wuclasses.h"
+#include "wkpf_wuobjects.h"
 
 
 dj_di_pointer wkpf_links_store = 0;
@@ -263,6 +265,29 @@ void wkpf_load_tables_from_archive(dj_di_pointer archive) {
 }
 
 
-
+uint8_t wkpf_create_local_wuobjects_from_app_tables() {
+	uint8_t wkpf_error_code;
+	for (uint16_t i=0; i<wkpf_number_of_components; i++) {
+			DEBUG_LOG(DBG_WKPF, "---Component %d, number of endpoints %d\n", i, WKPF_NUMBER_OF_ENDPOINTS(i));
+		for (uint8_t j=0; j<WKPF_NUMBER_OF_ENDPOINTS(i); j++) {
+			DEBUG_LOG(DBG_WKPF, "---Component %d, endpoint %d, at node %d\n", i, j, WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j));
+			if (WKPF_COMPONENT_ENDPOINT_NODE_ID(i, j) == wkcomm_get_node_id()) {
+				// This is a local component, so we need to create an instance if it's a native wuclass
+				// I'm still letting the virtual wuclasses be created by the Java code, since this won't
+				// necessary for picokong
+				wuclass_t *wuclass;
+				wkpf_error_code = wkpf_get_wuclass_by_id(WKPF_COMPONENT_WUCLASS_ID(i), &wuclass);
+				if (wkpf_error_code != WKPF_OK)
+					return wkpf_error_code;
+				if (WKPF_IS_VIRTUAL_WUCLASS(wuclass))
+					continue;
+				wkpf_error_code = wkpf_create_wuobject(wuclass->wuclass_id, WKPF_COMPONENT_ENDPOINT_PORT(i, j), NULL);
+				if (wkpf_error_code != WKPF_OK)
+					return wkpf_error_code;
+			}
+		}
+	}
+	return WKPF_OK;
+}
 
 

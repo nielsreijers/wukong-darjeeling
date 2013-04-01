@@ -26,6 +26,8 @@ public class WKPF {
   public static native void setPropertyBoolean(short componentId, byte propertyNumber, boolean value);
   public static native void setPropertyRefreshRate(short componentId, byte propertyNumber, short value);
 
+  // Application startup: read component map and create necessary local instances
+  public static native void appInit();
   // Select function for main loop
   public static native VirtualWuObject select();
 
