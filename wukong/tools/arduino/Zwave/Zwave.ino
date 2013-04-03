@@ -62,6 +62,7 @@ public:
       snprintf(buf,128,"c=%x state=%d\n", c, state);
       Serial.write(buf);
       if (state == ST_SOF) {
+        Serial.write("ST_SOF\n");
         if (c == 1) {
           state = ST_LEN;
           len = 0;
@@ -70,19 +71,23 @@ public:
         }
       } 
       else if (state == ST_LEN) {
+        Serial.write("ST_LEN\n");
         len = c-3;
         state = ST_TYPE;
       } 
       else if (state == ST_TYPE) {
+        Serial.write("ST_TYPE\n");
         type = c;
         state = ST_CMD;
       } 
       else if (state == ST_CMD) {
+        Serial.write("ST_CMD\n");
         cmd = c;
         state = ST_DATA;
         i = 0;
       } 
       else if (state == ST_DATA) {
+        Serial.write("ST_DATA\n");
         payload[i++] = c;
         len--;
         if (len == 0) {
@@ -90,9 +95,10 @@ public:
         }
       } 
       else if (state == ST_CRC) {
+        Serial.write("ST_CRC\n");
         Serial2.write(6);
         state = ST_SOF;
-        if (f!=NULL) f(payload,i);
+        if (f!=NULL) f(payload,i); f = NULL;
         if (cmd == 0x49) {
           if (nodeinfo) nodeinfo(payload,i);
         }
@@ -195,6 +201,20 @@ public:
       Serial2.write(b[k]);
 
   }
+  
+  void getId() {
+    byte b[5];
+    int k;
+
+    b[0] = 1;
+    b[1] = 3;
+    b[2] = 0x00;
+    b[3] = 0x20;
+    b[4] = 0xff^3^0x00^0x20;
+    for(k=0;k<5;k++)
+      Serial2.write(b[k]);
+
+  }
 
   // Start inclusion procedure to add a new node
   void includeAny() {
@@ -294,7 +314,7 @@ void onack(byte *b,int len)
 
 void display_nif(byte *payload,int len) {
   char buf[128];
-
+  Serial.write('display_nif');
   snprintf(buf,64,"Status=%d Node=%d Device=%d:%d:%d\n", payload[0],payload[1],payload[3],payload[4],payload[5]);
   Serial.write(buf);
   last_node = payload[1];
@@ -323,6 +343,14 @@ void setup()
 unsigned char hex[] = { 
   '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
+void getId_cb(byte *b,int len)
+{
+  char buf[64];
+
+  snprintf(buf,64,"HomeId: %02x%02x%02x%02x Node=%x\n", b[0],b[1],b[2],b[3],b[4]);
+  Serial.write(buf);
+}
+
 void include_cb(byte *b,int len)
 {
   char buf[64];
@@ -346,6 +374,7 @@ void help()
   Serial.write("l: turn on learn mode\n");
   Serial.write("L: turn off learn mode\n");
   Serial.write("r: reset the node\n");
+  Serial.write("m: get node id\n");
   Serial.write("Press the program button of the node to change the current node\n");
 }
 
@@ -384,6 +413,10 @@ void loop()
       ZWave.callback(0);
       ZWave.reset();      
     } 
+    else if (c == 'm') {
+      ZWave.callback(getId_cb);
+      ZWave.getId();
+    }
     else {
       help();
     }
