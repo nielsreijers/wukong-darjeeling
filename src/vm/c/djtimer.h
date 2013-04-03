@@ -26,5 +26,6 @@
 
 dj_time_t dj_timer_getTimeMillis();
 void dj_timer_init();
+void dj_timer_delay(unsigned long msec);
 
 #endif

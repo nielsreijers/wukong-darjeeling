@@ -8,6 +8,7 @@
 #include "GENERATEDwuclass_numeric_controller.h"
 #include "GENERATEDwuclass_light_actuator.h"
 #include "GENERATEDwuclass_light_sensor.h"
+#include "GENERATEDwuclass_temperature_humidity_sensor.h"
 
 uint8_t wkpf_register_wuclass_and_create_wuobject(wuclass_t *wuclass, uint8_t port_number) {
   wkpf_register_wuclass(wuclass);
@@ -50,6 +51,13 @@ uint8_t wkpf_native_wuclasses_init() {
   if (wkpf_config_get_feature_enabled(WPKF_FEATURE_NATIVE_THRESHOLD)) {
     wkpf_register_wuclass(&wuclass_threshold);
   }
+
+  // if (wkpf_config_get_feature_enabled(WPKF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR)) {
+  //   wkpf_register_wuclass(&wuclass_temperature_humidity_sensor);
+  //   /*retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_sensor, 1);*/
+  //   if (retval != WKPF_OK)
+  //     return retval;
+  // }
 
   return WKPF_OK;
 }

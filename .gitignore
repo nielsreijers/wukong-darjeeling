@@ -1,5 +1,6 @@
 *.class
 *.pyc
+__comp__*
 GENERATED*
 history.xml
 temp_di_app_infusion_archive.c
@@ -33,3 +34,5 @@ stk500boot.o.d
 darjeeling_flash_page.o
 darjeeling_flash_page.hex
 wkdeploy.dja
+standardlibrary.db
+fbp.html

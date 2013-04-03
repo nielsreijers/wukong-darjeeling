@@ -36,7 +36,7 @@ typedef int64_t dj_time_t;
 // #define ALIGN_16
 
 /* Please see common/debug.h */
-// #define DARJEELING_DEBUG
+#define DARJEELING_DEBUG
 // #define DARJEELING_DEBUG_FRAME
 // #define DARJEELING_DEBUG_MEM_TRACE
 // #define DARJEELING_DEBUG_TRACE
@@ -47,8 +47,8 @@ typedef int64_t dj_time_t;
 // #define DBG_WKPF true
 // #define DBG_WKPFGC true
 // #define DBG_WKPFUPDATE true
-// #define DBG_WKCOMM true
-// #define DBG_WKREPROG true
+#define DBG_WKCOMM true
+#define DBG_WKREPROG true
 // #define DBG_ZWAVETRACE true
 
 #define DARJEELING_PRINTF printf
