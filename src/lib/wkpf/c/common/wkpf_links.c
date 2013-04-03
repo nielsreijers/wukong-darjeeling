@@ -261,12 +261,12 @@ uint8_t wkpf_create_local_wuobjects_from_app_tables() {
 				// necessary for picokong
 				wuclass_t *wuclass;
 				wkpf_error_code = wkpf_get_wuclass_by_id(WKPF_COMPONENT_WUCLASS_ID(i), &wuclass);
+				if (wkpf_error_code != WKPF_OK)
+					return wkpf_error_code;
 				if (WKPF_IS_VIRTUAL_WUCLASS(wuclass)) {
 					// This will happen for virtual wuclasses since the class won't be registered until after WKPF.appInit exits.
 					continue;
 				}
-				if (wkpf_error_code != WKPF_OK)
-					return wkpf_error_code;
 				wkpf_error_code = wkpf_create_wuobject(wuclass->wuclass_id, WKPF_COMPONENT_ENDPOINT_PORT(i, j), NULL);
 				if (wkpf_error_code != WKPF_OK)
 					return wkpf_error_code;
