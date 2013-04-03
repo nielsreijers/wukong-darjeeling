@@ -31,6 +31,7 @@ public class WKPF {
 
   // component-wuobject map related functions
   public static native byte getPortNumberForComponent(short componentId);
+  public static native boolean isLocalComponent(short componentId);
 
   // Who am I?
   public static native short getMyNodeId();

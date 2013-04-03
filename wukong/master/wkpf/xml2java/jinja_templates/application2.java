@@ -11,8 +11,19 @@ public class WKDeploy {
     public static void main (String[] args) {
         // Application: {{ name }}
         System.out.println("My node id: " + WKPF.getMyNodeId());
+
+        // Register virtual WuClasses (just register all for now, maybe change this per node later)
+        {%- for component in changesets.components %}
+            {% for wuobject in component.instances %}
+                {% if not wuobject.hasLocalNativeWuClass %}
+        WKPF.registerWuClass(GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
+                {% endif %}
+            {% endfor %}
+        {%- endfor %}
+
+
         WKPF.appInitLinkTableAndComponentMap();
-        initialiseVirtualWuObjects();
+        createVirtualWuObjects();
         WKPF.appInitLocalObjectAndInitValues();
 
         while(true){
@@ -23,23 +34,15 @@ public class WKDeploy {
         }
     }
 
-    private static void initialiseVirtualWuObjects() {
+    private static void createVirtualWuObjects() {
         //all WuClasses from the same group has the same instanceIndex and wuclass
-        {% set alreadyGenerated = [] %}
         {%- for component in changesets.components %}
             {% for wuobject in component.instances %}
                 {% if not wuobject.hasLocalNativeWuClass %}
-                    if (WKPF.getMyNodeId() == (short){{ wuobject.node_id }}) {
-                        {% set teststring = wuobject.wuclass.name ~ "@" ~ wuobject.node_id %}
-                        {% if not teststring in alreadyGenerated %}
-                        // Register virtual WuClass
-                        WKPF.registerWuClass(GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
-                        {% do alreadyGenerated.append(teststring) %}
-                        {% endif %}
-                        // Create instance
-                        VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
-                        WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
-                    }
+        if (WKPF.isLocalComponent((short){{ component.index }})) {
+            VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
+            WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
+        }
                 {% endif %}
             {% endfor %}
         {%- endfor %}
