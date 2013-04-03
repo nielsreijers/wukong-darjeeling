@@ -28,7 +28,7 @@ public class WKDeploy {
         {% set alreadyGenerated = [] %}
         {%- for component in changesets.components %}
             {% for wuobject in component.instances %}
-                {% if not wuobject.hasLocalWuClass %}
+                {% if not wuobject.hasLocalNativeWuClass %}
                     if (WKPF.getMyNodeId() == (short){{ wuobject.node_id }}) {
                         {% set teststring = wuobject.wuclass.name ~ "@" ~ wuobject.node_id %}
                         {% if not teststring in alreadyGenerated %}

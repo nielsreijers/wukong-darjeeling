@@ -484,7 +484,7 @@ class WuObject:
         self.identity = identity
         # a list of tuples with property name and default value 
         self.properties_with_default_values = properties_with_default_values
-        self.hasLocalWuClass = False
+        self.hasLocalNativeWuClass = False
 
     def __repr__(self):
         return 'WuObject#(\n\tnode_id="%s",\n\tport_number=%d,\n\twuclass="%r",\n\tdefault_properties=%r)' % (self.node_id, self.port_number, self.wuclass, self.properties_with_default_values)

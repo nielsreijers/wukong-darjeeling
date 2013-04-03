@@ -186,8 +186,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
             node = locTree.getNodeInfoById(wuobject.node_id)
             wuclass = WuClass.where(name=component.type)[0]
             print 'sort prefer wuobject of wuclass %d in node %d' % (wuobject.wuclass.id, node.id) if wuobject.wuclass.id in [x.id for x in node.wuclasses] else 'sort not prefer'
-            if wuobject.wuclass.id in [x.id for x in node.wuclasses]:
-                wuobject.hasLocalWuClass = True
+            if wuobject.wuclass.id in [x.id for x in node.wuclasses if not x.virtual]:
+                wuobject.hasLocalNativeWuClass = True
 
             return wuobject.wuclass.id in [x.id for x in node.wuclasses]
 
