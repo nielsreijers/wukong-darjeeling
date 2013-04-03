@@ -86,6 +86,7 @@ class Generator:
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
         jinja2_env.filters['generateProperties'] = generateProperties
+        jinja2_env.add_extension('jinja2.ext.do')
         output = open(os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java"), 'w')
         output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()

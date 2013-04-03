@@ -25,13 +25,19 @@ public class WKDeploy {
 
     private static void initialiseVirtualWuObjects() {
         //all WuClasses from the same group has the same instanceIndex and wuclass
+        {% set alreadyGenerated = [] %}
         {%- for component in changesets.components %}
             {% for wuobject in component.instances %}
                 {% if not wuobject.hasLocalWuClass %}
                     if (WKPF.getMyNodeId() == (short){{ wuobject.node_id }}) {
-                        // Virtual WuClasses (Java)
-                        VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
+                        {% set teststring = wuobject.wuclass.name ~ "@" ~ wuobject.node_id %}
+                        {% if not teststring in alreadyGenerated %}
+                        // Register virtual WuClass
                         WKPF.registerWuClass(GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
+                        {% do alreadyGenerated.append(teststring) %}
+                        {% endif %}
+                        // Create instance
+                        VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
                         WKPF.createWuObject((short)GENERATEDWKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
                     }
                 {% endif %}
