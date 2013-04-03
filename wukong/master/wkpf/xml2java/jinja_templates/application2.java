@@ -31,8 +31,9 @@ public class WKDeploy {
         System.out.println("My node id: " + WKPF.getMyNodeId());
         // WKPF.loadHeartbeatToNodeAddrMap(heartbeatToNodeAddrMap);
         // WKPF.loadHeartbeatPeriods(heartbeatGroupPeriods);
-        WKPF.appInit();
+        WKPF.appInitLinkTableAndComponentMap();
         initialiseLocalWuObjects();
+        WKPF.appInitLocalObjectAndInitValues();
 
         while(true){
             VirtualWuObject wuobject = WKPF.select();

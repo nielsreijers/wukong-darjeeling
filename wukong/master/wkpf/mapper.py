@@ -172,9 +172,6 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                                 component.instances.append(wuobject)
                                 break
                     else:
-                        # TODO: there is unsupported VM opcode bug, don't do this
-                        # for now until it is fixed
-                        '''
                         # create a new virtual wuobject
                         sensorNode = locTree.sensor_dict[node.id]
                         sensorNode.initPortList(forceInit = False)
@@ -184,7 +181,6 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
-                        '''
 
         def prefer_hard(wuobject):
             node = locTree.getNodeInfoById(wuobject.node_id)

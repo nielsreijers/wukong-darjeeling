@@ -21,9 +21,12 @@ public class WKPF {
   public static native boolean getPropertyBoolean(VirtualWuObject virtualWuObjectInstance, byte propertyNumber);
   public static native void setPropertyBoolean(VirtualWuObject virtualWuObjectInstance, byte propertyNumber, boolean value);
 
-  // Application startup: read component map and create necessary local instances
-  public static native void appInit();
-  // Select function for main loop
+  // Application startup phase 1: read link table and component map
+  public static native void appInitLinkTableAndComponentMap();
+  // Application startup phase 2: After this, the Java code should register its virtual wuclasses and create its local instances of virtual wuobjects
+  // Application startup phase 3: Create local instances of native wuclasses and process the initvalues file
+  public static native void appInitLocalObjectAndInitValues();
+  // Application main loop:
   public static native VirtualWuObject select();
 
   // component-wuobject map related functions

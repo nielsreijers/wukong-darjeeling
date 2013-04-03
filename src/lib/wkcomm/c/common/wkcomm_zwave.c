@@ -41,8 +41,6 @@
 #define ZWAVE_ACK              0x06
 #define ZWAVE_NAK              0x15
 
-#define WKCOMM_PANIC_INIT_FAILED 100 // Need to make sure these codes don't overlap with other libs or the definitions in panic.h
-
 // wkcomm_zwave data
 address_t wkcomm_zwave_my_address;
 bool wkcomm_zwave_my_address_loaded = false;

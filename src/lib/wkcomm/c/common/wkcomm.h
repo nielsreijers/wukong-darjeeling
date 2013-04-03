@@ -11,6 +11,9 @@
 #define WKCOMM_SEND_ERR_TOO_LONG		 3
 #define WKCOMM_SEND_ERR_NO_REPLY		 4
 
+// Need to make sure these codes don't overlap with other libs or the definitions in panic.h
+#define WKCOMM_PANIC_INIT_FAILED 100
+
 // WuKong address. For now it's just a byte, but this will probably change.
 // When it does, we need to change the component-node map as well
 typedef uint8_t address_t;

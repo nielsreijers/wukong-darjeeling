@@ -117,35 +117,47 @@ void javax_wukong_wkpf_WKPF_void_setPropertyBoolean_javax_wukong_wkpf_VirtualWuO
 	}
 }
 
-void javax_wukong_wkpf_WKPF_void_appInit() {
-	bool found_linktable = false, found_componentmap = false, found_initvalues = false;
+void javax_wukong_wkpf_WKPF_void_appInitLinkTableAndComponentMap() {
+	bool found_linktable = false, found_componentmap = false;
 	dj_vm *vm = dj_exec_getVM();
 	dj_di_pointer archive = vm->di_app_infusion_archive_data;
 	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
 		dj_di_pointer file = dj_archive_get_file(archive, i);
 		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_LINK_TABLE) {
+			DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Loading link table....\n");
 			wkpf_load_links(file);
 			found_linktable = true;
 		}
 		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_COMPONENT_MAP) {
+			DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Loading component map....\n");
 			wkpf_load_component_to_wuobject_map(file);
 			found_componentmap = true;
 		}
 	}
+	if (!found_linktable || !found_componentmap)
+		dj_panic(WKPF_PANIC_MISSING_BINARY_FILE);
+}
 
+void javax_wukong_wkpf_WKPF_void_appInitLocalObjectAndInitValues() {
+	bool found_initvalues = false;
+
+	DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Creating local native wuobjects....\n");
 	wkpf_error_code = wkpf_create_local_wuobjects_from_app_tables();
+	if (wkpf_error_code != WKPF_OK)
+		dj_panic(WKPF_PANIC_ERROR_CREATING_LOCAL_OBJECTS);
 
-	if (wkpf_error_code == WKPF_OK) {
-		for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
-			dj_di_pointer file = dj_archive_get_file(archive, i);
-			if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_INITVALUES_TABLE) {
-				wkpf_process_initvalues_list(file);
-				found_initvalues = true;
-			}
+	dj_vm *vm = dj_exec_getVM();
+	dj_di_pointer archive = vm->di_app_infusion_archive_data;
+	for (uint8_t i=0; i<dj_archive_number_of_files(archive); i++) {
+		dj_di_pointer file = dj_archive_get_file(archive, i);
+		if (dj_archive_filetype(file) == DJ_FILETYPE_WKPF_INITVALUES_TABLE) {
+			DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Processing initvalues....\n");
+			wkpf_process_initvalues_list(file);
+			found_initvalues = true;
 		}
 	}
-	if (!found_linktable || !found_componentmap || !found_initvalues)
-		DEBUG_LOG(DBG_WKPF, "WKPF: ---->>>> WARNING: FILE MISSING IN APPLICATION ARCHIVE <<<<----\n");
+	if (!found_initvalues)
+		dj_panic(WKPF_PANIC_MISSING_BINARY_FILE);
 }
 
 void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {

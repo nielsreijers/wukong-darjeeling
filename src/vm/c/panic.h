@@ -34,6 +34,8 @@
 #define DJ_PANIC_MALFORMED_INFUSION			RUNLEVEL_PANIC+5
 #define DJ_PANIC_ASSERTION_FAILURE			RUNLEVEL_PANIC+6
 #define DJ_PANIC_SAFE_POINTER_OVERFLOW		RUNLEVEL_PANIC+7
+// Reserved 100-109 for wkcomm
+// Reserved 110-119 for wkpf
 
 void dj_panic(int32_t panictype);
 
