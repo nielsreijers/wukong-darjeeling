@@ -313,10 +313,8 @@ uint8_t wkpf_process_initvalues_list(dj_di_pointer initvalues) {
 					}
 				}
 				if (wkpf_error_code != WKPF_OK) {
-					DEBUG_LOG(DBG_WKPF, "------ ERROR %d\n", wkpf_error_code);
-					// Continue for now to process the other values since we seem to generate a write to a readonly property.
-					// This shouldn't be generated in the master
-					// return wkpf_error_code;
+					DEBUG_LOG(DBG_WKPF, "------ INITVALUES ERROR: %d\n", wkpf_error_code);
+					return wkpf_error_code;
 				}
 			}
 		}

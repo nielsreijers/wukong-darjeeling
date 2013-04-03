@@ -102,7 +102,7 @@ class Generator:
                 if property.name in component_properties:
                     if component_property[property.name].strip() != "":
                         property.value = component_property[property.name]
-            return properties
+            return [p for p in properties if p.access!='readonly']
 
         # TODO: this should be in a higher level place somewhere.
         # TODO: is 'int' really a datatype? It was used in application2.java so keeping it here for now. should check if it can go later.
