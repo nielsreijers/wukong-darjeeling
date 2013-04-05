@@ -29,6 +29,7 @@
 #include "djtimer.h"
 #include "vm.h"
 #include "djarchive.h"
+#include "core.h"
 #include "jlib_base.h"
 
 /**

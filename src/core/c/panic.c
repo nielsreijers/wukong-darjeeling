@@ -21,10 +21,10 @@
  
 #include <stdlib.h>
 
-#include "execution.h"
 #include "panic.h"
 #include "debug.h"
 #include "hooks.h"
+#include "core.h"
 
 void dj_panic(int32_t panictype)
 {

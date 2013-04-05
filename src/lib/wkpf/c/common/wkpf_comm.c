@@ -2,6 +2,8 @@
 #include "panic.h"
 #include "debug.h"
 #include "execution.h"
+#include "core.h"
+
 #include "wkpf.h"
 #include "wkpf_comm.h"
 #include "wkpf_config.h"

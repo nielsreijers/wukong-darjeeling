@@ -56,6 +56,7 @@
 #include "debug.h"
 #include "panic.h"
 #include "hooks.h"
+#include "core.h"
 
 // platform-specific configuration
 #include "config.h"
@@ -67,12 +68,6 @@
 #include "pointerwidth.h"
 
 #include "opcodes.c"
-
-// Runlevel. Used to pause the VM when reprogramming and reset it afterwards.
-uint8_t dj_exec_runlevel;
-
-// For libraries that need frequent polling. Currently just for radios, but maybe there are other uses. Should be fast.
-dj_hook *dj_vm_pollingHook = NULL;
 
 // currently selected Virtual Machine context
 static dj_vm *vm;

@@ -24,7 +24,6 @@
 #define __panic_h
 
 #include "types.h"
-#include "execution.h"
 
 #define DJ_PANIC_OUT_OF_MEMORY              RUNLEVEL_PANIC+0
 #define DJ_PANIC_ILLEGAL_INTERNAL_STATE     RUNLEVEL_PANIC+1

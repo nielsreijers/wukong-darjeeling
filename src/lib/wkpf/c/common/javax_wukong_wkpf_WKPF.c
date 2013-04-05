@@ -7,6 +7,7 @@
 #include "wkcomm.h"
 #include "heap.h"
 #include "djarchive.h"
+#include "core.h"
 #include "jlib_base.h"
 
 #include "wkpf.h"
