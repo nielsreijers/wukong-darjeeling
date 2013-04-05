@@ -71,6 +71,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "core.h"
 #include "heap.h"
 
 #include "vm.h"

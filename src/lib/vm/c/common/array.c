@@ -25,7 +25,7 @@
 #include "array.h"
 #include "heap.h"
 #include "debug.h"
-#include "execution.h"
+#include "core.h"
 #include "panic.h"
 
 /**
