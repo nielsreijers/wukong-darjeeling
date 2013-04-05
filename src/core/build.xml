@@ -1,5 +1,5 @@
 <!-- compile targets for generic GCC builds -->
-<project name="vm" default="all">
+<project name="core" default="all">
 
 	<dirname property="vmpath" file="${ant.file.vm}"/>
 	
