@@ -101,7 +101,7 @@
 					<pathelement path="${libpath}/../architecture/${architecture}/c"/>
 					<pathelement path="${libpath}/../platform/${platform}/c"/>
 					<pathelement path="${libpath}/../config/${configuration}/c"/>
-					<pathelement path="${libpath}/../vm/c"/>
+					<pathelement path="${libpath}/../core/c"/>
 					<pathelement path="c/common"/>
 					<pathelement path="c/${platform}"/>
 					<pathelement path="${build}"/>

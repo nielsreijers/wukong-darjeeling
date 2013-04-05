@@ -46,8 +46,8 @@
 
 	<!-- Meta-targets -->
 	<target name="all" depends="executable"/>
-	<target name="executable" depends="compile-libs, compile-apps, compile-vm, compile-platform, unpack, compile-main, packdi, repack, link"/>
-	<target name="lib" depends="compile-libs, compile-apps, compile-vm, compile-platform, unpack, compile-main, repack"/>
+	<target name="executable" depends="compile-libs, compile-apps, compile-core, compile-platform, unpack, compile-main, packdi, repack, link"/>
+	<target name="lib" depends="compile-libs, compile-apps, compile-core, compile-platform, unpack, compile-main, repack"/>
 	
 	<!-- Compile libraries -->
 	<target name="compile-libs">
@@ -63,10 +63,10 @@
 		</subant>
 	</target>
 	
-	<!-- Compile the VM -->
-	<target name="compile-vm">
+	<!-- Compile the core C files -->
+	<target name="compile-core">
 		<subant inheritall="true">
-			<fileset includes="build.xml" dir="${configpath}/../vm/"/>
+			<fileset includes="build.xml" dir="${configpath}/../core/"/>
 		</subant>
 	</target>
 	
@@ -95,7 +95,7 @@
 					<pathelement path="${configpath}/../architecture/${architecture}/c"/>
 					<pathelement path="${configpath}/../platform/${platform}/c"/>
 					<pathelement path="${configpath}/../config/${configuration}/c"/>
-					<pathelement path="${configpath}/../vm/c"/>
+					<pathelement path="${configpath}/../core/c"/>
 					<pathelement path="."/>
 					<path refid="platform-includes"/>	
 					<path><filelist files="${libincludes}" dir="${configpath}/../lib/"/></path>
@@ -148,7 +148,7 @@
 		<apply executable="${ar}" parallel="false" dir="${temp}/unpack">
 			<arg value="x"/>
 			<fileset includes="${nativelibs}" dir="${configpath}/../lib/"/>
-			<fileset includes="vm.a" dir="${configpath}/../vm/build/${configuration}/"/>
+			<fileset includes="vm.a" dir="${configpath}/../core/build/${configuration}/"/>
 			<fileset includes="platform.a" dir="${configpath}/../platform/${platform}/build/${configuration}"/>
 		</apply>
 	</target>
@@ -178,7 +178,7 @@
 		<subant target="clean" inheritall="true">
 			<fileset includes="${libbuildfiles}" dir="${configpath}/../lib/"/>
 			<fileset includes="${appbuildfiles}" dir="${configpath}/../app/"/>
-			<fileset includes="build.xml" dir="${configpath}/../vm/"/>
+			<fileset includes="build.xml" dir="${configpath}/../core/"/>
 			<fileset includes="build.xml" dir="${configpath}/../platform/${platform}"/>
 		</subant>
 		<delete dir="./build"/>

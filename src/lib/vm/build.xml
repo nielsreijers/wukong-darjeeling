@@ -4,9 +4,13 @@
 	<property name="name" value="vm"/>
 	
 	<!-- list of libraries this library depends on -->
-	<property name="lib-depends" value=""/>
+	<property name="lib-depends" value="none"/>
 	
 	<!-- include the library build template -->
 	<import file="../lib.xml"/>
 
+	<property name="public-headerfile" value="*.h"/>
+
+	<!-- hack for the vm lib -->
+	<fileset id="infuser-include-headers" dir="." excludes="**/*"/>
 </project>
