@@ -22,6 +22,7 @@ dj_hook *wkcomm_handle_message_hook = NULL;
 
 // Initialise wkcomm and whatever protocols are enabled.
 void wkcomm_init(void) {
+	return;
 	#ifdef RADIO_USE_ZWAVE
 		wkcomm_zwave_init();
 	#endif
@@ -32,6 +33,7 @@ void wkcomm_init(void) {
 
 // Get my own node id
 address_t wkcomm_get_node_id() {
+	return 2;
 	// TODO: This doesn't work for xbee yet, but it didn't in nanovm either.
 	#ifdef RADIO_USE_ZWAVE
 		return wkcomm_zwave_get_node_id();
@@ -44,6 +46,7 @@ address_t wkcomm_get_node_id() {
 
 // Call this periodically to receive data
 void wkcomm_poll(void *dummy) {
+	return;
 	#ifdef RADIO_USE_ZWAVE
 		wkcomm_zwave_poll();
 	#endif

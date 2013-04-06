@@ -1,5 +1,5 @@
-#include "execution.h"
 #include "hooks.h"
+#include "core.h"
 #include "wkcomm.h"
 
 dj_hook wkcomm_pollingHook;

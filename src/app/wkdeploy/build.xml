@@ -5,7 +5,7 @@
 	<property name="name" value="wkdeploy"/>
 	
 	<!-- list of libraries this library depends on -->
-	<property name="lib-depends" value="base, darjeeling3, uart, wkcomm, wkpf"/>
+	<property name="lib-depends" value="base, wkcomm, wkpf"/>
 	
 	<property name="wkpftable" value="WKDeploy.xml"/>
 
