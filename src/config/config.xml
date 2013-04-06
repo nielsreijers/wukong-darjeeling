@@ -19,6 +19,7 @@
 	<!-- source directory where the main.c resides -->
 	<property name="c-src" value="${configtargetpath}/c"/>
 	<property name="temp" value="${configtargetpath}/build"/>
+	<property name="generatedLibInit" value="GENERATEDlibinit.c"/>
 
 	<!-- Construct a list of .a files to include (relative to the lib directory) based on a list of 
 	libraries (ie 'base, darjeeling' -> 'base/build/base.a, darjeeling/build/darjeeling.a') -->
@@ -81,9 +82,20 @@
 		<define name="AUTOSTART_ENABLE"/>
 		<define name="CONTIKI_PLATFORM" value="native"/>
 	</defineset-->
+
+	<!-- Generate a file containing calls to <libname>_init functions for each library,
+	     as well as the list of native handlers for libraries containing Java code -->
+	<target name="generate-lib-init">
+		<generatelibinit
+			dest="${c-src}/../build/${generatedLibInit}"
+			libDir="${configpath}/../lib"
+			libraries="${libs}"
+		/>
+	</target>
 	
 	<!-- Compile the main.c for this configuration -->
-	<target name="compile-main">
+	<target name="compile-main" depends="generate-lib-init">
+		<echo message="${c-src}"/>
 		<mkdir dir="${temp}/main/"/>
 		<platform-compile objectfiles="${temp}/main/">
 			<compile-elements>
@@ -102,8 +114,9 @@
 				</includepath>
 		
 				<!-- input files -->
-				<fileset dir="${c-src}">
-					<include name="**/*.c"/>
+				<fileset dir="${c-src}/..">
+					<include name="c/**/*.c"/>
+					<include name="build/${generatedLibInit}"/>
 				</fileset>
 				
 			</compile-elements>

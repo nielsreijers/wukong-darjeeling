@@ -26,12 +26,6 @@
 #include <string.h>
 #include <getopt.h>
 
-#include "jlib_base.h"
-#include "jlib_darjeeling3.h"
-#include "jlib_wkcomm.h"
-#include "jlib_wkpf.h"
-#include "jlib_wkreprog.h"
-
 #include "core.h"
 #include "types.h"
 #include "vm.h"
@@ -118,6 +112,11 @@ char* load_infusion_archive(char *filename) {
 	return di_archive_data;
 }
 
+// From GENERATEDlibinit.c, which is generated during build based on the libraries in this config's libs.
+extern dj_named_native_handler java_library_native_handlers[];
+extern uint8_t java_library_native_handlers_length;
+extern void libraries_init();
+
 int main(int argc,char* argv[])
 {
 	parse_command_line(argc, argv);
@@ -131,20 +130,9 @@ int main(int argc,char* argv[])
 	void *mem = malloc(HEAPSIZE);
 	ref_t_base_address = (char*)mem - 42;
 
-	// Initialise the simulated program flash
-	// TODONR: Refactor native config later to load infusion from a file instead of linked in
-	// init_progflash();
+	libraries_init();
 
-	dj_named_native_handler handlers[] = {
-			{ "base", &base_native_handler },
-			{ "darjeeling3", &darjeeling3_native_handler },
-			{ "wkcomm", &wkcomm_native_handler },
-			{ "wkpf", &wkpf_native_handler },
-			{ "wkreprog", &wkreprog_native_handler },
-		};
-	int length = sizeof(handlers)/ sizeof(handlers[0]);
-
-	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, handlers, length);
+	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, java_library_native_handlers, java_library_native_handlers_length);
 
 	// Listen to the radio
 	while(true)
