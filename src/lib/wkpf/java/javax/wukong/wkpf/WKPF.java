@@ -1,13 +1,6 @@
 package javax.wukong.wkpf;
 
 public class WKPF {
-  private static native void _init();
-
-  static
-  {
-    _init();
-  }
-
   public static native byte getErrorCode(); // Since we can't raise exceptions, I'll use this to signal whether a call succeeds or not.
 
   // WuClass and wuobject maintenance
