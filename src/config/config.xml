@@ -110,16 +110,18 @@
 		</platform-compile>
 	</target>
 
-	<!-- Packs neccesairy .di files (libraries and applications) into a single archive using ar. Then it uses objcopy to create a .o file for 
-	inclusion in the final executable -->
+	<!-- Packs neccesairy .di files (libraries and applications) into a single archive using djarchive. Then it uses objcopy to create a .o file for inclusion in the final executable -->
 	<target name="packdi" depends="compile-main">
 		<mkdir dir="${temp}/infusions"/>
 	
 		<!-- Construct a list of library .di files based on a comma separated list of libraries (ie 'base, darjeeling') -->
-		<pathconvert property="dilibs" pathsep=" ">
+		<pathconvert property="dilibs-all" pathsep=" ">
 			<filelist dir="/" files="${libs}"/>
-            <regexpmapper from="\${file.separator}(.*)" to="/../lib/\1/build/\1.di"/>
-			<map from="" to="${configpath}"/>
+            <regexpmapper from="\${file.separator}(.*)" to="\1/build/\1.di"/>
+		</pathconvert>
+		<!-- Some libraries don't contain Java code, so they won't have an infusion. Filter only the existing infusions. -->
+		<pathconvert property="dilibs-exist" pathsep=" ">
+			<fileset dir="${configpath}/../lib/" includes="${dilibs-all}"/>
 		</pathconvert>
 
 		<!-- Construct a list of application .dja files based on a comma separated list of applications (ie 'blink, hello world') -->
@@ -133,14 +135,14 @@
 		
 		<delete file="${lib_infusionarchive}"/>
 		<delete file="${app_infusionarchive}"/>
-		<djarchive dest="${lib_infusionarchive}" src="${dilibs}" filetype="${djarchive_type_lib_infusion}" mode="create"/>
+		<djarchive dest="${lib_infusionarchive}" src="${dilibs-exist}" filetype="${djarchive_type_lib_infusion}" mode="create"/>
 		<copy file="${diapps}" tofile="${app_infusionarchive}"/>
 
 		<!-- Use objcopy to turn the archive into an elf file so it can be linked into the final executable -->
 		<platform-objcopy inputfile="${lib_infusionarchive}" outputfile="${temp}/infusions/lib_infusions.o" arrayname="di_lib_infusions_archive"/>
 		<platform-objcopy inputfile="${app_infusionarchive}" outputfile="${temp}/infusions/app_infusions.o" arrayname="di_app_infusion_archive"/>
 	</target>
-		
+
 	<!-- Unpack the static libraries for the different libraries and the VM into the build directory -->
 	<target name="unpack">
 		<delete dir="${temp}"/>
