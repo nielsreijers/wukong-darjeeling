@@ -90,7 +90,7 @@ public class LibInitTask extends Task
 			for (String library : librariesArray) {
 				fout.println("extern void " + library + "_init();");
 			}
-			fout.println("void libraries_init() {");
+			fout.println("void dj_libraries_init() {");
 			for (String library : librariesArray) {
 				fout.println("\t" + library + "_init();");
 			}

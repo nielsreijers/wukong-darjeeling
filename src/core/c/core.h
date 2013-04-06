@@ -15,4 +15,6 @@ extern uint8_t dj_exec_runlevel;
 #define dj_exec_setRunlevel(runlevel)			(dj_exec_runlevel = runlevel)
 #define dj_exec_getRunlevel()					(dj_exec_runlevel)
 
+extern void core_init(void *mem, uint32_t memsize);
+
 #endif // COREH

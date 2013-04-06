@@ -22,6 +22,7 @@
 #ifndef __heap_h
 #define __heap_h
 
+#include "core_heap.h"
 #include "config.h"
 #include "types.h"
 #include "hooks.h"
@@ -89,8 +90,6 @@ __attribute__ ((__packed__))
 #endif
 ;
 
-void dj_mem_init(void *mem_pointer, uint16_t mem_size);
-void * dj_mem_alloc(uint16_t size, runtime_id_t id);
 void dj_mem_free(void *ptr);
 
 void dj_mem_setPanicExceptionObject(dj_object *obj);
@@ -105,9 +104,6 @@ void dj_mem_gc();
 void * dj_mem_getPointer();
 
 void dj_mem_shiftRuntimeIDs(runtime_id_t start, uint16_t range);
-
-uint16_t dj_mem_getFree();
-uint16_t dj_mem_getSize();
 
 #ifdef DARJEELING_DEBUG
 void dj_mem_dump();

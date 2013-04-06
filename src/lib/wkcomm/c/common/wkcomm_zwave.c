@@ -80,7 +80,7 @@ void wkcomm_zwave_poll(void) {
 }
 
 void wkcomm_zwave_init(void) {
-    uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
+    uart_inituart(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 
     // Clear existing queue on Zwave
     DEBUG_LOG(DBG_WKCOMM, "Sending NAK\n");

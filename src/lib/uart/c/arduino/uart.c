@@ -75,7 +75,7 @@ static void uart_set_baudrate(uint8_t uart, uint32_t baudrate, uint8_t factor){
   *UBRR[uart] = (CLOCK / (factor>>1) / baudrate - 1) / 2;
 }
 
-void uart_init(uint8_t uart, uint32_t baudrate) {
+void uart_inituart(uint8_t uart, uint32_t baudrate) {
 	uint8_t stopbit = 1;
 	uint8_t parity = 0;
 
