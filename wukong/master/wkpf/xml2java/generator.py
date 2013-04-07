@@ -65,8 +65,8 @@ class Generator:
 
             for property in properties:
                 if property.name in component_properties:
-                    if component_property[property.name].strip() != "":
-                        property.value = component_property[property.name]
+                    if component_properties[property.name].strip() != "":
+                        property.value = component_properties[property.name]
             return properties
 
 
