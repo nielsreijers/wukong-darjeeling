@@ -1,14 +1,10 @@
 #include "heap.h"
 #include "debug.h"
-#include "array.h"
 #include "wkpf_wuclasses.h"
 #include "wkpf_wuobjects.h"
 
 extern wuclass_t *wuclasses_list;
 extern wuobject_t *wuobjects_list;
-extern dj_int_array *wkpf_links_store;
-extern dj_ref_array *wkpf_component_map_store;
-
 
 void wkpf_markRootSet(void *data) {
 #ifdef DARJEELING_DEBUG

@@ -4,7 +4,6 @@
 #include "array.h"
 #include "hooks.h"
 #include "execution.h"
-#include "wkcomm.h"
 #include "heap.h"
 #include "djarchive.h"
 #include "core.h"

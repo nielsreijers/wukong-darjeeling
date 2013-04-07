@@ -1,7 +1,6 @@
 #include "wkcomm.h"
 #include "panic.h"
 #include "debug.h"
-#include "execution.h"
 #include "core.h"
 
 #include "wkpf.h"
