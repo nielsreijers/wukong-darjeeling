@@ -60,8 +60,8 @@ dj_monitor * dj_vm_getMonitor(dj_vm * vm, dj_object * object);
 void dj_vm_removeMonitor(dj_vm * vm, dj_monitor * monitor);
 void dj_monitor_updatePointers(dj_monitor * monitor);
 
-void dj_vm_markRootSet(dj_vm * vm);
-void dj_vm_updatePointers(dj_vm * vm);
+void dj_vm_mem_markRootSet(dj_vm * vm);
+void dj_vm_mem_updatePointers(dj_vm * vm);
 
 char dj_vm_schedule(dj_vm * vm);
 

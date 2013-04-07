@@ -30,6 +30,7 @@
 #include "vm.h"
 #include "djarchive.h"
 #include "core.h"
+#include "vm_gc.h"
 #include "jlib_base.h"
 
 /**
@@ -67,7 +68,7 @@ void dj_vm_main(dj_di_pointer di_lib_infusions_archive_data,
 
 	// pre-allocate an OutOfMemoryError object
 	obj = dj_vm_createSysLibObject(vm, BASE_CDEF_java_lang_OutOfMemoryError);
-	dj_mem_setPanicExceptionObject(obj);
+	vm_mem_setPanicExceptionObject(obj);
 
 	DEBUG_LOG(true, "Darjeeling is go!\n\r");
 
@@ -853,54 +854,11 @@ char dj_vm_activateThread(dj_vm *vm, dj_thread *selectedThread)
 }
 
 /**
- * Marks the root set. The root set can be marked directly in one pass since reference and non-reference types
- * are separated.
- * @param vm the virtual machine context
- */
-void dj_vm_markRootSet(dj_vm *vm)
-{
-	dj_thread * thread;
-	dj_infusion * infusion;
-	dj_monitor_block * monitorBlock;
-
-	DEBUG_LOG(DBG_DARJEELING, "\t\tmark threads\n");
-
-	// Mark threads
-	thread = vm->threads;
-	while (thread!=NULL)
-	{
-		dj_thread_markRootSet(thread);
-		thread = thread->next;
-	}
-
-	DEBUG_LOG(DBG_DARJEELING, "\t\tmark infusions\n");
-
-    // Mark infusions
-	infusion = vm->infusions;
-	while (infusion!=NULL)
-	{
-		dj_infusion_markRootSet(infusion);
-		infusion = infusion->next;
-	}
-
-	DEBUG_LOG(DBG_DARJEELING, "\t\tmark monitors\n");
-
-	// Mark monitor blocks
-	monitorBlock = vm->monitors;
-	while (monitorBlock!=NULL)
-	{
-		dj_monitor_markRootSet(monitorBlock);
-		monitorBlock = monitorBlock->next;
-	}
-
-}
-
-/**
  * Updates pointers after the new offsets of objects have been calculated, and before the objects
  * are actually moved to their new locations.
  * @param vm the virtual machine context
  */
-void dj_vm_updatePointers(dj_vm *vm)
+void dj_vm_mem_updatePointers(dj_vm *vm)
 {
 	vm->currentThread = dj_mem_getUpdatedPointer(vm->currentThread);
 	vm->infusions = dj_mem_getUpdatedPointer(vm->infusions);

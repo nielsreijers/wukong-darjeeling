@@ -1,7 +1,7 @@
 #include "core.h"
 #include "types.h"
 #include "hooks.h"
-#include "core_heap.h"
+#include "heap.h"
 #include "djtimer.h"
 
 // Runlevel. Used to pause the VM when reprogramming and reset it afterwards.

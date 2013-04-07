@@ -73,21 +73,11 @@
 #include "config.h"
 #include "core.h"
 #include "heap.h"
-
-#include "vm.h"
-#include "vmthread.h"
-#include "infusion.h"
-
-#include "array.h"
-#include "execution.h"
 #include "debug.h"
 #include "panic.h"
-#include "jlib_base.h"
-
 #include "hooks.h"
 
 static char *heap_base;
-static dj_object *panicExceptionObject;
 static uint16_t heap_size;
 
 static void ** safePointerPool[SAFE_POINTER_POOL_SIZE];
@@ -99,7 +89,8 @@ static int nrTrace = 0;
 #endif
 
 // To let other libraries hook into the garbage collector.
-dj_hook *dj_vm_markRootSetHook = NULL;
+dj_hook *dj_mem_markRootSetHook = NULL;
+dj_hook *dj_mem_markObjectHook = NULL;
 dj_hook *dj_mem_updateReferenceHook = NULL;
 
 /**
@@ -118,8 +109,6 @@ void dj_mem_init(void *mem_pointer, uint16_t mem_size)
     heap_size = mem_size;
 
     for (i=0; i<SAFE_POINTER_POOL_SIZE; i++) safePointerPool[i] = NULL;
-
-    panicExceptionObject = nullref;
 
     left_pointer = heap_base;
     right_pointer = heap_base + heap_size;
@@ -182,7 +171,6 @@ void dj_mem_free(void * ptr)
 
 }
 
-
 /**
  * @return the total number of bytes on the heap.
  */
@@ -197,16 +185,6 @@ uint16_t dj_mem_getSize()
 uint16_t dj_mem_getFree()
 {
 	return right_pointer - left_pointer;
-}
-
-void dj_mem_setPanicExceptionObject(dj_object *obj)
-{
-	panicExceptionObject = obj;
-}
-
-dj_object * dj_mem_getPanicExceptionObject()
-{
-	return panicExceptionObject;
 }
 
 /**
@@ -286,65 +264,27 @@ void dj_mem_shiftRuntimeIDs(runtime_id_t start, uint16_t range)
 
 }
 
+// /**
+//  * We'll add hooks to object finalisers here later
+//  */
+// static inline void dj_finalise(heap_chunk * chunk)
+// {
+// 	switch (chunk->id)
+// 	{
 
-/**
- * Implements the marking phase using stop-the-world tri-color marking
- */
-static inline void dj_mem_markObject(dj_vm *vm, heap_chunk * chunk)
-{
-	dj_di_pointer classDef;
-	dj_ref_array *refArray;
-	void * object;
-	int i;
-	ref_t *refs;
+// 	default:
+// 		chunk->id = CHUNKID_FREE;
+// 		// nothing
 
-	// get the chunk that contains our object
-	object = dj_mem_getData(chunk);
+// 	}
 
-	// if it's a Java object, mark its children
-	if (chunk->id>=CHUNKID_JAVA_START)
-	{
-		classDef = dj_vm_getRuntimeClassDefinition(vm, chunk->id);
-		refs = dj_object_getReferences(object);
-		for (i=0; i<dj_di_classDefinition_getNrRefs(classDef); i++)
-			dj_mem_setRefGrayIfWhite(refs[i]);
-	}
-
-	// if it's a reference array, mark the members
-	if (chunk->id==CHUNKID_REFARRAY)
-	{
-		refArray = (dj_ref_array*)object;
-		for (i=0; i<refArray->array.length; i++)
-			dj_mem_setRefGrayIfWhite(refArray->refs[i]);
-	}
-
-	// mark the object as 'black'
-	chunk->color = TCM_BLACK;
-
-}
-
-/**
- * We'll add hooks to object finalisers here later
- */
-static inline void dj_finalise(heap_chunk * chunk)
-{
-	switch (chunk->id)
-	{
-
-	default:
-		chunk->id = CHUNKID_FREE;
-		// nothing
-
-	}
-
-}
+// }
 
 /**
  * Implements the marking phase using stop-the-world tri-color marking
  */
 static inline void dj_mem_mark()
 {
-	dj_vm *vm = dj_exec_getVM();
 	heap_chunk *chunk;
 	void * loc = heap_base;
 	uint8_t i;
@@ -361,14 +301,9 @@ static inline void dj_mem_mark()
 	DEBUG_LOG(DBG_DARJEELING, "\tmark root set\n");
 
 	// mark the root set (set all elements in the root set to 'gray')
-	dj_vm_markRootSet(vm);
-	dj_hook_call(dj_vm_markRootSetHook, NULL);
+	dj_hook_call(dj_mem_markRootSetHook, NULL);
 
 	DEBUG_LOG(DBG_DARJEELING, "\tmark reference stack\n");
-
-	// mark the panic exception object
-	if (panicExceptionObject!=nullref)
-		dj_mem_setRefGrayIfWhite(VOIDP_TO_REF(panicExceptionObject));
 
 	// mark the safe pointer pool
 	for (i=0; i<SAFE_POINTER_POOL_SIZE; i++)
@@ -390,7 +325,7 @@ static inline void dj_mem_mark()
 
 			if (chunk->color==TCM_GRAY)
 			{
-				dj_mem_markObject(vm, chunk);
+				dj_hook_call(dj_mem_markObjectHook, (void *)chunk);
 				nrGray++;
 			}
 
@@ -399,77 +334,35 @@ static inline void dj_mem_mark()
 
 	} while (nrGray>0);
 
-	// Call finalise on each of the chunks
-	loc = heap_base;
-	while (loc<left_pointer)
-	{
-		chunk = (heap_chunk*)loc;
-		if (chunk->color==TCM_WHITE)
-			dj_finalise(chunk);
+	// Niels Reijers 20130407: Commented out since dj_finalise was empty anyway
+	// // Call finalise on each of the chunks
+	// loc = heap_base;
+	// while (loc<left_pointer)
+	// {
+	// 	chunk = (heap_chunk*)loc;
+	// 	if (chunk->color==TCM_WHITE)
+	// 		dj_finalise(chunk);
 
-		loc += chunk->size;
-	}
-
-}
-
-static inline void dj_mem_updateManagedReference(dj_vm * vm, heap_chunk *chunk)
-{
-	int i;
-	dj_di_pointer classDef;
-	ref_t *refs;
-
-	if (chunk->id>=CHUNKID_JAVA_START)
-	{
-		// object
-                classDef = dj_vm_getRuntimeClassDefinition(vm, chunk->id);
-                //refs = dj_object_getReferences((dj_object*)chunk);
-		refs = dj_object_getReferences(dj_mem_getData(chunk));
-		for (i=0; i<dj_di_classDefinition_getNrRefs(classDef); i++)
-			refs[i] = dj_mem_getUpdatedReference(refs[i]);
-	}
-
-	if (chunk->id==CHUNKID_REFARRAY)
-	{
-		dj_ref_array_updatePointers((dj_ref_array*)dj_mem_getData(chunk));
-	}
+	// 	loc += chunk->size;
+	// }
 
 }
 
-static inline void dj_mem_updateSystemReference(dj_vm * vm, heap_chunk *chunk)
-{
-	switch (chunk->id)
-	{
+heap_chunk * dj_mem_getFirstChunk() {
+	return (heap_chunk *)heap_base;
+}
 
-		case CHUNKID_INFUSION:
-			dj_infusion_updatePointers((dj_infusion*)dj_mem_getData(chunk));
-			break;
-
-		case CHUNKID_VM:
-			dj_vm_updatePointers((dj_vm*)dj_mem_getData(chunk));
-			break;
-
-		case CHUNKID_THREAD:
-			dj_thread_updatePointers((dj_thread*)dj_mem_getData(chunk));
-			break;
-
-		case CHUNKID_MONITOR_BLOCK:
-			dj_monitor_block_updatePointers((dj_monitor_block*)dj_mem_getData(chunk));
-			break;
-
-		case CHUNKID_FRAME:
-			dj_frame_updatePointers((dj_frame*)dj_mem_getData(chunk));
-			break;
-
-		default:
-			break;
-
-	}
+heap_chunk * dj_mem_getNextChunk(heap_chunk *currentChunk) {
+	void *loc = (void *)currentChunk;
+	if (loc+currentChunk->size < left_pointer)
+		return loc+currentChunk->size;
+	else
+		return NULL;
 }
 
 void dj_mem_compact()
 {
 	int i;
-	dj_vm *vm = dj_exec_getVM();
 
 	heap_chunk *chunk;
 	uint32_t shift = 0;
@@ -489,40 +382,12 @@ void dj_mem_compact()
 		loc += chunk->size;
 	}
 
-	// Update the managed pointers in each of the chunks.
-	// The pointers are updated in two passes because to update the heap objects we
-	// need the vm and infusions in tact.
-	loc = heap_base;
-	while (loc<left_pointer)
-	{
-		chunk = (heap_chunk*)loc;
-		dj_mem_updateManagedReference(vm, chunk);
-		loc += chunk->size;
-	}
-
-	// When the Java objects have been updated, we can safely update the system
-	// objects.
-	loc = heap_base;
-	while (loc<left_pointer)
-	{
-		chunk = (heap_chunk*)loc;
-		dj_mem_updateSystemReference(vm, chunk);
-		loc += chunk->size;
-	}
-
 	// update pointers in the safe pointer pool
 	for (i=0; i<SAFE_POINTER_POOL_SIZE; i++)
 		if (safePointerPool[i]!=NULL)
 			*(safePointerPool[i]) = dj_mem_getUpdatedPointer(*(safePointerPool[i]));
 
-	// update the pointer to the panic exception object, if any
-	if (panicExceptionObject!=nullref)
-		panicExceptionObject = dj_mem_getUpdatedPointer(panicExceptionObject);
-
-	// update global pointers in the execution engine
-	dj_exec_updatePointers();
-
-	// Finally update any library specific data
+	// Let the libraries update the references held in the chunks
 	dj_hook_call(dj_mem_updateReferenceHook, NULL);
 
 	// physically move the chunks to their new positions
@@ -545,29 +410,11 @@ void dj_mem_compact()
 void dj_mem_gc()
 {
 	DEBUG_LOG(DBG_DARJEELING_GC, "(GC)");
-	dj_thread * thread;
 
 	DEBUG_LOG(DBG_DARJEELING, "GC start\n");
-	dj_vm *vm = dj_exec_getVM();
-	if (vm == NULL)
-	{
-		DARJEELING_PRINTF("Garbage collection cannot start, the VM is not yet initialized\n");
-		dj_panic(DJ_PANIC_OUT_OF_MEMORY);
-	}
-	// Force the execution engine to store the nr_int_stack and nr_ref_stack in the current frame struct
-	// we need this for the root set marking phase
-
-	thread = dj_exec_getCurrentThread();
-	if (thread && thread->frameStack) dj_exec_deactivateThread(thread);
 
 	dj_mem_mark();
 	dj_mem_compact();
-
-	// re-get the VM instance, it might have been moved
-	vm = dj_exec_getVM();
-
-	thread = dj_exec_getCurrentThread();
-	if (thread && thread->frameStack) dj_exec_activate_thread(thread);
 
 	DEBUG_LOG(DBG_DARJEELING, "GC done\n");
 }
@@ -680,54 +527,3 @@ void dj_mem_dump()
 #endif // ifdef DARJEELING_DEBUG
 
 
-#ifdef DARJEELING_DEBUG_MEM_TRACE
-void dj_mem_dumpMemUsage()
-{
-	heap_chunk *finger;
-	dj_thread *thread;
-	dj_frame *frame;
-	dj_vm *vm = dj_exec_getVM();
-	int id, total, grandTotal;
-
-	if (vm==NULL)
-		return;
-
-	printf("TRACE %d", nrTrace);
-
-	grandTotal = 0;
-
-	// output the first 8 threads
-	for (id=0; id<8; id++)
-	{
-		thread = dj_vm_getThreadById(vm, id);
-		if (thread!=NULL)
-		{
-			total = dj_mem_getChunkSize(thread) - (4 * 2);
-
-			frame = thread->frameStack;
-			while (frame!=NULL)
-			{
-				total += dj_mem_getChunkSize(frame) - (2 * 2);
-				frame = frame->parent;
-			}
-
-		} else
-			total = 0;
-
-		grandTotal += total;
-
-		printf(", %d", total);
-	}
-
-	thread = dj_exec_getCurrentThread();
-	if (thread==NULL)
-		printf(", %d", -1);
-	else
-		printf(", %d", dj_exec_getCurrentThread()->id);
-
-	printf(", %d", grandTotal);
-
-	printf("\n");
-	nrTrace++;
-}
-#endif // #ifdef DARJEELING_DEBUG_MEM_TRACE

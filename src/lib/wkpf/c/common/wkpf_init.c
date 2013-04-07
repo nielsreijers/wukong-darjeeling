@@ -12,7 +12,7 @@ dj_hook wkpf_comm_handleMessageHook;
 
 void wkpf_init() {
 	wkpf_markRootSetHook.function = wkpf_markRootSet;
-	dj_hook_add(&dj_vm_markRootSetHook, &wkpf_markRootSetHook);
+	dj_hook_add(&dj_mem_markRootSetHook, &wkpf_markRootSetHook);
 
 	wkpf_updatePointersHook.function = wkpf_updatePointers;
 	dj_hook_add(&dj_mem_updateReferenceHook, &wkpf_updatePointersHook);

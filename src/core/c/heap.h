@@ -22,13 +22,13 @@
 #ifndef __heap_h
 #define __heap_h
 
-#include "core_heap.h"
 #include "config.h"
 #include "types.h"
 #include "hooks.h"
 
 // To let other libraries hook into the garbage collector.
-extern dj_hook *dj_vm_markRootSetHook;
+extern dj_hook *dj_mem_markRootSetHook;
+extern dj_hook *dj_mem_markObjectHook;
 extern dj_hook *dj_mem_updateReferenceHook;
 
 #define SAFE_POINTER_POOL_SIZE 4
@@ -90,15 +90,20 @@ __attribute__ ((__packed__))
 #endif
 ;
 
-void dj_mem_free(void *ptr);
+void dj_mem_init(void *mem_pointer, uint16_t mem_size);
+void * dj_mem_alloc(uint16_t size, runtime_id_t id);
+uint16_t dj_mem_getFree();
+uint16_t dj_mem_getSize();
 
-void dj_mem_setPanicExceptionObject(dj_object *obj);
-dj_object * dj_mem_getPanicExceptionObject();
+void dj_mem_free(void *ptr);
 
 void dj_mem_addSafePointer(void ** ptr);
 void dj_mem_removeSafePointer(void ** ptr);
 
 int dj_mem_countChunks(runtime_id_t id);
+heap_chunk * dj_mem_getFirstChunk();
+heap_chunk * dj_mem_getNextChunk(heap_chunk *currentChunk);
+
 void dj_mem_gc();
 
 void * dj_mem_getPointer();

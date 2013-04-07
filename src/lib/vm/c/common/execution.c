@@ -52,6 +52,7 @@
 #include "array.h"
 #include "heap.h"
 #include "vm.h"
+#include "vm_gc.h"
 #include "global_id.h"
 #include "debug.h"
 #include "panic.h"
@@ -1020,7 +1021,7 @@ void dj_exec_createAndThrow(int exceptionId)
 	// if we can't allocate the exception, we're really out of memory :(
 	// throw the last resort panic exception object we pre-allocated
 	if (obj == NULL)
-		obj = dj_mem_getPanicExceptionObject();
+		obj = vm_mem_getPanicExceptionObject();
 
 	// in case we didn't preallocate an exception object for this corner case, simply panic
 	if (obj == NULL) {
