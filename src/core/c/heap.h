@@ -30,6 +30,7 @@
 extern dj_hook *dj_mem_markRootSetHook;
 extern dj_hook *dj_mem_markObjectHook;
 extern dj_hook *dj_mem_updateReferenceHook;
+extern dj_hook *dj_mem_postGCHook;
 
 #define SAFE_POINTER_POOL_SIZE 4
 

@@ -16,7 +16,7 @@
 
 static dj_object *panicExceptionObject = nullref;
 
-static inline void dj_mem_updateManagedReference(dj_vm * vm, heap_chunk *chunk)
+static inline void vm_mem_updateManagedReference(dj_vm * vm, heap_chunk *chunk)
 {
 	int i;
 	dj_di_pointer classDef;
@@ -39,7 +39,7 @@ static inline void dj_mem_updateManagedReference(dj_vm * vm, heap_chunk *chunk)
 
 }
 
-static inline void dj_mem_updateSystemReference(dj_vm * vm, heap_chunk *chunk)
+static inline void vm_mem_updateSystemReference(heap_chunk *chunk)
 {
 	switch (chunk->id)
 	{
@@ -86,7 +86,7 @@ dj_object * vm_mem_getPanicExceptionObject()
 // vm_mem_updatePointers, which should have the same result.
 // I'm putting them in two separate functions to keep the structure clear since this code should
 // run before and after all other vm related GC code.
-void vm_mem_preGC() {
+void vm_mem_preGC() { // This is called from vm_mem_markRootSet, which is early enough
 	dj_vm *vm = dj_exec_getVM();
 	if (vm == NULL)
 	{
@@ -100,8 +100,7 @@ void vm_mem_preGC() {
 	if (thread && thread->frameStack)
 		dj_exec_deactivateThread(thread);
 }
-
-void vm_mem_postGC() {
+void vm_mem_postGC(void *data) { // This is called by the GC's dj_mem_postGCHook
 	dj_thread * thread = dj_exec_getCurrentThread();
 	if (thread && thread->frameStack)
 		dj_exec_activate_thread(thread);
@@ -195,16 +194,16 @@ void vm_mem_markObject(void *data)
 }
 
 void vm_mem_updatePointers(void *data) {
-	dj_vm *vm = dj_exec_getVM();
 	heap_chunk *chunk;
 
 	// Update the managed pointers in each of the chunks.
 	// The pointers are updated in two passes because to update the heap objects we
 	// need the vm and infusions in tact.
+	dj_vm *vm = dj_exec_getVM();
 	chunk = dj_mem_getFirstChunk();
 	while (chunk)
 	{
-		dj_mem_updateManagedReference(vm, chunk);
+		vm_mem_updateManagedReference(vm, chunk);
 		chunk = dj_mem_getNextChunk(chunk);
 	}
 
@@ -213,7 +212,7 @@ void vm_mem_updatePointers(void *data) {
 	chunk = dj_mem_getFirstChunk();
 	while (chunk)
 	{
-		dj_mem_updateSystemReference(vm, chunk);
+		vm_mem_updateSystemReference(chunk);
 		chunk = dj_mem_getNextChunk(chunk);
 	}
 
@@ -223,13 +222,11 @@ void vm_mem_updatePointers(void *data) {
 	// update the pointer to the panic exception object, if any
 	if (panicExceptionObject!=nullref)
 		panicExceptionObject = dj_mem_getUpdatedPointer(panicExceptionObject);
-
-	vm_mem_postGC();
 }
 ////// End hooks from GC
 
 #ifdef DARJEELING_DEBUG_MEM_TRACE
-void dj_mem_dumpMemUsage()
+void vm_mem_dumpMemUsage()
 {
 	heap_chunk *finger;
 	dj_thread *thread;

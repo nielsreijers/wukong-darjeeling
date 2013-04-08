@@ -92,6 +92,7 @@ static int nrTrace = 0;
 dj_hook *dj_mem_markRootSetHook = NULL;
 dj_hook *dj_mem_markObjectHook = NULL;
 dj_hook *dj_mem_updateReferenceHook = NULL;
+dj_hook *dj_mem_postGCHook = NULL;
 
 /**
  * Initialises the memory manager. A call to this function may trigger garbage collection.
@@ -404,7 +405,6 @@ void dj_mem_compact()
 	}
 
 	left_pointer-=shift;
-
 }
 
 void dj_mem_gc()
@@ -415,6 +415,7 @@ void dj_mem_gc()
 
 	dj_mem_mark();
 	dj_mem_compact();
+	dj_hook_call(dj_mem_postGCHook, NULL);
 
 	DEBUG_LOG(DBG_DARJEELING, "GC done\n");
 }

@@ -5,6 +5,7 @@
 dj_hook vm_markRootSetHook;
 dj_hook vm_markObjectHook;
 dj_hook vm_updatePointersHook;
+dj_hook vm_postGCHook;
 
 void vm_init() {
 	vm_markRootSetHook.function = vm_mem_markRootSet;
@@ -15,5 +16,8 @@ void vm_init() {
 
 	vm_updatePointersHook.function = vm_mem_updatePointers;
 	dj_hook_add(&dj_mem_updateReferenceHook, &vm_updatePointersHook);
+
+	vm_postGCHook.function = vm_mem_postGC;
+	dj_hook_add(&dj_mem_postGCHook, &vm_postGCHook);
 }
 

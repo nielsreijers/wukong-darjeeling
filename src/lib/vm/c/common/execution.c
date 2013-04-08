@@ -954,7 +954,7 @@ static inline void callMethod(dj_global_id methodImplId, int virtualCall)
 		dj_exec_loadLocalState(frame);
 
 #ifdef DARJEELING_DEBUG_MEM_TRACE
-		dj_mem_dumpMemUsage();
+		vm_mem_dumpMemUsage();
 #endif
 
 #ifdef DARJEELING_DEBUG_TRACE
@@ -1005,7 +1005,7 @@ static inline void returnFromMethod() {
 #endif
 
 #ifdef DARJEELING_DEBUG_MEM_TRACE
-	dj_mem_dumpMemUsage();
+	vm_mem_dumpMemUsage();
 #endif
 
 }
