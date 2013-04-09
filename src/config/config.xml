@@ -52,8 +52,11 @@
 	
 	<!-- Compile libraries -->
 	<target name="compile-libs">
+		<foreach list="${libbuildfiles}" target="do-compile-lib" param="single_libbuildfile" delimiter=" "/>
+	</target>
+	<target name="do-compile-lib">
 		<subant inheritall="true">
-			<fileset includes="${libbuildfiles}" dir="${configpath}/../lib/"/>
+			<fileset includes="${single_libbuildfile}" dir="${configpath}/../lib/"/>
 		</subant>
 	</target>
 
