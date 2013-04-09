@@ -910,7 +910,10 @@ dj_monitor * dj_vm_getMonitor(dj_vm *vm, dj_object * object)
 			newBlock = dj_monitor_block_create();
 
 			// check for out of memory and let the caller deal with it
-			if (newBlock==NULL) return NULL;
+			if (newBlock==NULL) {
+				dj_mem_removeSafePointer((void**)&object);
+				return NULL;
+			}
 
 			// find the last block (do this after the allocation to make sure everything goes right
 			// in case the allocation triggers garbage collection)
