@@ -1,4 +1,9 @@
 <project default="all">
+	<target name="lib-specific-pre">
+		<subant target="infuse">
+			<fileset includes="build.xml" dir="../base"/>
+		</subant>
+	</target>
 
 	<!-- set the name of the library -->
 	<property name="name" value="vm"/>
