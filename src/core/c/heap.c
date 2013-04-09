@@ -265,21 +265,20 @@ void dj_mem_shiftRuntimeIDs(runtime_id_t start, uint16_t range)
 
 }
 
-// /**
-//  * We'll add hooks to object finalisers here later
-//  */
-// static inline void dj_finalise(heap_chunk * chunk)
-// {
-// 	switch (chunk->id)
-// 	{
+/**
+ * We'll add hooks to object finalisers here later
+ */
+static inline void dj_finalise(heap_chunk * chunk)
+{
+	switch (chunk->id)
+	{
 
-// 	default:
-// 		chunk->id = CHUNKID_FREE;
-// 		// nothing
+	default:
+		chunk->id = CHUNKID_FREE;
+		// nothing
 
-// 	}
-
-// }
+	}
+}
 
 /**
  * Implements the marking phase using stop-the-world tri-color marking
@@ -335,18 +334,15 @@ static inline void dj_mem_mark()
 
 	} while (nrGray>0);
 
-	// Niels Reijers 20130407: Commented out since dj_finalise was empty anyway
-	// // Call finalise on each of the chunks
-	// loc = heap_base;
-	// while (loc<left_pointer)
-	// {
-	// 	chunk = (heap_chunk*)loc;
-	// 	if (chunk->color==TCM_WHITE)
-	// 		dj_finalise(chunk);
-
-	// 	loc += chunk->size;
-	// }
-
+	// Call finalise on each of the chunks
+	loc = heap_base;
+	while (loc<left_pointer)
+	{
+		chunk = (heap_chunk*)loc;
+		if (chunk->color==TCM_WHITE)
+			dj_finalise(chunk);
+		loc += chunk->size;
+	}
 }
 
 heap_chunk * dj_mem_getFirstChunk() {
