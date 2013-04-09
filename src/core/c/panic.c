@@ -41,6 +41,7 @@ void dj_panic(int32_t panictype)
             break;
         case DJ_PANIC_UNCAUGHT_EXCEPTION:
         	DEBUG_LOG(true, "PANIC: uncaught exception!\n");
+            break;
         case DJ_PANIC_UNSATISFIED_LINK:
             DEBUG_LOG(true, "PANIC: unsatisfied link!\n");
             break;
