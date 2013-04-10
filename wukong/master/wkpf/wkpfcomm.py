@@ -203,7 +203,7 @@ class Communication:
                   return x
                 new_properties_with_node_infos = map(anew, new_properties_with_node_infos)
                 wuclass = WuClass(wuclass_component.id, wuclass_component.name,
-                        wuclass_component.virtual, wuclass_component.type,
+                        isVirtual, wuclass_component.type,
                         new_properties_with_node_infos, destination)
                 wuclass.save()
             else:
