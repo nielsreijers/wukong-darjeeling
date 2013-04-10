@@ -39,7 +39,7 @@
 					<pathelement path="${platformpath}/../platform/${platform}/c"/>
 					<pathelement path="${platformpath}/../architecture/${architecture}/c"/>
 					<pathelement path="${platformpath}/../config/${configuration}/c"/>
-					<pathelement path="${platformpath}/../vm/c"/>
+					<pathelement path="${platformpath}/../core/c"/>
 					<path refid="platform-includes"/>
 					<path><filelist files="${cc-include-paths}" dir="/"/></path>
 				</includepath>

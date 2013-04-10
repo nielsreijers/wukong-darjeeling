@@ -41,8 +41,6 @@
 #define ZWAVE_ACK              0x06
 #define ZWAVE_NAK              0x15
 
-#define WKCOMM_PANIC_INIT_FAILED 100 // Need to make sure these codes don't overlap with other libs or the definitions in panic.h
-
 // wkcomm_zwave data
 address_t wkcomm_zwave_my_address;
 bool wkcomm_zwave_my_address_loaded = false;
@@ -82,7 +80,7 @@ void wkcomm_zwave_poll(void) {
 }
 
 void wkcomm_zwave_init(void) {
-    uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
+    uart_inituart(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 
     // Clear existing queue on Zwave
     DEBUG_LOG(DBG_WKCOMM, "Sending NAK\n");
@@ -267,8 +265,11 @@ void Zwave_receive(int processmessages) {
                 // }
             }
             if (cmd == FUNC_ID_MEMORY_GET_ID) {
-                wkcomm_zwave_my_address = wkcomm_zwave_receive_buffer[4];
-                wkcomm_zwave_my_address_loaded = true;
+                if (!wkcomm_zwave_my_address_loaded) {
+                    wkcomm_zwave_my_address = wkcomm_zwave_receive_buffer[4];
+                    wkcomm_zwave_my_address_loaded = true;
+                } else
+                    DEBUG_LOG(true, "!!!! ignore unexpected FUNC_ID_MEMORY_GET_ID\n");
             }
             // if (cmd == 0x49 && f_nodeinfo)
             //     f_nodeinfo(wkcomm_zwave_receive_buffer, payload_length);

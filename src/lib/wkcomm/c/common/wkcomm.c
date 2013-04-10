@@ -21,7 +21,7 @@ wkcomm_received_msg wkcomm_received_reply;
 dj_hook *wkcomm_handle_message_hook = NULL;
 
 // Initialise wkcomm and whatever protocols are enabled.
-void wkcomm_init(void) {
+void wkcomm_radio_init(void) {
 	#ifdef RADIO_USE_ZWAVE
 		wkcomm_zwave_init();
 	#endif

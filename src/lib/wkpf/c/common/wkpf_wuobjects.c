@@ -20,7 +20,7 @@ const uint8_t wkpf_property_datatype_size[3] = { 3, 2, 3 }; // Short, boolean, r
 uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference /* TODO: find out what datatype to use */ ) {
 	wuobject_t *wuobject;
 	if (wkpf_get_wuobject_by_port(port_number, &wuobject) != WKPF_ERR_WUOBJECT_NOT_FOUND) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: Port %x in use while creating wuobject for wuclass id %x: FAILED\n", port_number, wuclass_id);
+		DEBUG_LOG(DBG_WKPF, "WKPF: Port %d in use while creating wuobject for wuclass id %d: FAILED\n", port_number, wuclass_id);
 		return WKPF_ERR_PORT_IN_USE;
 	}
 
@@ -47,7 +47,7 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 	dj_mem_removeSafePointer((void**)&java_instance_reference);
 	dj_mem_removeSafePointer((void**)&wuclass);
 	if (wuobject == NULL) {
-		DEBUG_LOG(DBG_WKPF, "WKPF: Out of memory while creating wuobject for wuclass %x at port %x: FAILED\n", wuclass_id, port_number);
+		DEBUG_LOG(DBG_WKPF, "WKPF: Out of memory while creating wuobject for wuclass %d at port %d: FAILED\n", wuclass_id, port_number);
 		return WKPF_ERR_OUT_OF_MEMORY;
 	}
 
@@ -59,7 +59,7 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 		if (wkpf_does_property_need_initialisation_pull(port_number, i)) {
 			wuobject_property_t *property = wkpf_get_property(wuobject, i);
 			wkpf_set_property_status_needs_pull(property);
-			DEBUG_LOG(DBG_WKPF, "WKPF: Setting needs pull bit for property %x at port %x\n", i, port_number);
+			DEBUG_LOG(DBG_WKPF, "WKPF: Setting needs pull bit for property %d at port %d\n", i, port_number);
 		}
 	}
 
@@ -74,7 +74,7 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 
 	wuobject->next = wuobjects_list;
 	wuobjects_list = wuobject;
-	DEBUG_LOG(DBG_WKPF, "WKPF: Created wuobject for wuclass id %x at port %x\n", wuclass_id, port_number);
+	DEBUG_LOG(DBG_WKPF, "WKPF: Created wuobject for wuclass id %d at port %d\n", wuclass_id, port_number);
 	return WKPF_OK;
 }
 
@@ -98,7 +98,7 @@ uint8_t wkpf_remove_wuobject(uint8_t port_number) {
 		}
 	}
 
-	DEBUG_LOG(DBG_WKPF, "WKPF: No wuobject at port %x found: FAILED\n", port_number);
+	DEBUG_LOG(DBG_WKPF, "WKPF: No wuobject at port %d found: FAILED\n", port_number);
 	return WKPF_ERR_WUOBJECT_NOT_FOUND;  
 }
 
@@ -110,7 +110,7 @@ uint8_t wkpf_get_wuobject_by_port(uint8_t port_number, wuobject_t **wuobject) {
 		}
 		*wuobject = (*wuobject)->next;
 	}
-	DEBUG_LOG(DBG_WKPF, "WKPF: No wuobject at port %x found: FAILED\n", port_number);
+	DEBUG_LOG(DBG_WKPF, "WKPF: No wuobject at port %d found: FAILED\n", port_number);
 	return WKPF_ERR_WUOBJECT_NOT_FOUND;
 }
 
@@ -190,13 +190,13 @@ bool wkpf_get_next_wuobject_to_update(wuobject_t **virtual_wuobject) {
 			if (WKPF_IS_NATIVE_WUOBJECT(wuobject)) { // For native wuobjects: call update() directly
 				// Mark wuobject as safe just in case the wuclass does something to trigger GC
 				dj_mem_addSafePointer((void**)&wuobject);
-				DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update native wuobject at port %x\n", wuobject->port_number);
+				DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update native wuobject at port %d\n", wuobject->port_number);
 				wuobject->wuclass->update(wuobject);
 				dj_mem_removeSafePointer((void**)&wuobject);
 			} else { // For virtual wuobject: return it so WKPF.select() can return it to Java
 				*virtual_wuobject = wuobject;
 				last_updated_wuobject_index = current_index;
-				DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update virtual wuobject at port %x\n", wuobject->port_number);
+				DEBUG_LOG(DBG_WKPFUPDATE, "WKPFUPDATE: Update virtual wuobject at port %d\n", wuobject->port_number);
 				return true;
 			}
 		}
@@ -248,7 +248,7 @@ bool wkpf_get_next_dirty_property(wuobject_t **dirty_wuobject, uint8_t *dirty_pr
 			wuobject_property_t *property = (wuobject_property_t *)&(wuobject->properties_store[offset]);
 			if (wkpf_property_status_is_dirty(property->status)) {
 				// Found a dirty property. Return it.
-				DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_get_next_dirty_property DIRTY: port %x property %x status %x\n", wuobject->port_number, i, property->status);
+				DEBUG_LOG(DBG_WKPF, "WKPF: wkpf_get_next_dirty_property DIRTY: port %d property %d status %d\n", wuobject->port_number, i, property->status);
 				last_propagated_property_wuobject_index = current_index; // Next time continue from the next wuobject
 				*dirty_wuobject = wuobject;
 				*dirty_property_number = i;

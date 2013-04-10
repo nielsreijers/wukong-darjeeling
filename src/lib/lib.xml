@@ -19,6 +19,10 @@
 	<property name="build" value="${targetlibpath}/build/"/>
 	<property name="configbuild" value="${targetlibpath}/build/${configuration}/"/>
 	
+	<!-- Check if there's Java code in this library -->
+	<available property="contains-java-code" file="${targetlibpath}/java"/>
+	<echo message="${targetlibpath} contains java: ${contains-java-code}"/>
+
 	<!-- Java code -->
 	<property name="javasrc" value="${targetlibpath}/java"/>
 	<property name="classes" value="${build}/class"/>
@@ -73,7 +77,7 @@
 	<target name="all" depends="lib-specific-pre, compile-java, package, infuse, compile-c, ar, copy-public-headerfile, lib-specific-post"/>
 
 	<!-- compile the java sources -->
-	<target name="compile-java">
+	<target name="compile-java" if="${contains-java-code}">
 		<mkdir dir="${classes}"/>
 		<javac
 			srcdir="${javasrc}"
@@ -101,7 +105,7 @@
 					<pathelement path="${libpath}/../architecture/${architecture}/c"/>
 					<pathelement path="${libpath}/../platform/${platform}/c"/>
 					<pathelement path="${libpath}/../config/${configuration}/c"/>
-					<pathelement path="${libpath}/../vm/c"/>
+					<pathelement path="${libpath}/../core/c"/>
 					<pathelement path="c/common"/>
 					<pathelement path="c/${platform}"/>
 					<pathelement path="${build}"/>
@@ -135,7 +139,7 @@
 	</target>
 
 	<!-- package the code into a single .jar file -->
-	<target name="package" depends="compile-java"> 
+	<target name="package" depends="compile-java" if="${contains-java-code}"> 
 		<mkdir dir="${build}"/>
 		<jar destfile="${jarfile}"> 
 			<fileset dir="${classes}"><include name="**/*.class"/></fileset>
@@ -143,7 +147,7 @@
 	</target>
 
 	<!-- infuse the java code -->
-	<target name="infuse" depends="compile-java"> 
+	<target name="infuse" depends="compile-java" if="${contains-java-code}"> 
 		<infuser
 			name="${name}"
 			infusionfile="${infusionfile}"

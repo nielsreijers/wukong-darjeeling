@@ -11,6 +11,9 @@
 #define WKCOMM_SEND_ERR_TOO_LONG		 3
 #define WKCOMM_SEND_ERR_NO_REPLY		 4
 
+// Need to make sure these codes don't overlap with other libs or the definitions in panic.h
+#define WKCOMM_PANIC_INIT_FAILED 100
+
 // WuKong address. For now it's just a byte, but this will probably change.
 // When it does, we need to change the component-node map as well
 typedef uint8_t address_t;
@@ -29,8 +32,8 @@ extern dj_hook *wkcomm_handle_message_hook;
 // Message handling. This function is called from the radio code (wkcomm_zwave_poll or wkcomm_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
 extern void wkcomm_handle_message(wkcomm_received_msg *message);
 
-// Initialise wkcomm and whatever protocols are enabled. Called from javax_wukong_wkcomm_WKComm_void__init()
-extern void wkcomm_init(void);
+// Initialise the enabled radio protocols. Called from wkcomm_init()
+extern void wkcomm_radio_init(void);
 
 // Get my own node id
 extern address_t wkcomm_get_node_id();

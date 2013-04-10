@@ -1,0 +1,12 @@
+<project default="all">
+
+	<!-- set the name of the library -->
+	<property name="name" value="wkpf_virtual"/>
+	
+	<!-- list of libraries this library depends on -->
+	<property name="lib-depends" value="vm, base, wkcomm, wkpf"/>
+	
+	<!-- include the library build template -->
+	<import file="../lib.xml"/>
+
+</project>
