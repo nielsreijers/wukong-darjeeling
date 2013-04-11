@@ -194,10 +194,10 @@
 	<!-- Clean the build dir, the VM, and the libraries this configuration depends on -->
 	<target name="clean">
 		<subant target="clean" inheritall="true">
-			<fileset includes="${libbuildfiles}" dir="${configpath}/../lib/"/>
-			<fileset includes="${appbuildfiles}" dir="${configpath}/../app/"/>
+			<fileset includes="*/build.xml" dir="${configpath}/../lib/"/>
+			<fileset includes="*/build.xml" dir="${configpath}/../app/"/>
+			<fileset includes="*/build.xml" dir="${configpath}/../platform/"/>
 			<fileset includes="build.xml" dir="${configpath}/../core/"/>
-			<fileset includes="build.xml" dir="${configpath}/../platform/${platform}"/>
 		</subant>
 		<delete dir="./build"/>
 		<delete file="history.xml"/>
