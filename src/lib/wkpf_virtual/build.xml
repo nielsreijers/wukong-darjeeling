@@ -4,7 +4,8 @@
 	<property name="name" value="wkpf_virtual"/>
 	
 	<!-- list of libraries this library depends on -->
-	<property name="lib-depends" value="vm, base, wkcomm, wkpf"/>
+	<property name="lib-c-depends" value="vm, wkcomm, wkpf"/>
+	<property name="lib-java-depends" value="base"/>
 	
 	<!-- include the library build template -->
 	<import file="../lib.xml"/>
