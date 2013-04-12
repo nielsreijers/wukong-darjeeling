@@ -134,7 +134,7 @@ int main(int argc,char* argv[])
 
 	// Listen to the radio
 	while(true)
-		dj_hook_call(dj_vm_pollingHook, NULL);
+		dj_hook_call(dj_core_pollingHook, NULL);
 
 	return 0;
 }
