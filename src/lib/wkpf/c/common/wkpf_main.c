@@ -46,7 +46,7 @@ void wkpf_initLocalObjectAndInitValues(dj_di_pointer archive) {
 }
 
 wuobject_t *wkpf_mainloop() {
-	wuobject_t *wuobject;
+	wuobject_t *wuobject = NULL;
 	while(true) {
 		// Process any incoming messages
 		dj_hook_call(dj_core_pollingHook, NULL);
