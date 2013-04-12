@@ -62,7 +62,7 @@
 	<target name="lib-specific-post" />
 
 	<target name="all" depends="lib-specific-pre, create-jar, create-infusion, create-ar, copy-public-headerfile, lib-specific-post"/>
-	<target name="build-java-only" depends="lib-specific-pre, create-jar, create-infusion, copy-public-headerfile, lib-specific-post"/>
+	<target name="build-java-only" depends="lib-specific-pre, create-jar, create-infusion, lib-specific-post"/>
 
 	<!-- compile the java sources -->
 	<target name="compile-java" if="${contains-java-code}">
