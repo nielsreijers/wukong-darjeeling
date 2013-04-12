@@ -19,7 +19,4 @@
 	<import file="../lib.xml"/>
 
 	<property name="public-headerfile" value="*.h"/>
-
-	<!-- hack for the vm lib -->
-	<fileset id="infuser-include-headers" dir="." excludes="**/*"/>
 </project>
