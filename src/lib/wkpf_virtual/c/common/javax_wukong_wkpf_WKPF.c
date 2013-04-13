@@ -17,6 +17,7 @@
 #include "wkpf_links.h"
 #include "wkpf_comm.h"
 #include "wkpf_main.h"
+#include "wkpf_virtual_wuclasses.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
 
