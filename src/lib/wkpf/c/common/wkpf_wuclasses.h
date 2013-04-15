@@ -14,6 +14,7 @@ typedef struct wuclass_t {
     uint16_t wuclass_id;
     update_function_t update; // Set for native wuclasses, NULL for virtual wuclasses
     uint8_t number_of_properties;
+    uint8_t private_c_data_size;
     struct wuclass_t *next;
     uint8_t properties[];
 } wuclass_t;

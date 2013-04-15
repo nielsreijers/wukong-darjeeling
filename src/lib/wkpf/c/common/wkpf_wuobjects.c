@@ -17,6 +17,14 @@ uint16_t last_propagated_property_wuobject_index = 0;
 const uint8_t wkpf_property_datatype_size[3] = { 3, 2, 3 }; // Short, boolean, refreshrate
 #define WKPF_GET_PROPERTY_DATASIZE(x)	 (wkpf_property_datatype_size[WKPF_GET_PROPERTY_DATATYPE(x)])
 
+uint8_t wkpf_get_size_of_all_properties(wuclass_t *wuclass) {
+	uint8_t size_of_properties = 0;
+	for(int i=0; i<wuclass->number_of_properties; i++) {
+		size_of_properties += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[i]);
+	}
+	return size_of_properties;
+}
+
 uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference /* TODO: find out what datatype to use */ ) {
 	wuobject_t *wuobject;
 	if (wkpf_get_wuobject_by_port(port_number, &wuobject) != WKPF_ERR_WUOBJECT_NOT_FOUND) {
@@ -36,11 +44,12 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 		return WKPF_ERR_NEED_VIRTUAL_WUCLASS_INSTANCE;
 
 	// Allocate memory for the new wuobject
-	uint8_t size_of_properties = 0;
-	for(int i=0; i<wuclass->number_of_properties; i++) {
-		size_of_properties += WKPF_GET_PROPERTY_DATASIZE(wuclass->properties[i]);
-	}
-	uint16_t size = sizeof(wuobject_t) + size_of_properties; // TODO: add space for the properties;
+	uint16_t size;
+	if (WKPF_IS_VIRTUAL_WUCLASS(wuclass))
+		// Don't need to allocate memory for private C data for virtual wuclasses
+		size = sizeof(wuobject_t) + wkpf_get_size_of_all_properties(wuclass);
+	else
+		size = sizeof(wuobject_t) + wkpf_get_size_of_all_properties(wuclass) + wuclass->private_c_data_size;
 	dj_mem_addSafePointer((void**)&java_instance_reference); // dj_mem_alloc may cause GC to run, so the address of the wuclass and the virtual wuclass instance may change. this tells the GC to update our pointer if it does.
 	dj_mem_addSafePointer((void**)&wuclass); // dj_mem_alloc may cause GC to run, so the address of the wuclass and the virtual wuclass instance may change. this tells the GC to update our pointer if it does.
 	wuobject = (wuobject_t*)dj_mem_alloc(size, CHUNKID_WUCLASS);
@@ -269,3 +278,6 @@ wuobject_property_t* wkpf_get_property(wuobject_t *wuobject, uint8_t property_nu
 	return (wuobject_property_t *)&(wuobject->properties_store[offset]);
 }
 
+void *wkpf_get_private_wuobject_data(wuobject_t *wuobject) {
+	return ((void *)wuobject->properties_store) + wkpf_get_size_of_all_properties(wuobject->wuclass);
+}

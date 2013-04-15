@@ -145,12 +145,13 @@ class WuProperty:
 
 # Now both WuClass and WuObject have node id attribute, because each could represent at different stages of mapping process
 class WuClass:
-    def __init__(self, name, id, properties, virtual, soft, node_id=None):
+    def __init__(self, name, id, properties, virtual, soft, privateCData, node_id=None):
         self._name = name  # WuClass's name
         self._id = id      # an integer for class' id
         self._properties = properties  # a dict of WuProperty objects accessed thru the prop's name
         self._virtual = virtual    # a boolean for virtual or native
         self._soft = soft  # a boolean for soft or hard
+        self._privateCData = privateCData # an optional data type, used if the wuclass needs to store some private data in the C implementation (Java should use instance variables instead)
         self_node_id = node_id
 
     def __iter__(self):
@@ -228,6 +229,15 @@ class WuClass:
 
     def setNodeId(self, id):
         self._node_id = id
+
+    def getPrivateCData(self):
+      return self._privateCData
+
+    def hasPrivateCData(self):
+      return self._privateCData != ''
+
+    def getPrivateCDataGetFunction(self):
+      return '''%s *%s_getPrivateData(wuobject_t *wuobject)''' % (self._privateCData, self.getCName())
 
 # Now both WuClass and WuObject have node id attribute, because each could represent at different stages of mapping process
 # The wuClass in WuObject is just for reference only, the node_id shouldn't be used
@@ -398,9 +408,8 @@ class CodeGen:
               propName = prop.getAttribute('name')
 
               wuclassProperties[propName] = WuProperty(wuclassName, propName, i, wuTypes[propType], prop.getAttribute('access')) 
-
-          wuClass = WuClass(wuclassName, wuclassId, wuclassProperties, True if wuclass.getAttribute('virtual').lower() == 'true' else False, True if wuclass.getAttribute('type').lower() == 'soft' else False)
-
+          privateCData = wuclass.getAttribute('privateCData')
+          wuClass = WuClass(wuclassName, wuclassId, wuclassProperties, True if wuclass.getAttribute('virtual').lower() == 'true' else False, True if wuclass.getAttribute('type').lower() == 'soft' else False, privateCData)
 
           # Native header
           wuclass_native_header_path = os.path.join(project_dir, vm_dir, wuClass.getCFileName() + '.h')
@@ -477,22 +486,27 @@ class CodeGen:
           # Generate C header for each native component implementation
           wuclass_native_header_lines.append('''
           #include "native_wuclasses.h"
+          #include "native_wuclasses_privatedatatypes.h"
 
           #ifndef %sH
           #define %sH
 
           extern wuclass_t %s;
 
+          %s
+
           #endif
           ''' % (
                   wuClass.getCDefineName(),
                   wuClass.getCDefineName(),
-                  wuClass.getCName()
+                  wuClass.getCName(),
+                  "extern " + wuClass.getPrivateCDataGetFunction() + ";" if wuClass.hasPrivateCData() else ''
                 ))
 
           # Generate C implementation for each native component implementation
           wuclass_native_impl_lines.append('''
           #include "native_wuclasses.h"
+          #include "native_wuclasses_privatedatatypes.h"
 
           #ifdef ENABLE_%s
 
@@ -523,6 +537,7 @@ class CodeGen:
             %s,
             %s,
             %d,
+            %s,
             NULL,
             {
             %s
@@ -532,7 +547,16 @@ class CodeGen:
                 wuClass.getCConstName(),
                 wuClass.getCUpdateName(),
                 len(wuClass.getProperties()),
+                "sizeof(%s)" % (wuClass.getPrivateCData()) if wuClass.hasPrivateCData() else "0", 
                 wuclass_native_impl_properties_lines))
+
+          if wuClass.hasPrivateCData():
+            wuclass_native_impl_lines.append('''
+              %s {
+                return (%s *)wkpf_get_private_wuobject_data(wuobject);
+              }
+            ''' %(wuClass.getPrivateCDataGetFunction(),
+                  wuClass.getPrivateCData()))
 
           wuclass_native_impl_lines.append('''
           #endif
