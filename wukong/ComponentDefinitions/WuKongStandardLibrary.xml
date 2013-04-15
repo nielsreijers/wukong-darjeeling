@@ -108,7 +108,7 @@
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
-    <WuClass name="Light_Actuator" id="4" virtual="false" type="hard">
+    <WuClass name="Light_Actuator" id="4" virtual="false" type="hard" privateCData="lightactuator_switch_count_t">
         <property name="on_off" datatype="boolean" access="readwrite" default="false" />
     </WuClass>
 
