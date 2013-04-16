@@ -325,6 +325,70 @@ class WuObject:
 
 class CodeGen:
     @staticmethod
+    def generateNativeWuclasses(logger, component_string, project_dir):
+        # By catlikethief 2013.04.11
+        # Try to generate native_wuclasses.c by parsing another xml file
+        vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
+
+        native_wuclasses_filename = 'native_wuclasses.c'
+        native_wuclasses_path = os.path.join(project_dir, vm_dir, native_wuclasses_filename)
+        native_wuclasses = open(native_wuclasses_path, 'w')
+
+        header_lines = ['#include <debug.h>\n',
+        '#include "wkcomm.h"\n',
+        '#include "wkpf_config.h"\n',
+        '#include "wkpf_wuclasses.h"\n',
+        '#include "native_wuclasses.h"\n',
+        '#include "GENERATEDwuclass_generic.h"\n'
+        ]
+        register_function = '''
+uint8_t wkpf_register_wuclass_and_create_wuobject(wuclass_t *wuclass, uint8_t port_number) {
+  wkpf_register_wuclass(wuclass);
+  uint8_t retval = wkpf_create_wuobject(wuclass->wuclass_id, port_number, 0);
+  if (retval != WKPF_OK)
+    return retval;
+  return WKPF_OK;
+}'''
+        init_function_lines = ['''
+
+uint8_t wkpf_native_wuclasses_init() {
+  uint8_t retval;
+
+  retval = wkpf_register_wuclass_and_create_wuobject(&wuclass_generic, 0); // Always create wuobject for generic wuclass at port 0
+  if (retval != WKPF_OK)
+    return retval;
+
+  DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Running wkpf native init for node id: %x\\n", wkcomm_get_node_id());
+
+'''     ]
+
+        dom = parseString(component_string)
+
+        wuclasses_list = []
+        wuclasses = dom.getElementsByTagName("WuClass")
+        for wuclass in wuclasses:
+            wuclass_name = wuclass.getAttribute('name').lower()
+            header_lines.append('#include "GENERATEDwuclass_%s.h"\n' % wuclass_name)
+            init_function_lines.append('''
+  wkpf_register_wuclass(&wuclass_%s);
+  if (retval != WKPF_OK)
+    return retval;
+''' % wuclass_name)
+
+
+        init_function_lines.append('''
+  return WKPF_OK;
+}'''    )
+
+        native_wuclasses.writelines(header_lines)
+        native_wuclasses.write(register_function)
+        native_wuclasses.writelines(init_function_lines)
+
+
+        native_wuclasses.close()
+
+
+    @staticmethod
     def generate(logger, component_string, project_dir):
         global_vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common')
         vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
@@ -646,6 +710,10 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     print options, args
+
+    # xmlfile = '../../../wukong/ComponentDefinitions/EnabledWuClasses.xml'
+    # if os.path.exists(xmlfile) and options.project_dir:
+    #     CodeGen.generateNativeWuclasses(logging.getLogger(), open(xmlfile).read(), options.project_dir)
 
     if os.path.exists(options.component_file) and options.project_dir:
         CodeGen.generate(logging.getLogger(), open(options.component_file).read(), options.project_dir)
