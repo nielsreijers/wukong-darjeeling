@@ -203,6 +203,9 @@ class WuClass:
     def getCUpdateName(self):
         return self.getCName() + "_update"
 
+    def getCSetupName(self):
+        return self.getCName() + "_setup"
+
     def getCConstName(self):
         return "WKPF_" + self.getJavaConstName()
 
@@ -511,9 +514,11 @@ class CodeGen:
           #ifdef ENABLE_%s
 
           extern void %s(wuobject_t *wuobject);
+          extern void %s(wuobject_t *wuobject);
 
           ''' % (
                   wuClass.getCDefineName(),
+                  wuClass.getCSetupName(),
                   wuClass.getCUpdateName(),
                 ))
 
@@ -536,6 +541,7 @@ class CodeGen:
           wuclass_t %s = {
             %s,
             %s,
+            %s,
             %d,
             %s,
             NULL,
@@ -545,6 +551,7 @@ class CodeGen:
           };
           ''' % (wuClass.getCName(), 
                 wuClass.getCConstName(),
+                wuClass.getCSetupName(),
                 wuClass.getCUpdateName(),
                 len(wuClass.getProperties()),
                 "sizeof(%s)" % (wuClass.getPrivateCData()) if wuClass.hasPrivateCData() else "0", 
