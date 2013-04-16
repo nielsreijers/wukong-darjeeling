@@ -8,10 +8,12 @@
 #define WKPF_IS_VIRTUAL_WUCLASS(x)              (x->update == NULL)
 
 struct wuobject_t;
+typedef void (*setup_function_t)(struct wuobject_t *);
 typedef void (*update_function_t)(struct wuobject_t *);
 
 typedef struct wuclass_t {
     uint16_t wuclass_id;
+    setup_function_t setup;   // Set for native wuclasses, NULL for virtual wuclasses
     update_function_t update; // Set for native wuclasses, NULL for virtual wuclasses
     uint8_t number_of_properties;
     uint8_t private_c_data_size;
