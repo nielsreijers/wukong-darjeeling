@@ -15,13 +15,18 @@
 
 	<target name="lib-specific-pre">
 		<exec executable="../../../wukong/master/wkpf/codegen.py">
-			<arg line="-i ../../../wukong/ComponentDefinitions/WuKongStandardLibrary.xml -p ../../.. -u ../../.."/>
+			<arg line="--input_xml ../../../wukong/ComponentDefinitions/WuKongStandardLibrary.xml --java_package javax.wukong.virtualwuclasses --c_dir ../../../src/lib/wkpf/c/common --java_constants_dir ../../../wukong/javax/wukong/virtualwuclasses --java_virtualclasses_dir ../../../wukong/javax/wukong/virtualwuclasses"/>
 		</exec>
 	</target>
 
 	<target name="clean">
 		<delete>
 			<fileset dir="." casesensitive="yes">
+			  <include name="**/GENERATED*"/>
+			</fileset>
+		</delete>
+		<delete>
+			<fileset dir="../../../wukong/javax/wukong/virtualwuclasses" casesensitive="yes">
 			  <include name="**/GENERATED*"/>
 			</fileset>
 		</delete>

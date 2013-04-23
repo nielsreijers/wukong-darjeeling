@@ -402,25 +402,8 @@ uint8_t wkpf_native_wuclasses_init() {
 
 
     @staticmethod
-    def generate(logger, component_string, project_dir):
-        global_vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common')
-        vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
-        java_dir = os.path.join('wukong', 'javax', 'wukong', 'virtualwuclasses')
-
-        plugin_dir = os.path.join(project_dir, 'plugins')
-        template_dir = os.path.join(plugin_dir, 'templates')
-
-        # Filenames
-        global_vm_header_filename = 'GENERATEDwkpf_wuclass_library.h'
-        global_virtual_constants_filename = 'GENERATEDWKPF.java'
-
-        # Paths
-        global_vm_header_path = os.path.join(project_dir, global_vm_dir, global_vm_header_filename)
-        global_virtual_constants_path = os.path.join(project_dir, java_dir, global_virtual_constants_filename)
-
-        # IOs
-        global_vm = open(global_vm_header_path, 'w')
-        global_virtual_constants = open(global_virtual_constants_path, 'w')
+    def generate(logger, component_file, c_dir, java_virtualclasses_dir, java_constants_dir, java_package):
+        component_string = open(options.component_file).read()
 
         # Lines
         global_vm_header_lines = []
@@ -478,19 +461,6 @@ uint8_t wkpf_native_wuclasses_init() {
           privateCData = wuclass.getAttribute('privateCData')
           wuClass = WuClass(wuclassName, wuclassId, wuclassProperties, True if wuclass.getAttribute('virtual').lower() == 'true' else False, True if wuclass.getAttribute('type').lower() == 'soft' else False, privateCData)
 
-          # Native header
-          wuclass_native_header_path = os.path.join(project_dir, vm_dir, wuClass.getCFileName() + '.h')
-          wuclass_native_header = open(wuclass_native_header_path, 'w')
-
-          # Native impl
-          wuclass_native_impl_path = os.path.join(project_dir, vm_dir, wuClass.getCFileName() + '.c')
-          wuclass_native_impl = open(wuclass_native_impl_path, 'w')
-
-          # Virtual (Java)
-          if wuclass.getAttribute('virtual') == 'true':
-            wuclass_virtual_super_path = os.path.join(project_dir, java_dir, wuClass.getJavaGenClassName() + '.java')
-            wuclass_virtual_super = open(wuclass_virtual_super_path, 'w') 
-
           # Lines
           wuclass_native_header_lines = []
           wuclass_native_impl_lines = []
@@ -514,14 +484,16 @@ uint8_t wkpf_native_wuclasses_init() {
 
           # Parsing to WuKong Profile Framework Component Library header in Java
           if wuclass.getAttribute('virtual') == 'true':
+            package = 'package ' + java_package + ';' if java_package else ''
+
             wuclass_virtual_super_lines.append('''
-            package javax.wukong.virtualwuclasses;
+            %s
             import javax.wukong.wkpf.VirtualWuObject;
             import javax.wukong.wkpf.WKPF;
 
             public abstract class %s extends VirtualWuObject {
               public static byte[] properties = new byte[] {
-            ''' % (wuClass.getJavaGenClassName()))
+            ''' % (package, wuClass.getJavaGenClassName()))
 
             for ind, property in enumerate(wuClass.getProperties().values()):
               datatype = property.getDataType()
@@ -633,13 +605,20 @@ uint8_t wkpf_native_wuclasses_init() {
           #endif
           ''')
 
-          wuclass_native_header.writelines(wuclass_native_header_lines)
-          wuclass_native_header.close()
+          if c_dir:
+            wuclass_native_header_path = os.path.join(c_dir, 'native_wuclasses', wuClass.getCFileName() + '.h')
+            wuclass_native_header = open(wuclass_native_header_path, 'w')
+            wuclass_native_header.writelines(wuclass_native_header_lines)
+            wuclass_native_header.close()
 
-          wuclass_native_impl.writelines(wuclass_native_impl_lines)
-          wuclass_native_impl.close()
+            wuclass_native_impl_path = os.path.join(c_dir, 'native_wuclasses', wuClass.getCFileName() + '.c')
+            wuclass_native_impl = open(wuclass_native_impl_path, 'w')
+            wuclass_native_impl.writelines(wuclass_native_impl_lines)
+            wuclass_native_impl.close()
 
-          if wuclass.getAttribute('virtual') == 'true':
+          if java_virtualclasses_dir and wuclass.getAttribute('virtual') == 'true':
+            wuclass_virtual_super_path = os.path.join(java_virtualclasses_dir, wuClass.getJavaGenClassName() + '.java')
+            wuclass_virtual_super = open(wuclass_virtual_super_path, 'w') 
             wuclass_virtual_super.writelines(wuclass_virtual_super_lines)
             wuclass_virtual_super.close()
 
@@ -649,95 +628,29 @@ uint8_t wkpf_native_wuclasses_init() {
         }
         ''')
 
-        global_vm.writelines(global_vm_header_lines)
-        global_vm.close()
+        if c_dir:
+            global_vm_header_filename = 'GENERATEDwkpf_wuclass_library.h'
+            global_vm_header_path = os.path.join(c_dir, global_vm_header_filename)
+            global_vm_header = open(global_vm_header_path, 'w')
+            global_vm_header.writelines(global_vm_header_lines)
+            global_vm_header.close()
 
-        global_virtual_constants.writelines(global_virtual_constants_lines)
-        global_virtual_constants.close()
-
-
-
-# deprecated
-class PluginGen:
-  def __init__(self, *args, **kwargs):
-    # Plugin Name
-    if 'plugin_name' in kwargs:
-
-      self.plugin_name = kwargs['plugin_name']
-      self.plugin_template_dir = os.path.join(template_dir, kwargs['plugin_name'], 'wukongObject')
-      self.plugin_root_dir = os.path.join(plugin_dir, kwargs['plugin_name'], 'wukongObject')
-
-      self.jinja2_env = Environment(loader=FileSystemLoader(get_all_subdirectories(plugin_template_dir) + [plugin_template_dir]))
-      self.jinja2_env.filters["convert_filename_to_java"] = convert_filename_to_java
-
-  # deprecated
-  def generate_plugin(self):
-    dom = parseString(self.component_string)
-
-    wuclasses = dom.getElementsByTagName("WuClass")
-    wutypedefs = dom.getElementsByTagName("WuTypedef")
-    wucomponents = component_root.xpath("WuClass | WuTypedef")
-
-    # Create plugin folder structure
-    if self.plugin_name:
-      distutils.dir_util.copy_tree(self.plugin_template_dir, self.plugin_root_dir)
-
-      if self.plugin_name == "niagara":
-        module_include_path = os.path.join(self.plugin_root_dir, 'module-include.xml')
-        module_include = open(module_include_path, 'w')
-        module_include_template = self.jinja2_env.get_template('module-include.xml')
-        module_include.write(module_include_template.render(components=wucomponents))
-        module_include.close()
-
-        module_palette_path = os.path.join(self.plugin_root_dir, 'module.palette')
-        module_palette = open(module_palette_path, 'w')
-        module_palette_template = self.jinja2_env.get_template('module.palette')
-        module_palette.write(module_palette_template.render(
-          virtuals=component_root.xpath("//*[@virtual='true']"), 
-          sensors=component_root.xpath("//*[contains(@name, 'Sensor')]"), 
-          controllers=component_root.xpath("//*[contains(@name, 'Controller')]"),
-          actuators=component_root.xpath("//*[contains(@name, 'Actuator')]")))
-        module_palette.close()
-
-
-        class_implementation_dir = os.path.join(self.plugin_root_dir, 'src', 'com', 'wukong', 'wukongObject')
-        distutils.dir_util.mkpath(class_implementation_dir)
-        #class_implementation_template = Template(open(os.path.join(class_implementation_dir, 'BTemplate.java')).read())
-        class_implementation_template = self.jinja2_env.get_template('BTemplate.java')
-        enum_implementation_template = self.jinja2_env.get_template('BTemplateEnum.java')
-
-        for wuclass in wuclasses:
-          wuclass_implementation_path = os.path.join(class_implementation_dir, 'B%s.java' % (convert_filename_to_java(wuclass.get("name"))))
-          wuclass_implementation = open(wuclass_implementation_path, 'w')
-          wuclass_implementation.write(class_implementation_template.render(component=wuclass))
-
-        for wutypedef in wutypedefs:
-          if wutypedef.get("type").lower() == 'enum':
-            wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%s.java' % (convert_filename_to_java(wutypedef.get("name"))))
-            wutypedef_implementation = open(wutypedef_implementation_path, 'w')
-            wutypedef_implementation.write(enum_implementation_template.render(component=wutypedef))
-
-      # delete template files
-      try:
-        os.remove(findInSubdirectory('BTemplate.java', self.plugin_root_dir))
-      except IOError:
-        print "Attempting to remove non-existing file %s" % ('BTemplate.java')
-
-      try:
-        os.remove(findInSubdirectory('BTemplateEnum.java', self.plugin_root_dir))
-      except IOError:
-        print "Attempting to remove non-existing file %s" % ('BTemplateEnum.java')
-
-
-      print "==================End of Plugin====================="
+        if java_constants_dir:
+            global_virtual_constants_filename = 'GENERATEDWKPF.java'
+            global_virtual_constants_path = os.path.join(java_constants_dir, global_virtual_constants_filename)
+            global_virtual_constants = open(global_virtual_constants_path, 'w')
+            global_virtual_constants.writelines(global_virtual_constants_lines)
+            global_virtual_constants.close()
 
 
 
 if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option('-i', '--input_xml', dest='component_file')
-    parser.add_option('-p', '--projectdir', dest='project_dir')
-    parser.add_option('-u', '--plugin', dest='plugin_name')
+    parser.add_option('-c', '--c_dir', dest='c_dir')
+    parser.add_option('-j', '--java_virtualclasses_dir', dest='java_virtualclasses_dir')
+    parser.add_option('-x', '--java_constants_dir', dest='java_constants_dir')
+    parser.add_option('-p', '--java_package', dest='java_package')
     (options, args) = parser.parse_args()
 
     print options, args
@@ -746,7 +659,12 @@ if __name__ == "__main__":
     # if os.path.exists(xmlfile) and options.project_dir:
     #     CodeGen.generateNativeWuclasses(logging.getLogger(), open(xmlfile).read(), options.project_dir)
 
-    if os.path.exists(options.component_file) and options.project_dir:
-        CodeGen.generate(logging.getLogger(), open(options.component_file).read(), options.project_dir)
+    if os.path.exists(options.component_file):
+        CodeGen.generate(logging.getLogger(),
+                         options.component_file,
+                         options.c_dir,
+                         options.java_virtualclasses_dir,
+                         options.java_constants_dir,
+                         options.java_package)
     else:
-        print "path don't exist", options.component_file, options.project_dir
+        print "path to component library doesn't exist: ", options.component_file
