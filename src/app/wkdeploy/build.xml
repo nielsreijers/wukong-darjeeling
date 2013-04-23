@@ -8,6 +8,7 @@
 	<property name="lib-depends" value="base, wkpf_virtual"/>
 	
 	<property name="wkpftable" value="WKDeploy.xml"/>
+	<property name="wkpf-app-specific-componentxml" value="WKDeployCustomComponents.xml"/>
 
 	<!-- include the library build template -->
 	<import file="../wkpf-app.xml"/>
