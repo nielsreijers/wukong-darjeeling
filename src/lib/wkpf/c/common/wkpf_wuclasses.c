@@ -8,9 +8,9 @@
 wuclass_t *wuclasses_list = NULL;
 
 void wkpf_register_wuclass(wuclass_t *wuclass) {
+  DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %d at index %d\n", wuclass->wuclass_id, wkpf_get_number_of_wuclasses());
   wuclass->next = wuclasses_list;
   wuclasses_list = wuclass;
-  DEBUG_LOG(DBG_WKPF, "WKPF: Registering wuclass id %d at index %d\n", wuclass->wuclass_id, wkpf_get_number_of_wuclasses());
 }
 
 uint8_t wkpf_register_virtual_wuclass(uint16_t wuclass_id, update_function_t update, uint8_t number_of_properties, uint8_t properties[]) {

@@ -36,7 +36,7 @@ int wkcomm_do_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uin
     buffer[1] = seqnr % 256;
     buffer[2] = seqnr / 256;
 	memcpy (buffer+3, payload, length);
-	return routing_send(dest, buffer, length);
+	return routing_send(dest, buffer, length+3);
 }
 
 int wkcomm_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length) {
@@ -80,13 +80,13 @@ int wkcomm_send_and_wait_for_reply(wkcomm_address_t dest, uint8_t command, uint8
 
 // Message handling. This function is called from the radio code (radio_zwave_poll or radio_xbee_poll), checks for replies we may be waiting for, or passes on the handling to one of the other libs.
 void wkcomm_handle_message(wkcomm_address_t addr, uint8_t *payload, uint8_t length) {
-#ifdef DEBUG
-	DEBUG_LOG(DBG_WKCOMM, "Handling command "DBG8" from "DBG8", length "DBG8":\n", message->command, message->src, message->length);
-	for (int8_t i=0; i<message->length; ++i) {
-		DEBUG_LOG(DBG_WKCOMM, " "DBG8"", message->payload[i]);
+#ifdef DARJEELING_DEBUG
+	DEBUG_LOG(DBG_WKCOMM, "Handling command %d from %d, length %d:\n", payload[0], addr, length);
+	for (int8_t i=0; i<length; ++i) {
+		DEBUG_LOG(DBG_WKCOMM, " %d", payload[i]);
 	}
 	DEBUG_LOG(DBG_WKCOMM, "\n");
-#endif
+#endif // DARJEELING_DEBUG
 
 	wkcomm_received_msg msg;
 	msg.src = addr;

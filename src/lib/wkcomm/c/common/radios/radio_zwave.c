@@ -420,7 +420,7 @@ int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions)
     buf[0] = ZWAVE_TYPE_REQ;
     buf[1] = ZWAVE_REQ_SENDDATA;
     buf[2] = id;
-    buf[3] = len+4;
+    buf[3] = len+1;
     buf[4] = COMMAND_CLASS_PROPRIETARY;
     for(i=0; i<len; i++)
         buf[i+5] = in[i];
