@@ -100,7 +100,7 @@ void wkpf_comm_handle_message(void *data) {
 			uint8_t requested_offset = payload[0];
 
 			// Read the EEPROM
-			uint8_t length = wkpf_config_get_part_of_location_string((char *)payload, requested_offset, WKCOMM_MESSAGE_SIZE);
+			uint8_t length = wkpf_config_get_part_of_location_string((char *)payload, requested_offset, WKCOMM_MESSAGE_PAYLOAD_SIZE);
 
 			DEBUG_LOG(DBG_WKPF, "WKPF_COMM_CMD_GET_LOCATION: Reading %d bytes at offset %d\n", length, requested_offset);
 

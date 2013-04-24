@@ -26,12 +26,12 @@ dj_hook *wkcomm_handle_message_hook = NULL;
 // Send length bytes to dest
 int wkcomm_do_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
 	DEBUG_LOG(DBG_WKCOMM, "wkcomm_send\n");
-	if (length > WKCOMM_MESSAGE_SIZE) {
+	if (length > WKCOMM_MESSAGE_PAYLOAD_SIZE) {
 		DEBUG_LOG(DBG_WKCOMM, "message oversized\n");
 		return WKCOMM_SEND_ERR_TOO_LONG; // Message too large
 	}
 
-	uint8_t buffer[WKCOMM_MESSAGE_SIZE+3]; // 2 bytes for the seq nr, 1 for the command
+	uint8_t buffer[WKCOMM_MESSAGE_PAYLOAD_SIZE+3]; // 2 bytes for the seq nr, 1 for the command
 	buffer[0] = command;
     buffer[1] = seqnr % 256;
     buffer[2] = seqnr / 256;

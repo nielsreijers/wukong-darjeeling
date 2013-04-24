@@ -50,7 +50,7 @@
 // radio_zwave data
 radio_zwave_address_t radio_zwave_my_address;
 bool radio_zwave_my_address_loaded = false;
-uint8_t radio_zwave_receive_buffer[WKCOMM_MESSAGE_SIZE+5];
+uint8_t radio_zwave_receive_buffer[WKCOMM_MESSAGE_PAYLOAD_SIZE+4+3]; // 4 for Zwave overhead, 3 for wkcomm overhead
 
 // zwave protocol data
 uint8_t state;        // Current state
@@ -412,7 +412,7 @@ int ZW_GetRoutingInformation(uint8_t id)
 
 int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions)
 {
-    unsigned char buf[WKCOMM_MESSAGE_SIZE+10];
+    unsigned char buf[WKCOMM_MESSAGE_PAYLOAD_SIZE+10];
     int i;
     int timeout = 1000;
     zwsend_ack_got = -1;
