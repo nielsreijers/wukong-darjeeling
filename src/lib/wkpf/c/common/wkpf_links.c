@@ -94,7 +94,7 @@ uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
 				&& WKPF_LINK_DEST_COMPONENT_ID(i) == component_id) {
 			uint16_t src_component_id = WKPF_LINK_SRC_COMPONENT_ID(i);
 			uint8_t src_property_number = WKPF_LINK_SRC_PROPERTY(i);
-			address_t src_endpoint_node_id;
+			wkcomm_address_t src_endpoint_node_id;
 			if ((src_endpoint_node_id = WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(src_component_id)) != wkcomm_get_node_id()) {
 				uint8_t src_endpoint_port = WKPF_COMPONENT_LEADER_ENDPOINT_PORT(src_component_id);
 				// Properties with local sources will be initialised eventually, so we only need to send a message
@@ -124,7 +124,7 @@ uint8_t wkpf_propagate_property(wuobject_t *wuobject, uint8_t property_number, v
 			uint16_t dest_component_id = WKPF_LINK_DEST_COMPONENT_ID(i);
 			uint8_t dest_property_number = WKPF_LINK_DEST_PROPERTY(i);
 			uint16_t dest_wuclass_id = WKPF_LINK_DEST_WUCLASS_ID(i);
-			address_t dest_node_id = WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(dest_component_id);
+			wkcomm_address_t dest_node_id = WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(dest_component_id);
 			uint8_t dest_port_number = WKPF_COMPONENT_LEADER_ENDPOINT_PORT(dest_component_id);
 			if (dest_node_id == wkcomm_get_node_id()) {
 				// Local
@@ -183,7 +183,7 @@ uint8_t wkpf_propagate_dirty_properties() {
 }
 
 // TODONR: proper definition for this function.
-uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *node_id, uint8_t *port_number) {
+uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, wkcomm_address_t *node_id, uint8_t *port_number) {
 	if (component_id > wkpf_number_of_components)
 		return WKPF_ERR_COMPONENT_NOT_FOUND;
 	*node_id = WKPF_COMPONENT_ENDPOINT_NODE_ID(component_id, 0);
@@ -191,7 +191,7 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
 	return WKPF_OK;
 }
 
-bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
+bool wkpf_node_is_leader(uint16_t component_id, wkcomm_address_t node_id) {
 	return WKPF_COMPONENT_LEADER_ENDPOINT_NODE_ID(component_id) == node_id;
 }
 

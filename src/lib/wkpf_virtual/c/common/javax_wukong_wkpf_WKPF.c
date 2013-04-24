@@ -166,7 +166,7 @@ void javax_wukong_wkpf_WKPF_javax_wukong_wkpf_VirtualWuObject_select() {
 
 void javax_wukong_wkpf_WKPF_byte_getPortNumberForComponent_short() {
 	uint16_t component_id = (uint16_t)dj_exec_stackPopShort();
-	address_t node_id;
+	wkcomm_address_t node_id;
 	uint8_t port_number;
 	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 	dj_exec_stackPushShort(port_number);
@@ -174,7 +174,7 @@ void javax_wukong_wkpf_WKPF_byte_getPortNumberForComponent_short() {
 
 void javax_wukong_wkpf_WKPF_boolean_isLocalComponent_short() {
 	uint16_t component_id = (int16_t)dj_exec_stackPopShort();
-	address_t node_id;
+	wkcomm_address_t node_id;
 	uint8_t port_number;
 	wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
 	dj_exec_stackPushShort(wkpf_error_code == WKPF_OK && node_id == wkcomm_get_node_id());
