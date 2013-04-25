@@ -22,11 +22,17 @@
 	<!-- convenience targets to launch avrdude or avarice -->
 	<target name="avrdude-jtag" depends="executable">
 		<exec executable="avrdude">
-			<arg line="-p atmega2560 -P usb -c dragon_jtag -U flash:w:darjeeling.ihex -U eeprom:w:darjeeling_eeprom.ihex"/>
+			<arg line="-p atmega2560 -P usb -c dragon_jtag -U flash:w:darjeeling.ihex"/>
 		</exec>
 	</target>
 
 	<target name="avrdude" depends="executable">
+		<exec executable="avrdude">
+			<arg line="-p atmega2560 -P /dev/cu.usbserial-A9CNZHXH -c stk500v2 -U flash:w:darjeeling.ihex"/>
+		</exec>
+	</target>
+
+	<target name="avrdude-eeprom" depends="executable">
 		<exec executable="avrdude">
 			<arg line="-p atmega2560 -P /dev/cu.usbserial-A9CNZHXH -c stk500v2 -U flash:w:darjeeling.ihex -U eeprom:w:darjeeling_eeprom.ihex"/>
 		</exec>
