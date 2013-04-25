@@ -18,12 +18,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Darjeeling.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <avr/pgmspace.h>
-#include <avr/io.h>
 
 #include "debug.h"
 #include "vm.h"
@@ -35,8 +29,6 @@
 #include "execution.h"
 #include "hooks.h"
 #include "core.h"
-
-#include "pointerwidth.h"
 
 extern unsigned char di_lib_infusions_archive_data[];
 extern unsigned char di_app_infusion_archive_data[];
@@ -59,7 +51,7 @@ int main()
 
 	// Listen to the radio
 	while(true)
-		dj_hook_call(dj_vm_pollingHook, NULL);
+		dj_hook_call(dj_core_pollingHook, NULL);
 
 	return 0;
 }

@@ -22,7 +22,6 @@ typedef struct wuclass_t {
 } wuclass_t;
 
 extern void wkpf_register_wuclass(wuclass_t *wuclass);
-extern uint8_t wkpf_register_virtual_wuclass(uint16_t wuclass_id, update_function_t update, uint8_t number_of_properties, uint8_t properties[]);
 extern uint8_t wkpf_get_wuclass_by_id(uint16_t wuclass_id, wuclass_t **wuclass);
 extern uint8_t wkpf_get_wuclass_by_index(uint8_t index, wuclass_t **wuclass);
 extern uint8_t wkpf_get_number_of_wuclasses();

@@ -28,22 +28,16 @@
 
 #include "core.h"
 #include "types.h"
-#include "vm.h"
 #include "hooks.h"
 #include "djarchive.h"
-
+#include "wkpf_main.h"
 #include "posix_utils.h"
-
-// From GENERATEDlibinit.c, which is generated during build based on the libraries in this config's libs.
-extern dj_named_native_handler java_library_native_handlers[];
-extern uint8_t java_library_native_handlers_length;
 
 int main(int argc,char* argv[])
 {
 	posix_parse_command_line(argc, argv);
 
 	// Read the lib and app infusion archives from file
-	char* di_lib_infusions_archive_data = posix_load_infusion_archive("lib_infusions.dja");
 	char* di_app_infusion_archive_data = posix_load_infusion_archive("app_infusion.dja");
 
 	// initialise memory manager
@@ -51,11 +45,8 @@ int main(int argc,char* argv[])
 	ref_t_base_address = (char*)mem - 42;
 
 	core_init(mem, HEAPSIZE);
-	dj_vm_main((dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, java_library_native_handlers, java_library_native_handlers_length);
-
-	// Listen to the radio
-	while(true)
-		dj_hook_call(dj_core_pollingHook, NULL);
+	dj_exec_setRunlevel(RUNLEVEL_RUNNING);
+	wkpf_picokong((dj_di_pointer)di_app_infusion_archive_data);
 
 	return 0;
 }
