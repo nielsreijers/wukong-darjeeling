@@ -6,7 +6,7 @@ from globals import *
 from configuration import *
 
 # MUST MATCH THE SIZE DEFINED IN wkcomm.h
-WKCOMM_MESSAGE_PAYLOAD_SIZE=20
+WKCOMM_MESSAGE_PAYLOAD_SIZE=40
 
 # routing services here
 class Communication:
