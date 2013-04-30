@@ -11,6 +11,10 @@
 
 #ifdef ENABLE_WUCLASS_LED
 
+void wuclass_led_setup(wuobject_t *wuobject) {
+
+}
+
 void wuclass_led_update(wuobject_t *wuobject) {
     bool p1, p2, p3, p4;
     DEBUG_LOG(DBG_WKCOMM, "WKCOMMUPDATE: led\n");
