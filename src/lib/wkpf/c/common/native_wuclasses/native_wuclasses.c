@@ -9,6 +9,7 @@
 #include "GENERATEDwuclass_light_actuator.h"
 #include "GENERATEDwuclass_light_sensor.h"
 #include "GENERATEDwuclass_temperature_humidity_sensor.h"
+#include "GENERATEDwuclass_led.h"
 
 uint8_t wkpf_register_wuclass_and_create_wuobject(wuclass_t *wuclass, uint8_t port_number) {
   wkpf_register_wuclass(wuclass);
@@ -26,6 +27,11 @@ uint8_t wkpf_native_wuclasses_init() {
     return retval;
 
   DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Running wkpf native init for node id: %x\n", wkcomm_get_node_id());
+  
+  wkpf_register_wuclass(&wuclass_led);
+  wkpf_register_wuclass(&wuclass_light_sensor);
+  wkpf_register_wuclass(&wuclass_light_actuator);
+  wkpf_register_wuclass(&wuclass_threshold);
 
   if (wkpf_config_get_feature_enabled(WPKF_FEATURE_LIGHT_SENSOR)) {
     wkpf_register_wuclass(&wuclass_light_sensor);
