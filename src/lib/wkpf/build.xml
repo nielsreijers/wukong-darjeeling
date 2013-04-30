@@ -4,7 +4,8 @@
 	<property name="name" value="wkpf"/>
 	
 	<!-- list of libraries this library depends on -->
-	<property name="lib-depends" value="wkcomm"/>
+	<property name="lib-c-depends" value="wkcomm"/>
+	<property name="lib-java-depends" value=""/>
 
 	<!-- just export all header files for now, since wkpf_virtual needs many of them -->	
 	<property name="public-headerfile" value="*.h"/>
