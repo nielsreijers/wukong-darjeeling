@@ -2,7 +2,7 @@
 #include "../../common/native_wuclasses/native_wuclasses.h"
 #include <avr/io.h>
 #include "../../../../vm/c/common/execution.h"
-#include "GENERATEDwuclass_led.h"
+#include "../../common/native_wuclasses/GENERATEDwuclass_led.h"
 
 
 #define output_low(port, pin) port &= ~(1<<pin)

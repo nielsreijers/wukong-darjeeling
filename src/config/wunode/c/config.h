@@ -34,17 +34,17 @@ typedef unsigned long long int dj_time_t;
 #define ALIGN_16
 
 /* Please see common/debug.h */
-#define DARJEELING_DEBUG
+// #define DARJEELING_DEBUG
 // #define DARJEELING_DEBUG_FRAME
 // #define DARJEELING_DEBUG_MEM_TRACE
 // #define DARJEELING_DEBUG_TRACE
 // #define DARJEELING_DEBUG_CHECK_HEAP_SANITY
 // #define DARJEELING_DEBUG_PERFILE
-#define DBG_DARJEELING true
+// #define DBG_DARJEELING true
 // #define DBG_DARJEELING_GC true
-#define DBG_WKPF true
+// #define DBG_WKPF true
 // #define DBG_WKPFGC true
-#define DBG_WKPFUPDATE true
+// #define DBG_WKPFUPDATE true
 // #define DBG_WKCOMM true
 // #define DBG_WKREPROG true
 // #define DBG_ZWAVETRACE true
