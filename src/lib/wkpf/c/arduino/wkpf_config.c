@@ -9,6 +9,7 @@
 static char EEMEM eeprom_location[LOCATION_MAX_LENGTH] = ""; // Currently can only handle locations that fit into a single message
 static uint8_t EEMEM eeprom_wkpf_features[WKPF_FEATURE_ARRAY_SIZE];
 static uint8_t EEMEM eeprom_master_address;
+static uint8_t EEMEM eeprom_gid;
 
 #define load_location_length() eeprom_read_byte((uint8_t*)&eeprom_location_length)
 #define save_location_length(x) eeprom_update_byte((uint8_t*)&eeprom_location_length, (uint8_t)x)
@@ -20,7 +21,8 @@ static uint8_t EEMEM eeprom_master_address;
 #define get_feature_enabled(feature) (eeprom_read_byte(feat_addr(feature)) & (1<<(feature % 8)))
 #define load_master_node_id() eeprom_read_byte((uint8_t*)&eeprom_master_address)
 #define save_master_node_id(x) eeprom_update_byte((uint8_t*)&eeprom_master_address, (uint8_t)x)
-
+#define load_gid() eeprom_read_byte((uint8_t*)&eeprom_gid)
+#define save_gid(x) eeprom_update_byte((uint8_t*)&eeprom_gid, (uint8_t)x)
 
 // Stores a part of the location in EEPROM, or returns WKPF_ERR_LOCATION_TOO_LONG if the string is too long.
 uint8_t wkpf_config_set_part_of_location_string(char* src, uint8_t offset, uint8_t length) {
@@ -72,4 +74,12 @@ void wkpf_config_set_master_node_id(wkcomm_address_t node_id) {
     while(1);
   }
   save_master_node_id(node_id);
+}
+
+wkcomm_address_t wkpf_config_get_gid() {
+  return load_gid();
+}
+
+void wkpf_config_set_gid(wkcomm_address_t gid) {
+  save_gid(gid);
 }
