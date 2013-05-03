@@ -79,7 +79,7 @@ wkcomm_address_t routing_get_node_id() {
 	#ifdef RADIO_USE_XBEE
 		return addr_xbee_to_wkcomm(radio_xbee_get_node_id());
 	#endif
-	return 1; // Just return 1 if we have no radios at all.
+	return 2; // Just return 1 if we have no radios at all.
 }
 
 
