@@ -73,9 +73,9 @@ void load_features_data() {
 				}
 				features.master_node_id = master_node_id;
 				DEBUG_LOG(DBG_WKPF, "CONFIG: master id = %d\n", features.master_node_id);
-        	if (prefix("Gid", line)) {
+        	} else if (prefix("Gid", line)) {
 				int gid;
-				if (!sscanf(line, CONFIG_FILE_MASTER_ID_STRING, &gid)) {
+				if (!sscanf(line, CONFIG_FILE_GID_STRING, &gid)) {
 					printf("Gid in %s not in expected format, aborting...\n", CONFIG_FILE_NAME);
 					abort();
 				}
@@ -175,3 +175,22 @@ void wkpf_config_set_master_node_id(wkcomm_address_t node_id) {
 	
 	save_features_data();
 }
+
+wkcomm_address_t wkpf_config_get_gid() {
+	if (!features_loaded)
+		load_features_data();
+
+	return features.gid;
+}
+
+void wkpf_config_set_gid(wkcomm_address_t gid) {
+	if (!features_loaded)
+		load_features_data();
+
+	features.gid = gid;
+	
+	save_features_data();
+}
+
+
+
