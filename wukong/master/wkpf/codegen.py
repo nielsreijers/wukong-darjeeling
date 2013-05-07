@@ -325,7 +325,7 @@ class CodeGen:
         # Try to generate native_wuclasses.c by parsing another xml file
         vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
 
-        native_wuclasses_filename = 'native_wuclasses.c'
+        native_wuclasses_filename = 'GENERATEDnative_wuclasses.c'
         native_wuclasses_path = os.path.join(project_dir, vm_dir, native_wuclasses_filename)
         native_wuclasses = open(native_wuclasses_path, 'w')
 
@@ -722,13 +722,14 @@ if __name__ == "__main__":
     parser.add_option('-i', '--input_xml', dest='component_file')
     parser.add_option('-p', '--projectdir', dest='project_dir')
     parser.add_option('-u', '--plugin', dest='plugin_name')
+    parser.add_option('-e', '--enabled_xml', dest='enabled_file')
     (options, args) = parser.parse_args()
 
     print options, args
 
-    # xmlfile = '../../../wukong/ComponentDefinitions/EnabledWuClasses.xml'
-    # if os.path.exists(xmlfile) and options.project_dir:
-    #     CodeGen.generateNativeWuclasses(logging.getLogger(), open(xmlfile).read(), options.project_dir)
+    xmlfile = options.enabled_file
+    if os.path.exists(xmlfile) and options.project_dir:
+        CodeGen.generateNativeWuclasses(logging.getLogger(), open(xmlfile).read(), options.project_dir)
 
     if os.path.exists(options.component_file) and options.project_dir:
         CodeGen.generate(logging.getLogger(), open(options.component_file).read(), options.project_dir)
