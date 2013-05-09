@@ -41,6 +41,9 @@ class WuType:
     def getDataType(self):
         return self._dataType
 
+    def isEnumTypedef(self):
+        return self._allowed_values != ()
+
     def hasAllowedValues(self):
         return self._allowed_values != ()
 
@@ -320,6 +323,46 @@ class WuObject:
 
 class CodeGen:
     @staticmethod
+    def getStandardLibrary(logger, filename):
+        component_string = open(filename).read()
+
+        # Parse ComponentLibrary XML
+        dom = parseString(component_string)
+
+        wuclasses_dom = dom.getElementsByTagName("WuClass")
+        wutypedefs_dom = dom.getElementsByTagName("WuTypedef")
+
+        logger.info("==================Begin TypeDefs=====================")
+        wuTypedefs = {'short': WuType('short', 'short'), 'boolean': WuType('boolean', 'boolean'), 'refresh_rate': WuType('refresh_rate', 'refresh_rate')}
+        for wutypedef in wutypedefs_dom:
+          logger.info("Parsing wutype %s" % (wutypedef.getAttribute('name')))
+          if wutypedef.getAttribute('type').lower() == 'enum':
+            wuTypedefs[wutypedef.getAttribute('name')] = WuType(wutypedef.getAttribute('name'), wutypedef.getAttribute('type'), tuple([element.getAttribute('value') for element in wutypedef.getElementsByTagName('enum')]))
+          else:
+            wuTypedefs[wutypedef.getAttribute('name')] = WuType(wutypedef.getAttribute('name'), wutypedef.getAttribute('type'))
+        logger.info("==================End of TypeDefs=====================")
+
+
+        logger.info("==================Begin WuClasses=====================")
+        wuClasses = []
+        for wuclass in wuclasses_dom:
+          logger.info("Parsing WuClass %s" % (wuclass.getAttribute('name')))
+          wuclassName = wuclass.getAttribute('name')
+          wuclassId = int(wuclass.getAttribute('id'),0)
+          wuclassProperties = []
+          #wuclassProperties = {}
+          for i, prop in enumerate(wuclass.getElementsByTagName('property')):
+              propType = prop.getAttribute('datatype')
+              propName = prop.getAttribute('name')
+
+              wuclassProperties.append(WuProperty(wuclassName, propName, i, wuTypedefs[propType], prop.getAttribute('access')) )
+              #wuclassProperties[propName] = WuProperty(wuclassName, propName, i, wuTypedefs[propType], prop.getAttribute('access')) 
+          privateCData = wuclass.getAttribute('privateCData')
+          wuClasses.append(WuClass(wuclassName, wuclassId, wuclassProperties, True if wuclass.getAttribute('virtual').lower() == 'true' else False, True if wuclass.getAttribute('type').lower() == 'soft' else False, privateCData))
+          print "==================End of WuClasses====================="
+        return (wuTypedefs, wuClasses)
+
+    @staticmethod
     def generateNativeWuclasses(logger, component_string, project_dir):
         # By catlikethief 2013.04.11
         # Try to generate native_wuclasses.c by parsing another xml file
@@ -331,7 +374,6 @@ class CodeGen:
 
         header_lines = ['#include <debug.h>\n',
         '#include "wkcomm.h"\n',
-        '#include "wkpf_config.h"\n',
         '#include "wkpf_wuclasses.h"\n',
         '#include "native_wuclasses.h"\n',
         '#include "GENERATEDwuclass_generic.h"\n'
@@ -384,7 +426,9 @@ uint8_t wkpf_native_wuclasses_init() {
 
 
     @staticmethod
-    def generate(logger, component_string, project_dir):
+    def generate(logger, wutypedefs, wuclasses, project_dir):
+        enumTypedefs = [x for x in wutypedefs.keys() if wutypedefs[x].isEnumTypedef()]
+
         global_vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common')
         vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
         java_dir = os.path.join('wukong', 'javax', 'wukong', 'virtualwuclasses')
@@ -408,14 +452,6 @@ uint8_t wkpf_native_wuclasses_init() {
         global_vm_header_lines = []
         global_virtual_constants_lines = []
 
-        # Parse ComponentLibrary XML
-        dom = parseString(component_string)
-
-        wuclasses = dom.getElementsByTagName("WuClass")
-        wutypedefs = dom.getElementsByTagName("WuTypedef")
-        wutypedefs_hash = []
-
-        logger.info("==================Begin TypeDefs=====================")
         # Boilerplate for Java global constants file
         global_virtual_constants_lines.append('''
         package javax.wukong.virtualwuclasses;
@@ -424,44 +460,17 @@ uint8_t wkpf_native_wuclasses_init() {
         ''')
 
         # Parsing to WuKong Profile Framework Component Library header
-        wuTypes = {'short': WuType('short', 'short'), 'boolean': WuType('boolean', 'boolean'), 'refresh_rate': WuType('refresh_rate', 'refresh_rate')}
-
-        for wutypedef in wutypedefs:
-          logger.info("Parsing wutype %s" % (wutypedef.getAttribute('name')))
-          if wutypedef.getAttribute('type').lower() == 'enum':
-            wuTypes[wutypedef.getAttribute('name')] = WuType(wutypedef.getAttribute('name'), wutypedef.getAttribute('type'), tuple([element.getAttribute('value') for element in wutypedef.getElementsByTagName('enum')]))
-          else:
-            wuTypes[wutypedef.getAttribute('name')] = WuType(wutypedef.getAttribute('name'), wutypedef.getAttribute('type'))
-
-          wutype = wuTypes[wutypedef.getAttribute('name')]
-
-          wutypedefs_hash.append(wutypedef.getAttribute("name"))
-
+        for wutype in wutypedefs.values():
           # Generate global header typedef definition for VM
+          print wutype
           for enumvalue, value in enumerate(wutype.getAllowedValues()):
             cline = "#define " + wutype.getValueInCConstant(value) + " %d\n" % (enumvalue)
             jline = "public static final short " + wutype.getValueInJavaConstant(value) + " = %d;\n" % (enumvalue)
 
             global_vm_header_lines.append(cline)
             global_virtual_constants_lines.append(jline)
-        logger.info("==================End of TypeDefs=====================")
 
-        logger.info("==================Begin WuClasses=====================")
-        for wuclass in wuclasses:
-          logger.info("Parsing WuClass %s" % (wuclass.getAttribute('name')))
-          wuclassName = wuclass.getAttribute('name')
-          wuclassId = int(wuclass.getAttribute('id'),0)
-          wuclassProperties = []
-          #wuclassProperties = {}
-          for i, prop in enumerate(wuclass.getElementsByTagName('property')):
-              propType = prop.getAttribute('datatype')
-              propName = prop.getAttribute('name')
-
-              wuclassProperties.append(WuProperty(wuclassName, propName, i, wuTypes[propType], prop.getAttribute('access')) )
-              #wuclassProperties[propName] = WuProperty(wuclassName, propName, i, wuTypes[propType], prop.getAttribute('access')) 
-          privateCData = wuclass.getAttribute('privateCData')
-          wuClass = WuClass(wuclassName, wuclassId, wuclassProperties, True if wuclass.getAttribute('virtual').lower() == 'true' else False, True if wuclass.getAttribute('type').lower() == 'soft' else False, privateCData)
-
+        for wuClass in wuclasses:
           # Native header
           wuclass_native_header_path = os.path.join(project_dir, vm_dir, wuClass.getCFileName() + '.h')
           wuclass_native_header = open(wuclass_native_header_path, 'w')
@@ -471,7 +480,7 @@ uint8_t wkpf_native_wuclasses_init() {
           wuclass_native_impl = open(wuclass_native_impl_path, 'w')
 
           # Virtual (Java)
-          if wuclass.getAttribute('virtual') == 'true':
+          if wuClass.isVirtual():
             wuclass_virtual_super_path = os.path.join(project_dir, java_dir, wuClass.getJavaGenClassName() + '.java')
             wuclass_virtual_super = open(wuclass_virtual_super_path, 'w') 
 
@@ -497,7 +506,7 @@ uint8_t wkpf_native_wuclasses_init() {
 
 
           # Parsing to WuKong Profile Framework Component Library header in Java
-          if wuclass.getAttribute('virtual') == 'true':
+          if wuClass.isVirtual():
             wuclass_virtual_super_lines.append('''
             package javax.wukong.virtualwuclasses;
             import javax.wukong.wkpf.VirtualWuObject;
@@ -511,9 +520,7 @@ uint8_t wkpf_native_wuclasses_init() {
               datatype = property.getDataType()
               access = property.getAccess()
 
-              print 'datatype', datatype
-              print 'wutypedef_hash', wutypedefs_hash
-              if datatype in wutypedefs_hash:
+              if datatype in enumTypedefs:
                 datatype = "SHORT"
 
               line = "WKPF.PROPERTY_TYPE_" + datatype.upper() + "|WKPF.PROPERTY_ACCESS_" + access.upper()
@@ -575,7 +582,7 @@ uint8_t wkpf_native_wuclasses_init() {
             datatype = property.getDataType()
             access = property.getAccess()
 
-            if datatype in wutypedefs_hash:
+            if datatype in enumTypedefs:
               datatype = "SHORT"
 
             line = "WKPF_PROPERTY_TYPE_" + datatype.upper() + "+WKPF_PROPERTY_ACCESS_" + access.upper()
@@ -623,11 +630,10 @@ uint8_t wkpf_native_wuclasses_init() {
           wuclass_native_impl.writelines(wuclass_native_impl_lines)
           wuclass_native_impl.close()
 
-          if wuclass.getAttribute('virtual') == 'true':
+          if wuClass.isVirtual():
             wuclass_virtual_super.writelines(wuclass_virtual_super_lines)
             wuclass_virtual_super.close()
 
-          print "==================End of WuClasses====================="
 
         global_virtual_constants_lines.append('''
         }
@@ -727,11 +733,15 @@ if __name__ == "__main__":
 
     print options, args
 
+    wuTypedefs, wuClasses = CodeGen.getStandardLibrary(logging.getLogger(), options.component_file)
+
     xmlfile = options.enabled_file
+    print xmlfile
+    print os.path.exists(xmlfile) 
     if os.path.exists(xmlfile) and options.project_dir:
         CodeGen.generateNativeWuclasses(logging.getLogger(), open(xmlfile).read(), options.project_dir)
 
     if os.path.exists(options.component_file) and options.project_dir:
-        CodeGen.generate(logging.getLogger(), open(options.component_file).read(), options.project_dir)
+        CodeGen.generate(logging.getLogger(), wuTypedefs, wuClasses, options.project_dir)
     else:
         print "path don't exist", options.component_file, options.project_dir
