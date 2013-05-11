@@ -359,11 +359,11 @@ class CodeGen:
               #wuclassProperties[propName] = WuProperty(wuclassName, propName, i, wuTypedefs[propType], prop.getAttribute('access')) 
           privateCData = wuclass.getAttribute('privateCData')
           wuClasses.append(WuClass(wuclassName, wuclassId, wuclassProperties, True if wuclass.getAttribute('virtual').lower() == 'true' else False, True if wuclass.getAttribute('type').lower() == 'soft' else False, privateCData))
-          print "==================End of WuClasses====================="
+        logger.info("==================End of WuClasses=====================")
         return (wuTypedefs, wuClasses)
 
     @staticmethod
-    def generateNativeWuclasses(logger, component_string, project_dir):
+    def generateNativeWuclasses(logger, enabled_wuclasses_filename, wuclasses, project_dir):
         # By catlikethief 2013.04.11
         # Try to generate native_wuclasses.c by parsing another xml file
         vm_dir = os.path.join('src', 'lib', 'wkpf', 'c', 'common', 'native_wuclasses')
@@ -399,18 +399,23 @@ uint8_t wkpf_native_wuclasses_init() {
 
 '''     ]
 
-        dom = parseString(component_string)
+        dom = parseString(open(enabled_wuclasses_filename).read())
 
         wuclasses_list = []
-        wuclasses = dom.getElementsByTagName("WuClass")
-        for wuclass in wuclasses:
-            wuclass_name = wuclass.getAttribute('name').lower()
-            header_lines.append('#include "GENERATEDwuclass_%s.h"\n' % wuclass_name)
+        enabled_wuclasses = dom.getElementsByTagName("WuClass")
+        for wuclass_element in enabled_wuclasses:
+            wuclass_name = wuclass_element.getAttribute('name')
+            tmp = [wuclass for wuclass in wuclasses if wuclass.getName() == wuclass_name]
+            if len(tmp) == 0:
+                print "Wuclass %s not found in standard library." % (wuclass_name)
+                sys.exit(1)
+            wuclass = tmp[0]
+            header_lines.append('#include "%s.h"\n' % wuclass.getCFileName())
             init_function_lines.append('''
-  wkpf_register_wuclass(&wuclass_%s);
+  wkpf_register_wuclass(&%s);
   if (retval != WKPF_OK)
     return retval;
-''' % wuclass_name)
+''' % wuclass.getCName())
 
 
         init_function_lines.append('''
@@ -462,7 +467,6 @@ uint8_t wkpf_native_wuclasses_init() {
         # Parsing to WuKong Profile Framework Component Library header
         for wutype in wutypedefs.values():
           # Generate global header typedef definition for VM
-          print wutype
           for enumvalue, value in enumerate(wutype.getAllowedValues()):
             cline = "#define " + wutype.getValueInCConstant(value) + " %d\n" % (enumvalue)
             jline = "public static final short " + wutype.getValueInJavaConstant(value) + " = %d;\n" % (enumvalue)
@@ -735,11 +739,8 @@ if __name__ == "__main__":
 
     wuTypedefs, wuClasses = CodeGen.getStandardLibrary(logging.getLogger(), options.component_file)
 
-    xmlfile = options.enabled_file
-    print xmlfile
-    print os.path.exists(xmlfile) 
-    if os.path.exists(xmlfile) and options.project_dir:
-        CodeGen.generateNativeWuclasses(logging.getLogger(), open(xmlfile).read(), options.project_dir)
+    if os.path.exists(options.enabled_file) and options.project_dir:
+        CodeGen.generateNativeWuclasses(logging.getLogger(), options.enabled_file, wuClasses, options.project_dir)
 
     if os.path.exists(options.component_file) and options.project_dir:
         CodeGen.generate(logging.getLogger(), wuTypedefs, wuClasses, options.project_dir)
