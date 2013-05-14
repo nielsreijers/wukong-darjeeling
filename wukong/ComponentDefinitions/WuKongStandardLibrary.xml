@@ -135,12 +135,23 @@
         <property name="if_false" datatype="boolean" access="writeonly" />
         <property name="output" datatype="boolean" access="readonly" />
     </WuClass-->
+
     <WuClass name="LED" id="9" virtual="false" type="hard" privateCData="bool">
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="1000" />
         <property name="port1" datatype="boolean" access="readwrite" default="true" />
         <property name="port2" datatype="boolean" access="readwrite" default="true" />
         <property name="port3" datatype="boolean" access="readwrite" default="true" />
         <property name="port4" datatype="boolean" access="readwrite" default="false" />
+    </WuClass>
+
+    <WuClass name="Gh_Sensor" id="16" virtual="false" type="soft">
+        <property name="enable" datatype="boolean" access="readwrite" default="true" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="2000" />
+    </WuClass>
+
+    <WuClass name="Gh_Test" id="17" virtual="false" type="soft">
+        <property name="enable" datatype="boolean" access="readwrite" default="true" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="2000" />
     </WuClass>
     <!-- Just for testing -->
     <!--WuClass name="Null" id="45" virtual="true" type="soft">
