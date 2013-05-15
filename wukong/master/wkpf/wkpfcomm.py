@@ -191,6 +191,8 @@ class Communication:
         return []
 
       wuclasses = []
+      print "Raw reply:"
+      print reply
       reply = reply.payload[3:]
       while len(reply) > 1:
         wuClassId = (reply[0] <<8) + reply[1]
@@ -198,8 +200,9 @@ class Communication:
         wuclass = None
         wuclass_query = WuClass.where(node_id=destination, id=wuClassId)
         if not wuclass_query:
-            wuclass_component = WuClass.where(id=wuClassId)[0]
-            if wuclass_component:
+            wuclass_query = WuClass.where(id=wuClassId)
+            if wuclass_query:
+                wuclass_component = wuclass_query[0]
                 new_properties_with_node_infos = copy.deepcopy(wuclass_component.properties)
                 def anew(x):
                   x.identity = None # so they will be saved with new row ids

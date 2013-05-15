@@ -44,7 +44,7 @@ void javax_wukong_wkpf_WKPF_void_createWuObject_short_byte_javax_wukong_wkpf_Vir
 	uint8_t port_number = (uint8_t)dj_exec_stackPopShort();
 	uint16_t wuclass_id = (uint16_t)dj_exec_stackPopShort();
 	DEBUG_LOG(DBG_WKPF, "WKPF: Creating wuobject for virtual wuclass with id %x at port %x (ref: %p)\n", wuclass_id, port_number, java_instance_reference);
-	wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, java_instance_reference);
+	wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, java_instance_reference, false);
 }
 
 void javax_wukong_wkpf_WKPF_void_destroyWuObject_byte()

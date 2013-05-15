@@ -158,17 +158,22 @@ void wkpf_comm_handle_message(void *data) {
 		break;
 		case WKPF_COMM_CMD_GET_WUCLASS_LIST: {
 			uint8_t number_of_wuclasses = wkpf_get_number_of_wuclasses();
-			if (number_of_wuclasses > 9) // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-				number_of_wuclasses = 9;
-			payload[0] = number_of_wuclasses;
+			uint8_t number_of_wuclasses_in_message = 0;
 			for (uint8_t i=0; i<number_of_wuclasses; i++) {
 				wuclass_t *wuclass;
 				wkpf_get_wuclass_by_index(i, &wuclass);
-				payload[3*i + 1] = (uint8_t)(wuclass->wuclass_id >> 8);
-				payload[3*i + 2] = (uint8_t)(wuclass->wuclass_id);
-				payload[3*i + 3] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+
+				if (wuclass->flags & WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE) {
+					payload[3*number_of_wuclasses_in_message + 1] = (uint8_t)(wuclass->wuclass_id >> 8);
+					payload[3*number_of_wuclasses_in_message + 2] = (uint8_t)(wuclass->wuclass_id);
+					payload[3*number_of_wuclasses_in_message + 3] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+					number_of_wuclasses_in_message++;
+					if (number_of_wuclasses_in_message == 9)
+						break;// TODONR: temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
+				}
 			}
-			response_size = 3*number_of_wuclasses + 1; // 3*wuclasses + 1 byte number of wuclasses
+			payload[0] = number_of_wuclasses_in_message;
+			response_size = 3*number_of_wuclasses_in_message + 1; // 3*wuclasses + 1 byte number of wuclasses
 			response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
 		}
 		break;

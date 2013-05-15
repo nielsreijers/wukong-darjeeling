@@ -377,15 +377,6 @@ class CodeGen:
             '#include "wkpf_wuclasses.h"\n',
             '#include "native_wuclasses.h"\n'
         ]
-        register_function = '''
-
-        uint8_t wkpf_register_wuclass_and_create_wuobject(wuclass_t *wuclass, uint8_t port_number) {
-          wkpf_register_wuclass(wuclass);
-          uint8_t retval = wkpf_create_wuobject(wuclass->wuclass_id, port_number, 0);
-          if (retval != WKPF_OK)
-            return retval;
-          return WKPF_OK;
-        }'''
         init_function_lines = ['''
 
         uint8_t wkpf_native_wuclasses_init() {
@@ -408,33 +399,42 @@ class CodeGen:
                 print "Wuclass %s not found in standard library." % (wuclass_name)
                 sys.exit(1)
             wuclass = tmp[0]
+
+            appCanCreateInstancesAtt = wuclass_element.getAttribute('appCanCreateInstances')
+            appCanCreateInstances = True if (appCanCreateInstancesAtt.lower()=='true' or appCanCreateInstancesAtt=='1') else False
+            print appCanCreateInstances, appCanCreateInstancesAtt
+            createInstancesAtStartup = int(wuclass_element.getAttribute('createInstancesAtStartup')) if wuclass_element.getAttribute('createInstancesAtStartup') != '' else 0
+
             header_lines.append('#include "%s.h"\n' % wuclass.getCFileName())
-            s = ''
-            if wuclass.isSoft():
-                s = '''
-                  wkpf_register_wuclass(&%s);
-                ''' % wuclass.getCName()
-            else:
-                s = '''
-                  retval = wkpf_register_wuclass_and_create_wuobject(&%s, %d);
-                  if (retval != WKPF_OK)
-                    return retval;
-                ''' % (wuclass.getCName(), portCnt)
-                portCnt += 1
-                assert portCnt < 256, 'number of wuobject exceeds 256'
-                
 
-            init_function_lines.append(s)
+            # Register the wuclass
+            init_function_lines.append('''
+                        wkpf_register_wuclass(&%s);''' % wuclass.getCName())
 
+            # Create as many instances as the XML specifies
+            # TODO: we'll need some extra mechanism here later to set configuration properties like port number or
+            #       do some other config. This only works if all instances are equal.
+            if createInstancesAtStartup > 0:
+                for i in range(createInstancesAtStartup):
+                    init_function_lines.append('''
+                        retval = wkpf_create_wuobject(%s.wuclass_id, %d, 0, true);
+                        if (retval != WKPF_OK)
+                            return retval;
+                        ''' % (wuclass.getCName(), portCnt))
+                    portCnt += 1
+                    assert portCnt < 256, 'number of wuobject exceeds 256'
+
+            # Set the flag if the application is allowed to create instances
+            if appCanCreateInstances:
+                init_function_lines.append('''
+                        %s.flags |= WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE;''' % wuclass.getCName())
 
         init_function_lines.append('''
             return WKPF_OK;
         }''')
 
         native_wuclasses.writelines(header_lines)
-        native_wuclasses.write(register_function)
         native_wuclasses.writelines(init_function_lines)
-
 
         native_wuclasses.close()
 
@@ -612,6 +612,7 @@ class CodeGen:
             %s,
             %d,
             %s,
+            0, // Initialise flags to 0, possibly set WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE from native_wuclasses_init
             NULL,
             {
             %s

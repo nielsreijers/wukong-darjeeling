@@ -25,7 +25,7 @@ uint8_t wkpf_get_size_of_all_properties(wuclass_t *wuclass) {
 	return size_of_properties;
 }
 
-uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference /* TODO: find out what datatype to use */ ) {
+uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference, bool called_from_wkpf_native_wuclasses_init) {
 	wuobject_t *wuobject;
 	if (wkpf_get_wuobject_by_port(port_number, &wuobject) != WKPF_ERR_WUOBJECT_NOT_FOUND) {
 		DEBUG_LOG(DBG_WKPF, "WKPF: Port %d in use while creating wuobject for wuclass id %d: FAILED\n", port_number, wuclass_id);
@@ -38,6 +38,12 @@ uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object
 	retval = wkpf_get_wuclass_by_id(wuclass_id, &wuclass);
 	if (retval != WKPF_OK)
 		return retval;
+
+	// Check if it's allowed for the application to create instances of this wuclass
+	// but it is allowed when the profile framework is initialising to create wuobjects that represent HW
+	// (called_from_wkpf_native_wuclasses_init==true)
+	if (!(wuclass->flags & WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE) && !called_from_wkpf_native_wuclasses_init)
+		return WKPF_ERR_CANT_CREATE_INSTANCE_OF_WUCLASS;
 
 	// Check if an instance of the wuclass is provided if it's a virtual wuclass
 	if (WKPF_IS_VIRTUAL_WUCLASS(wuclass) && java_instance_reference==0)

@@ -7,6 +7,8 @@
 #define WKPF_IS_NATIVE_WUCLASS(x)               (x->update != NULL)
 #define WKPF_IS_VIRTUAL_WUCLASS(x)              (x->update == NULL)
 
+#define WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE		1
+
 struct wuobject_t;
 typedef void (*setup_function_t)(struct wuobject_t *);
 typedef void (*update_function_t)(struct wuobject_t *);
@@ -17,6 +19,7 @@ typedef struct wuclass_t {
     update_function_t update; // Set for native wuclasses, NULL for virtual wuclasses
     uint8_t number_of_properties;
     uint8_t private_c_data_size;
+    uint8_t flags;
     struct wuclass_t *next;
     uint8_t properties[];
 } wuclass_t;
