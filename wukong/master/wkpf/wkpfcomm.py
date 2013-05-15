@@ -247,7 +247,7 @@ class Communication:
         wuobject = None
         wuobject_query = WuObject.where(node_id=destination, wuclass_id=wuClassId)
         if wuobject_query == []:
-            wuclass_query = WuClass.where(id=wuClassId, node_id=destination)
+            wuclass_query = WuClass.where(id=wuClassId)
             if len(wuclass_query) > 0:
                 wuclass = wuclass_query[0]
                 wuobject = WuObject(destination, port_number, wuclass)
