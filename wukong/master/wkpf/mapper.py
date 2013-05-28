@@ -139,6 +139,7 @@ def first_of(changesets, network_info, last_changesets):
       if not wuobject:
         raise Exception('no wuobject for wuclass idenity' % (identity))
       # Getting the first property, assuming property number is 0
+      # And assuming the property we get has datatype 'boolean'
       wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.wuclassdef().id)
       wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
           wupropertydef_identity=wupropertydef.identity)
@@ -152,7 +153,8 @@ def first_of(changesets, network_info, last_changesets):
       if not wuclass:
         raise Exception('invalid wuclass identity' % (identity))
       wuobject = WuObject.find(wuclass_identity=identity)
-      # Assuming property number is 0
+      # Getting the first property, assuming property number is 0
+      # And assuming the property we get has datatype 'boolean'
       wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.id)
       wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
           wupropertydef_identity=wupropertydef.identity)
