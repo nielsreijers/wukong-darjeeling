@@ -31,7 +31,7 @@ bool wkreprog_impl_open(uint16_t start_write_position) {
 		printf("Error in opening file to write infusion to...\n");
 	}
 	fseek(fp, start_write_position, SEEK_SET);
-	in_memory_pointer = (void *)di_app_infusion_archive_data + start_write_position;
+	in_memory_pointer = (void *)di_app_archive + start_write_position;
 	return true;
 }
 

@@ -40,7 +40,7 @@ int main()
 
 	core_init(mem, HEAPSIZE);
 	dj_exec_setRunlevel(RUNLEVEL_RUNNING);
-	wkpf_picokong(di_app_infusion_archive_data);
+	wkpf_picokong((dj_di_pointer)di_app_infusion_archive_data);
 
 	// Listen to the radio
 	while(true)

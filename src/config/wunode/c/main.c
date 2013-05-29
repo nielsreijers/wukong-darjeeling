@@ -33,8 +33,8 @@
 
 #include "avr.h"
 
-extern dj_di_pointer di_lib_infusions_archive_data[];
-// di_app_infusion_archive_data is declared in djarchive.h
+extern const unsigned char di_lib_infusions_archive_data[];
+extern const unsigned char di_app_infusion_archive_data[];
 
 // From GENERATEDlibinit.c, which is generated during build based on the libraries in this config's libs.
 extern dj_named_native_handler java_library_native_handlers[];
@@ -45,11 +45,14 @@ unsigned char mem[HEAPSIZE];
 
 int main()
 {
+	// Declared in djarchive.c so that the reprogramming code can find it.
+	di_app_archive = (dj_di_pointer)di_app_infusion_archive_data;
+
 	// initialise serial port
 	avr_serialInit(115200);
 
 	core_init(mem, HEAPSIZE);
-	dj_vm_main(di_lib_infusions_archive_data, di_app_infusion_archive_data, java_library_native_handlers, java_library_native_handlers_length);
+	dj_vm_main((dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, java_library_native_handlers, java_library_native_handlers_length);
 
 	// Listen to the radio
 	while(true)
