@@ -12,7 +12,7 @@ from configuration import *
 LOCATION_ROOT = 'demo_GH'
 NUMBER_OF_REGIONS = 16
 
-wuclass_id = 5 #TODO: Ask Ken or Louis for it
+wuclass_id = 16
 last_seen_id = 0
 last_seen_configuration = {}
 last_changesets = ChangeSets([], [], [])
@@ -21,27 +21,20 @@ server_url = '140.112.170.27'
 network_info_url = 'http://140.112.170.27/network_info.xml'
 configuration_url = 'http://140.112.170.27/configuration.xml'
 
-'''
-data = urllib.urlencode({'id': 0})
-h = httplib.HTTPConnection(server_url)
-headers = {"Content-type": "application/x-www-form-urlencoded", "Accept":
-"text/plain"}
-h.request('POST', '/configuration.xml', data, headers)
-r = h.getresponse()
-print r.read()
-'''
+def get_id(node_dom):
+  return int(node_dom.getElementsByTagName('wk-id')[0].firstChild.data)
 
-def get_id(node):
-  return int(node.getElementsByTagName('wk-id')[0].firstChild.data)
+def get_location(node_dom):
+  return node_dom.getElementsByTagName('region')[0].firstChild.data
 
-def get_location(node):
-  return node.getElementsByTagName('region')[0].firstChild.data
+def get_energy(node_dom):
+  return float(node_dom.getElementsByTagName('energy')[0].firstChild.data)
 
 def to_node(node_dom):
   global wuclass_id
-  id = int(node_dom.getElementsByTagName('wk-id')[0].firstChild.data)
-  location = node_dom.getElementsByTagName('region')[0].firstChild.data
-  energy = float(node_dom.getElementsByTagName('energy')[0].firstChild.data)
+  id = get_id(node_dom)
+  location = get_location(node_dom)
+  energy = get_energy(node_dom)
   neighbors = node_dom.getElementsByTagName('neighbor')[0].firstChild.data
 
   node = WuNode.find(id=id)
@@ -52,6 +45,8 @@ def to_node(node_dom):
     node.location = location
     node.energy = energy
     node.save()
+
+  print 'Going into node', node.id
 
   # For this demo, we need to creat an wuobject for every node
   wuclassdef = WuClassDef.find(id=wuclass_id)
@@ -72,11 +67,12 @@ def to_node(node_dom):
     wuobject = WuObject.create(1, wuclass)
 
   # Should create wuproperty here but need to discuss later if we should have
-  # a procedure to retrievee property
+  # a procedure to retrieve property
 
   return node
 
 def retrieve_network_info():
+  print "Bootstraping/Updating network info"
   response = urllib2.urlopen(network_info_url)
   network_info = response.read()
   network_info_dom = parseString(network_info)

@@ -89,14 +89,13 @@ def first_of(changesets, network_info, last_changesets):
 
     # filter by location
     if not locationquery in network_info:
-      print 'No nodes in this region', locationquery
+      print '[WARNING] No nodes in this region', locationquery, 'for component', component.type, 'skipping...'
       continue
 
     candidates = network_info[locationquery] # WuNodes
 
     if len(candidates) < candidatesize:
-      msg = 'There is no enough candidates for component %s in region %s, but \
-        mapper try to map' % (component, locationquery)
+      print '[WARNING] There is not enough nodes/candidates for component %s in region %s' % (component.type, locationquery)
 
     candidates = sorted(candidates, key=lambda candidate:
         candidate.energy, reverse=True)
