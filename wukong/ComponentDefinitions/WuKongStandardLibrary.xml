@@ -144,7 +144,7 @@
         <property name="port4" datatype="boolean" access="readwrite" default="false" />
     </WuClass>
 
-    <WuClass name="Gh_Sensor" id="16" virtual="false" type="soft">
+    <WuClass name="Gh_Sensor" id="16" virtual="false" type="hard">
         <property name="enable" datatype="boolean" access="readwrite" default="true" />
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="2000" />
     </WuClass>
