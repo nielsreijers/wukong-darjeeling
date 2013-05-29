@@ -7,7 +7,7 @@ from wkpf.mapper import first_of
 
 configuration = re.dummy_configuration()
 
-#print "dummy config", configuration
+print "dummy config", configuration
 
 configuration = re.retrieve_configuration()
 

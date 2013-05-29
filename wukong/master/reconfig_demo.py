@@ -7,6 +7,7 @@ from wkpf.wuapplication import WuApplication, ChangeSets
 from wkpf.wkpfcomm import *
 from wkpf.parser import *
 from wkpf.models import *
+from wkpf.mapper import first_of
 from configuration import *
 
 LOCATION_ROOT = 'demo_GH'
@@ -161,6 +162,7 @@ if __name__ == "__main__":
   configuration = dummy_configuration()
   network_info = retrieve_network_info()
   changesets = generate_demo_application(network_info, configuration)
+  last_changesets = dummy_changesets()
 
   while(configuration):
     commands, last_changesets = first_of(changesets, network_info, last_changesets)
