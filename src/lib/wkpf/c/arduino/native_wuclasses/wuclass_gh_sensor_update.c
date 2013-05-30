@@ -23,26 +23,24 @@ void wuclass_gh_sensor_setup(wuobject_t *wuobject) {
         DEBUG_LOG(DBG_WKPFGH, "transimit wunode id: %d\n", wid);
 	
 	setWid = false;
-	while(setWid == false){
-        	uart_write_byte(3, 4);
-		uart_write_byte(3, wid);//send wunode id to oct
+        uart_write_byte(3, 4);
+	uart_write_byte(3, wid);//send wunode id to oct
 
-		counter = 1000;
-        	while(counter > 0){
-          		returnWid = uart_read_byte(3);
-          		if( returnWid != 0){
-	  			if(  wid == returnWid ){
-	    				DEBUG_LOG(DBG_WKPFGH, "set wunode id success\n");
-            				setWid = true;
-          			}
-				break;
-	  		} 
-          		counter--;
-        	}
+	counter = 1000;
+        while(counter > 0){
+          	returnWid = uart_read_byte(3);
+          	if( returnWid != 0){
+	  		if(  wid == returnWid ){
+	    			DEBUG_LOG(DBG_WKPFGH, "set wunode id success\n");
+            			setWid = true;
+          		}
+			break;
+  		} 
+          	counter--;
+       	}
 
-		if( setWid == false)
-        		DEBUG_LOG(DBG_WKPFGH, "set wunode id fail\n");
-	}
+	if( setWid == false)
+      		DEBUG_LOG(DBG_WKPFGH, "set wunode id fail\n");
 }
 
 void wuclass_gh_sensor_update(wuobject_t *wuobject) {
