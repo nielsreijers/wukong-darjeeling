@@ -335,7 +335,7 @@ class Communication:
       wunode = wuobject.wunode()
       value = wuproperty.value
       datatype = wuproperty.datatype
-      number = wuproperty.number
+      number = wuproperty.wupropertydef().number
 
       if datatype == 'boolean':
         datatype = WKPF_PROPERTY_TYPE_BOOLEAN

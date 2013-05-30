@@ -2,6 +2,7 @@ import urllib2
 import urllib
 import httplib
 import time
+import sys
 from xml.dom.minidom import parse, parseString
 from wkpf.wuapplication import WuApplication, ChangeSets
 from wkpf.wkpfcomm import *
@@ -87,24 +88,23 @@ def retrieve_network_info():
 def retrieve_configuration():
   global last_seen_id
   global last_seen_configuration
-  no_updates = True
-  while no_updates:
-    data = urllib.urlencode({'id': last_seen_id})
-    response = urllib2.urlopen(configuration_url, data)
-    configuration_info = response.read()
-    configuration_info_dom = parseString(configuration_info)
-    updates = configuration_info_dom.getElementsByTagName('update')[0].firstChild.data == 'true'
-    if updates:
-      last_seen_id = configuration_info_dom.getElementsByTagName('state')[0].getElementsByTagName('id')[0].firstChild.data
-      # They have a typo in their field, it should be dd-output I think
-      requirements = configuration_info_dom.getElementsByTagName('state')[0].getElementsByTagName('dd-ouput')[0].firstChild.data
-      configuration = {}
-      for ind in range(len(requirements)):
-        region = ind+1
-        configuration[str(region)] = int(requirements[ind])
-      last_seen_configuration = configuration
-      return configuration
-    time.sleep(5)
+  data = urllib.urlencode({'id': last_seen_id})
+  response = urllib2.urlopen(configuration_url, data)
+  configuration_info = response.read()
+  configuration_info_dom = parseString(configuration_info)
+  print 'Retriving configuration...'
+  updates = configuration_info_dom.getElementsByTagName('update')[0].firstChild.data == 'true'
+  if updates:
+    last_seen_id = configuration_info_dom.getElementsByTagName('state')[0].getElementsByTagName('id')[0].firstChild.data
+    # They have a typo in their field, it should be dd-output I think
+    requirements = configuration_info_dom.getElementsByTagName('state')[0].getElementsByTagName('dd-ouput')[0].firstChild.data
+    configuration = {}
+    for ind in range(len(requirements)):
+      region = ind+1
+      configuration[str(region)] = int(requirements[ind])
+    last_seen_configuration = configuration
+    return configuration
+  return None
 
 def dummy_changesets():
   global NUMBER_OF_REGIONS
@@ -129,6 +129,10 @@ def dummy_configuration():
 # Empty regions have group_size 0
 def generate_demo_application(network_info, configuration):
   global wuclass_id
+
+  if not configuration:
+    return None
+
   wuclassdef = WuClassDef.find(id=wuclass_id)
   changesets = ChangeSets([], [], [])
   for region in range(1, NUMBER_OF_REGIONS+1):
@@ -138,9 +142,14 @@ def generate_demo_application(network_info, configuration):
     component = WuComponent(0, str(region), node_requirement, 1, wuclassdef.name,
         'demo_GH')
     changesets.components.append(component)
+  print 'Generating application...'
   return changesets
 
 def deploy(commands):
+
+  if not commands:
+    return
+
   comm = getComm()
   for wuproperty in commands:
     wunode = wuproperty.wuobject().wunode()
@@ -154,7 +163,11 @@ def deploy(commands):
     if not success:
       print 'Set property for node id %d failed' % (wunode.id)
     gevent.sleep(0)
+  print 'Deploying...'
 
+def signal_handler(signal, frame):
+  print 'Bye'
+  sys.exit(1)
 
 Parser.parseLibrary(COMPONENTXML_PATH)
 
@@ -164,10 +177,17 @@ if __name__ == "__main__":
   changesets = generate_demo_application(network_info, configuration)
   last_changesets = dummy_changesets()
 
-  while(configuration):
-    commands, last_changesets = first_of(changesets, network_info, last_changesets)
-    deploy(commands)
-    time.sleep(10) # sleep for 10 secs
-    configuration = retrieve_configuration()
-    network_info = retrieve_network_info()
-    changesets = generate_demo_application(network_info, configuration)
+  try:
+    while True:
+      commands, last_changesets = first_of(changesets, network_info, last_changesets)
+      deploy(commands)
+      print 'after deploy'
+      configuration = retrieve_configuration()
+      print 'after retrieve_configuration'
+      network_info = retrieve_network_info()
+      print 'after retrieve_network_info'
+      changesets = generate_demo_application(network_info, configuration)
+      print 'after generate_demo_application'
+      time.sleep(5) # Needs hit ctrl-c rapidly
+  except:
+    print 'Exception'

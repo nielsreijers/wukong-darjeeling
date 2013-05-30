@@ -72,6 +72,9 @@ def sortCandidates(wuObjects):
 
 def first_of(changesets, network_info, last_changesets):
 
+  if not changesets:
+    return None, last_changesets
+
   if len(changesets.components) != len(last_changesets.components):
     raise Exception("[ERROR] components size doesn't match")
 
@@ -154,7 +157,7 @@ def first_of(changesets, network_info, last_changesets):
       wuobject = WuObject.find(wuclass_identity=identity)
       # Getting the first property, assuming property number is 0
       # And assuming the property we get has datatype 'boolean'
-      wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.id)
+      wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.wuclassdef().id)
       wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
           wupropertydef_identity=wupropertydef.identity)
       wuproperty.value = False
