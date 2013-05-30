@@ -12,19 +12,24 @@
 int counter;
 uint8_t state, wid, returnWid;
 bool setWid, enable;
-bool *writeFlash;
+bool *preEnable;
 
 void wuclass_gh_sensor_setup(wuobject_t *wuobject) {
-       writeFlash = wuclass_gh_sensor_getPrivateData(wuobject);
-       *writeFlash = false;
+	preEnable = wuclass_gh_sensor_getPrivateData(wuobject);
+	*preEnable = false;
 
 	uart_inituart(3, 57600);
 	wid = wkcomm_get_node_id();
         DEBUG_LOG(DBG_WKPFGH, "transimit wunode id: %d\n", wid);
-	
+
 	setWid = false;
+}
+
+void wuclass_gh_sensor_update(wuobject_t *wuobject) {
+    //send wid
+    if(setWid == false){
         uart_write_byte(3, 4);
-	uart_write_byte(3, wid);//send wunode id to oct
+	uart_write_byte(3, wid);
 
 	counter = 1000;
         while(counter > 0){
@@ -41,14 +46,13 @@ void wuclass_gh_sensor_setup(wuobject_t *wuobject) {
 
 	if( setWid == false)
       		DEBUG_LOG(DBG_WKPFGH, "set wunode id fail\n");
-}
+    }
 
-void wuclass_gh_sensor_update(wuobject_t *wuobject) {
-
+    //change state
     wkpf_internal_read_property_boolean(wuobject, WKPF_PROPERTY_GH_SENSOR_ENABLE, &enable);
-    if(*writeFlash != enable)
+    if(*preEnable != enable)
       wkpf_update_initvalue_in_flash(wuobject, 0);
-    *writeFlash = enable; 
+    *preEnable = enable; 
 
     if(enable == true)
       uart_write_byte(3, 2);
