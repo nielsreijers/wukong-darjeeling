@@ -106,11 +106,9 @@ def first_of(changesets, network_info, last_changesets):
     # Limit to candidatesize
     candidates = candidates[:candidatesize]
 
-    # Because in this demo, there is only one wuobject per node
-    def get_wuobject(node):
-      return node.wuobjects()[0]
-
-    wuobjects = map(get_wuobject, candidates)
+    wuobjects = []
+    for node in candidates:
+      wuobjects += node.wuobjects()
 
     component.instances = wuobjects
     
@@ -128,11 +126,11 @@ def first_of(changesets, network_info, last_changesets):
   changesets.components.sort(key=lambda x: x.location)
   zipped = zip(last_changesets.components, changesets.components)
   for pair in zipped:
-    first_region = set([x.wuclass_identity for x in pair[0].instances])
-    second_region = set([x.wuclass_identity for x in pair[1].instances])
+    region_before = set([x.wuclass_identity for x in pair[0].instances])
+    region_after = set([x.wuclass_identity for x in pair[1].instances])
 
     # First case, turning state on
-    on_wuclass_identities = second_region - first_region
+    on_wuclass_identities = region_after - region_before
     for identity in on_wuclass_identities:
       wuclass = WuClass.find(identity=identity)
       if not wuclass:
@@ -149,7 +147,7 @@ def first_of(changesets, network_info, last_changesets):
       commands.append(wuproperty)
 
     # Second case, turning state off
-    off_wuclass_identities = first_region - second_region
+    off_wuclass_identities = region_before - region_after
     for identity in off_wuclass_identities:
       wuclass = WuClass.find(identity=identity)
       if not wuclass:

@@ -1,3 +1,4 @@
+#!/usr/local/bin/python
 import urllib2
 import urllib
 import httplib
@@ -23,6 +24,15 @@ server_url = '140.112.170.27'
 network_info_url = 'http://140.112.170.27/network_info.xml'
 configuration_url = 'http://140.112.170.27/configuration.xml'
 
+# Initially turn on a node in every region
+def initial_configuration():
+  global NUMBER_OF_REGIONS
+  data = {}
+  for ind in range(NUMBER_OF_REGIONS):
+    region = ind+1
+    data[str(region)] = 1
+  return data
+
 def get_id(node_dom):
   return int(node_dom.getElementsByTagName('wk-id')[0].firstChild.data)
 
@@ -32,6 +42,7 @@ def get_location(node_dom):
 def get_energy(node_dom):
   return float(node_dom.getElementsByTagName('energy')[0].firstChild.data)
 
+# Construct WuNode, WuClass and WuObjects here
 def to_node(node_dom):
   global wuclass_id
   id = get_id(node_dom)
@@ -66,7 +77,9 @@ def to_node(node_dom):
 
   if not wuobject:
     print 'Creating wuobject', wuclassdef.id
-    wuobject = WuObject.create(1, wuclass)
+    # TODO: need to be certain about port number or reconfig will fail
+    port_number = 1
+    wuobject = WuObject.create(port_number, wuclass)
 
   # Should create wuproperty here but need to discuss later if we should have
   # a procedure to retrieve property
@@ -106,28 +119,11 @@ def retrieve_configuration():
     return configuration
   return None
 
-def dummy_changesets():
-  global NUMBER_OF_REGIONS
-  global wuclass_id
-  wuclassdef = WuClassDef.find(id=wuclass_id)
-
-  dummy = ChangeSets([], [], [])
-  for x in range(1, NUMBER_OF_REGIONS+1):
-    dummy.components.append(WuComponent(0, str(x), 0, 1, wuclassdef.name,
-      'demo_GH'))
-  return dummy
-
-def dummy_configuration():
-  global NUMBER_OF_REGIONS
-  data = {}
-  for ind in range(NUMBER_OF_REGIONS):
-    region = ind+1
-    data[str(region)] = 2
-  return data
-
 # Generates application with Components equal to the number of regions
 # Empty regions have group_size 0
-def generate_demo_application(network_info, configuration):
+# This applciation has only WuComponents with empty instances, which
+# will be filled by mapper
+def generate_demo_application(configuration):
   global wuclass_id
 
   if not configuration:
@@ -172,10 +168,10 @@ def signal_handler(signal, frame):
 Parser.parseLibrary(COMPONENTXML_PATH)
 
 if __name__ == "__main__":
-  configuration = dummy_configuration()
+  configuration = initial_configuration()
+  changesets = generate_demo_application(configuration)
+  last_changesets = changesets
   network_info = retrieve_network_info()
-  changesets = generate_demo_application(network_info, configuration)
-  last_changesets = dummy_changesets()
 
   try:
     while True:
@@ -186,8 +182,8 @@ if __name__ == "__main__":
       print 'after retrieve_configuration'
       network_info = retrieve_network_info()
       print 'after retrieve_network_info'
-      changesets = generate_demo_application(network_info, configuration)
+      changesets = generate_demo_application(configuration)
       print 'after generate_demo_application'
-      time.sleep(5) # Needs hit ctrl-c rapidly
+      time.sleep(10) # Needs hit ctrl-c rapidly
   except:
     print 'Exception'
