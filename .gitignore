@@ -24,7 +24,7 @@ WKDeploy.xml
 wukong/apps
 master.cfg
 src/config/native/config.txt
-src/config/wunode/build.xml
+src/settings.xml
 stk500boot.eep
 stk500boot.elf
 stk500boot.lss
