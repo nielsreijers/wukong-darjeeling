@@ -355,17 +355,21 @@ class Communication:
         wuclassdef.id%256, number, datatype, value/256, value%256]
 
       reply = self.zwave.send(wunode.id, pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      print 'getting reply from send command'
 
 
       master_available()
       if reply == None:
+        print 'no reply received'
         return None
 
       if reply.command == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply.payload
         return None
       master_available()
-      return value
+
+      print 'reply received'
+      return reply
 
     def reprogram(self, destination, filename, retry=1):
       master_busy()

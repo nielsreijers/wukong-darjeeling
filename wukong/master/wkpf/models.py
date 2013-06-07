@@ -14,7 +14,7 @@ def bootstrap_database():
     print 'bootstraping database'
     global connection
     #connection = sqlite3.connect("standardlibrary.db")
-    connection = sqlite3.connect(":memory:")
+    connection = sqlite3.connect(":memory:", check_same_thread = False)
     c = connection.cursor()
 
     # Network info
@@ -454,6 +454,12 @@ class WuObject(Definition):
     self.identity = identity
     self.port_number = port_number
     self.wuclass_identity = wuclass_identity
+
+  def __repr__(self):
+    return '''
+    %s(
+      %r
+    )''' % (self.__class__.__name__, self.__dict__.items() + [('node_id', self.wunode().id)])
 
   def wunode(self):
     wuclass = self.wuclass()

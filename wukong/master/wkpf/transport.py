@@ -360,7 +360,7 @@ class BrokerAgent:
                 # call callback
                 if deliver.command == pynvc.WKPF_ERROR_R:
                     defer.error_cb(deliver)
-                else
+                else:
                     defer.callback(deliver)
 
                 # remove it

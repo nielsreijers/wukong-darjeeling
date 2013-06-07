@@ -27,7 +27,7 @@ class Parser:
     print 'Scanning classes & properties'
     for wuClass in dom.getElementsByTagName('WuClass'):
       name = wuClass.getAttribute('name')
-      id = int(wuClass.getAttribute('id'),0)
+      id = int(wuClass.getAttribute('id'))
       virtual = wuClass.getAttribute('virtual').lower() == 'true'
       type = wuClass.getAttribute('type')
       wuclassdef = WuClassDef.create(id, name, virtual, type)
