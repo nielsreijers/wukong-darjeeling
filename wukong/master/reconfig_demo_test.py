@@ -6,26 +6,30 @@ from wkpf.wkpfcomm import WKPF_PROPERTY_TYPE_SHORT, WKPF_PROPERTY_TYPE_BOOLEAN, 
 from wkpf.transport import ZwaveAgent
 from wkpf.mapper import first_of
 from wkpf.models import WuNode, WuClassDef, WuClass, WuObject, WuComponent
+from network_mode_test_fixture import fake_network_info
+from random import randrange
+
+REAL_DEPLOY = True
+NETWORK_MODE = 2
 
 ## Testing Scenario:
 # Testing where a node 32 in region 1 will be turned off
 
-# Initially there is only one node 32 in region 1
-# This generates the new configuration which will turn off every node
+# Initially there are random amount of nodes in regions
+# This generates the new configuration
 def dummy_initial_configuration():
   data = {}
   for ind in range(demo.NUMBER_OF_REGIONS):
     region = ind+1
-    data[str(region)] = 0
+    data[str(region)] = randrange(3)
   return data
 
-# This generates the old configuration which has one node in region 1
+# This generates the old configuration which has one node in region 1, 2, and 3
 def dummy_configuration():
   data = {}
   for ind in range(demo.NUMBER_OF_REGIONS):
     region = ind+1
     data[str(region)] = 0
-  data['1'] = 1
   return data
 
 # Generates a fake deployed application with WuComponent instances
@@ -39,68 +43,19 @@ def dummy_last_changesets(dummy_configuration, fake_network_info):
 
   for region, nodes in fake_network_info.items():
     for component in dummy.components:
-      if component.location == region:
-        for node in nodes:
-          component.instances += node.wuobjects()
+      if component.location == region and len(component.instances) < component.group_size:
+        node = nodes[randrange(len(nodes))]
+        wuobjects = node.wuobjects()
+        component.instances.append(wuobjects[randrange(len(wuobjects))])
         break
   return dummy
 
-# test env setup
-def fake_node():
-  id = 32
-  location = '1'
-  energy = 3451.4
-
-  node = WuNode.find(id=id)
-
-  if not node:
-    node = WuNode.create(id, location, energy)
-  else:
-    node.location = location
-    node.energy = energy
-    node.save()
-
-  print 'Going into node', node.id
-
-  # For this demo, we need to creat an wuobject for every node
-  # And fake the property ourselves (defaul: on)
-  wuclassdef = WuClassDef.find(id=demo.wuclass_id)
-  if not wuclassdef:
-    raise Exception("can't find wuclass with id %d" % (demo.wuclass_id))
-
-  wuclass = WuClass.find(wuclassdef_identity=wuclassdef.identity,
-      node_identity=node.identity)
-
-  if not wuclass:
-    print 'Creating wuclass', wuclassdef.id
-    wuclass = WuClass.create(wuclassdef, node, False)
-
-  wuobject = WuObject.find(wuclass_identity=wuclass.identity)
-
-  if not wuobject:
-    print 'Creating wuobject', wuclassdef.id
-    # TODO: need to be certain about port number or reconfig will fail
-    port_number = 1
-    wuobject = WuObject.create(port_number, wuclass)
-
-  # Right now creating a new WuObject will also creates WuProperties
-  # automatically
-
-  # Should create wuproperty here but need to discuss later if we should have
-  # a procedure to retrieve property
-
-  return node
-
 def retrieve_fake_network_info():
-  print 'Faking network info'
-  network_info_data = {}
-  node = fake_node()
-  network_info_data.setdefault(node.location, []).append(node)
-  return network_info_data
+  return fake_network_info(NETWORK_MODE)
 
 def fakeDeploy(commands):
   for wuproperty in commands:
-    print 'setting property of node', wuproperty.wuobject().wunode().id
+    print 'setting node', wuproperty.wuobject().wunode().id, 'on' if wuproperty.value else 'off'
     setFakeProperty(wuproperty)
 
 def setFakeProperty(wuproperty):
@@ -132,35 +87,33 @@ def setFakeProperty(wuproperty):
 def dummy(cls):
   pass
 
-'''
-ZwaveAgent.__init__ = dummy
-demo.deploy = fakeDeploy
-'''
+if not REAL_DEPLOY:
+  ZwaveAgent.__init__ = dummy
+  demo.deploy = fakeDeploy
 
-
-
-
-# New configuration (All nodes off)
+# New configuration
 configuration = dummy_initial_configuration()
-#print "config", configuration
+print "new config", configuration
 
-# New application (All nodes off)
+# New application
 new_changesets = demo.generate_demo_application(configuration)
 #print "new application", new_changesets
 
 network_info = retrieve_fake_network_info()
 #print "network info", network_info
 
-# Old dummy configuration (One node in region 1)
+# Old dummy configuration
 configuration = dummy_configuration()
 #print "old config", configuration
 
 # Previous application (node 32 in region 1 is on)
+# configuration is used for setting up components (regions)
+# network info is used to spawn wuobjects
 last_changesets = dummy_last_changesets(configuration, network_info)
-#print "last deployed application", last_changesets
+print "last deployed application", last_changesets
 
 commands, last_changesets = first_of(new_changesets, network_info, last_changesets)
 
-print "commands", commands
+#print "commands", commands
 
 demo.deploy(commands)

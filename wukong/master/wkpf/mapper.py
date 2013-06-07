@@ -115,6 +115,8 @@ def first_of(changesets, network_info, last_changesets):
     if len(component.instances) == 0:
       raise Exception('[ERROR] No avilable match could be found for component %s' % (component))
 
+  print 'mapped application', changesets
+
   # Commands
   # format:
   # [
