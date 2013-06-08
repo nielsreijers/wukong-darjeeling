@@ -1,5 +1,8 @@
 *.class
 *.pyc
+*~
+*.swp
+*.swo
 __comp__*
 a.out
 GENERATED*
