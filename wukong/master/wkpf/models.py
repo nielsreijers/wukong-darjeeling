@@ -95,8 +95,7 @@ class Definition:
     )''' % (self.__class__.__name__, self.__dict__)
 
   def __eq__(self, other):
-    if isinstance(other, WuProperty):
-      return other.identity == self.identity
+    return other.identity == self.identity
     return NotImplemented
 
   def __ne__(self, other):
