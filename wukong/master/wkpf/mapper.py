@@ -70,6 +70,8 @@ def sortCandidates(wuObjects):
       sorted(candidates, key=lambda node: nodeScores[node[0]], reverse=True)
 
 
+# Filling changesets with wuobjects, and assign new changesets to last_changesets
+# Return commands (a diff between changesets and last_changesets)
 def first_of(changesets, network_info, last_changesets):
 
   if not changesets:
@@ -115,7 +117,7 @@ def first_of(changesets, network_info, last_changesets):
     if len(component.instances) == 0:
       raise Exception('[ERROR] No avilable match could be found for component %s' % (component))
 
-  print 'mapped application', changesets
+  #print 'mapped application', changesets
 
   # Commands
   # format:
@@ -124,43 +126,55 @@ def first_of(changesets, network_info, last_changesets):
   #   ...
   # ]
   commands = []
-  last_changesets.components.sort(key=lambda x: x.location)
-  changesets.components.sort(key=lambda x: x.location)
-  zipped = zip(last_changesets.components, changesets.components)
+  a_list = sorted(last_changesets.components, key=lambda x: x.location)
+  b_list = sorted(changesets.components, key=lambda x: x.location)
+  zipped = zip(a_list, b_list)
   for pair in zipped:
-    region_before = set([x.wuclass_identity for x in pair[0].instances])
-    region_after = set([x.wuclass_identity for x in pair[1].instances])
+    print pair
+    region_before = set([x.identity for x in pair[0].instances])
+    region_after = set([x.identity for x in pair[1].instances])
 
     # First case, turning state on
-    on_wuclass_identities = region_after - region_before
-    for identity in on_wuclass_identities:
-      wuclass = WuClass.find(identity=identity)
-      if not wuclass:
-        raise Exception('invalid wuclass identity' % (identity))
-      wuobject = WuObject.find(wuclass_identity=identity)
+    on_identities = region_after - region_before
+    print 'on', on_identities
+    for identity in on_identities:
+      #wuclass = WuClass.find(identity=identity)
+      #if not wuclass:
+        #raise Exception('invalid wuclass identity' % (identity))
+      wuobject = WuObject.find(identity=identity)
       if not wuobject:
         raise Exception('no wuobject for wuclass idenity' % (identity))
       # Getting the first property, assuming property number is 0
       # And assuming the property we get has datatype 'boolean'
-      wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.wuclassdef().id)
-      wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
-          wupropertydef_identity=wupropertydef.identity)
+      #wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.wuclassdef().id)
+      #wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
+          #wupropertydef_identity=wupropertydef.identity)
+      wuproperty = wuobject.wuproperties()[0]
       wuproperty.value = True
+      print 'property', wuproperty
+      print 'property node', wuproperty.wuobject().wunode()
       commands.append(wuproperty)
 
+    region_before = set([x.identity for x in pair[0].instances])
+    region_after = set([x.identity for x in pair[1].instances])
+
     # Second case, turning state off
-    off_wuclass_identities = region_before - region_after
-    for identity in off_wuclass_identities:
-      wuclass = WuClass.find(identity=identity)
-      if not wuclass:
-        raise Exception('invalid wuclass identity' % (identity))
+    off_identities = region_before - region_after
+    print 'off', off_identities
+    for identity in off_identities:
+      #wuclass = WuClass.find(identity=identity)
+      #if not wuclass:
+        #raise Exception('invalid wuclass identity' % (identity))
       wuobject = WuObject.find(wuclass_identity=identity)
       # Getting the first property, assuming property number is 0
       # And assuming the property we get has datatype 'boolean'
-      wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.wuclassdef().id)
-      wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
-          wupropertydef_identity=wupropertydef.identity)
+      #wupropertydef = WuPropertyDef.find(number=0, wuclass_id=wuclass.wuclassdef().id)
+      #wuproperty = WuProperty.find(wuobject_identity=wuobject.identity,
+          #wupropertydef_identity=wupropertydef.identity)
+      wuproperty = wuobject.wuproperties()[0]
       wuproperty.value = False
+      print 'property', wuproperty
+      print 'property node', wuproperty.wuobject().wunode()
       commands.append(wuproperty)
 
   return commands, changesets
