@@ -255,6 +255,13 @@ class WuPropertyDef(Definition):
         r).fetchone()
     return WuTypeDef(*list(result))
 
+  def wuclassdef(self):
+    r = (self.wuclass_id,)
+    where = "WHERE id=?"
+    result = self.__class__.c.execute("SELECT * from wuclassdefs %s" % (where),
+        r).fetchone()
+    return WuClassDef(*list(result))
+
   def default_wuvalue(self):
     # For basic types
     if not self.default_value_identity:
