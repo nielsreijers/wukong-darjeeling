@@ -5,5 +5,5 @@
 
 <h4>WuObjects:</h4>\
 <ul>\
-    {% for wuobject in node_info.wuobjects %}<li>Class Name: {{ wuobject.wuclass().wuclassdef().name }} Port Number: {{ wuobject.port_number }}</li>\{% end %}
+    {% for wuobject in node_info.wuobjects() %}<li>Class Name: {{ wuobject.wuclass().wuclassdef().name }} Port Number: {{ wuobject.port_number }}</li>\{% end %}
 </ul>\

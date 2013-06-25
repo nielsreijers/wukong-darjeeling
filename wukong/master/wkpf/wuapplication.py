@@ -196,14 +196,14 @@ class WuApplication:
       # links
       for linkTag in self.applicationDom.getElementsByTagName('link'):
           from_component_index = componentInstanceMap[linkTag.parentNode.getAttribute('instanceId')].index
-          properties = WuClassDef.where(name=linkTag.parentNode.getAttribute('type'))[0].properties
-          from_property_id = [property for property in properties if linkTag.getAttribute('fromProperty').lower() == property.name.lower()][0].id
+          properties = WuClassDef.where(name=linkTag.parentNode.getAttribute('type'))[0].wupropertydefs()
+          from_property_id = [property for property in properties if linkTag.getAttribute('fromProperty').lower() == property.name.lower()][0].number
           
           to_component_index = componentInstanceMap[linkTag.getAttribute('toInstanceId')].index
           
           to_wuclass = WuClassDef.where(name=componentInstanceMap[linkTag.getAttribute('toInstanceId')].type)[0]
-          properties = to_wuclass.properties
-          to_property_id = [property for property in properties if linkTag.getAttribute('toProperty').lower() == property.name.lower()][0].id
+          properties = to_wuclass.wupropertydefs()
+          to_property_id = [property for property in properties if linkTag.getAttribute('toProperty').lower() == property.name.lower()][0].number
 
           to_wuclass_id = to_wuclass.id
 
