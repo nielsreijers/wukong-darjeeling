@@ -222,17 +222,15 @@ def firstCandidate(logger, changesets, routingTable, locTree):
         # construct wuobjects, instances of component
         for candidate in candidates:
             node = locTree.getNodeInfoById(candidate)
-            wuclass = WuClass.where(name=component.type)[0]
-            if wuclass.type.lower() == 'hard':
+            wuclassdef = WuClassDef.find(name=component.type)
+            if wuclassdef.type.lower() == 'hard':
                 # only native implementation
-                if wuclass.id in [x.id for x in node.wuclasses]:
+                if wuclassdef.id in [x.wuclassdef().id for x in node.wuclasses()]:
                     # has wuclass for native implementation
-                    if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
+                    if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
                         # use existing wuobject
-                        for wuobject in node.wuobjects:
-                            if wuobject.wuclass.id == wuclass.id:
-                                wuobject.properties_with_default_values = component.properties_with_default_values
-                                wuobject.save()
+                        for wuobject in node.wuobjects():
+                            if wuobject.wuclass().wuclassdef().id == wuclassdef.id:
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -240,23 +238,19 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         sensorNode = locTree.sensor_dict[node.id]
                         sensorNode.initPortList(forceInit = False)
                         port_number = sensorNode.reserveNextPort()
-                        wuclass_alternate = wuclass
-                        for wuclass_node in node.wuclasses:
-                            if wuclass_node.id == wuclass.id:
-                                wuclass_alternate = wuclass_node
-                        wuobject = WuObject(node.id, port_number, wuclass_alternate)
-                        wuobject.properties_with_default_values = component.properties_with_default_values
+                        for wuclass in node.wuclasses():
+                            if wuclass.wuclassdef().id == wuclassdef.id:
+                                wuobject = WuObject(port_number, wuclass)
                         wuobject.save()
                         component.instances.append(wuobject)
             else:
                 # prefer native implementation
-                if wuclass.id in [x.id for x in node.wuclasses]:
+                if wuclassdef.id in [x.wuclassdef().id for x in node.wuclasses()]:
                     # has wuclass for native implementation
-                    if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
+                    if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
                         # use existing wuobject
-                        for wuobject in node.wuobjects:
-                            if wuobject.wuclass.id == wuclass.id:
-                                wuobject.properties_with_default_values = component.properties_with_default_values
+                        for wuobject in node.wuobjects():
+                            if wuobject.wuclass().wuclassdef().id == wuclassdef.id:
                                 wuobject.save()
                                 component.instances.append(wuobject)
                                 break
@@ -265,21 +259,17 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         sensorNode = locTree.sensor_dict[node.id]
                         sensorNode.initPortList(forceInit = False)
                         port_number = sensorNode.reserveNextPort()
-                        wuclass_alternate = wuclass
-                        for wuclass_node in node.wuclasses:
-                            if wuclass_node.id == wuclass.id:
-                                wuclass_alternate = wuclass_node
-                        wuobject = WuObject(node.id, port_number, wuclass_alternate)
-                        wuobject.properties_with_default_values = component.properties_with_default_values
+                        for wuclass in node.wuclasses():
+                            if wuclass.wuclassdef().id == wuclassdef.id:
+                                wuobject = WuObject(port_number, wuclass)
                         wuobject.save()
                         component.instances.append(wuobject)
                 else:
                     # no wuclass for native implementation
-                    if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
+                    if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
                         # use existing virtual wuobject
-                        for wuobject in node.wuobjects:
-                            if wuobject.wuclass.id == wuclass.id:
-                                wuobject.properties_with_default_values = component.properties_with_default_values
+                        for wuobject in node.wuobjects():
+                            if wuobject.wuclass().wuclassdef().id == wuclassdef.id:
                                 wuobject.save()
                                 component.instances.append(wuobject)
                                 break
@@ -288,20 +278,15 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         sensorNode = locTree.sensor_dict[node.id]
                         sensorNode.initPortList(forceInit = False)
                         port_number = sensorNode.reserveNextPort()
-                        wuclass_alternate = wuclass # node_id is not important, just a placeholder
-                        wuobject = WuObject(node.id, port_number, wuclass_alternate)
-                        wuobject.properties_with_default_values = component.properties_with_default_values
+                        wuclass = WuClass.find(wuclassdef_identity=wuclassdef.identity)
+                        if not wuclass:
+                          wuclass = WuClass.create(wuclassdef, node, True)
+                        wuobject = WuObject(port_number, wuclass)
                         wuobject.save()
                         component.instances.append(wuobject)
 
         def prefer_hard(wuobject):
-            node = locTree.getNodeInfoById(wuobject.node_id)
-            wuclass = WuClass.where(name=component.type)[0]
-            print 'sort prefer wuobject of wuclass %d in node %d' % (wuobject.wuclass.id, node.id) if wuobject.wuclass.id in [x.id for x in node.wuclasses] else 'sort not prefer'
-            if wuobject.wuclass.id in [x.id for x in node.wuclasses if not x.virtual]:
-                wuobject.hasLocalNativeWuClass = True
-
-            return wuobject.wuclass.id in [x.id for x in node.wuclasses]
+            return not wuobject.wuclass().virtual
 
         component.instances = sorted(component.instances, key=prefer_hard, reverse=True)
         
@@ -320,9 +305,9 @@ def firstCandidate(logger, changesets, routingTable, locTree):
     allcandidates = set()
     for component in changesets.components:
         for wuobject in component.instances:
-            allcandidates.add(wuobject.node_id)
+            allcandidates.add(wuobject.wunode().id)
     allcandidates = list(allcandidates)
-    allcandidates = map(lambda x: Node.where(id=x)[0], allcandidates)
+    allcandidates = map(lambda x: Node.find(id=x), allcandidates)
     constructHeartbeatGroups(changesets.heartbeatgroups, routingTable, allcandidates)
     determinePeriodForHeartbeatGroups(changesets.components, changesets.heartbeatgroups)
     logging.info('heartbeatGroups constructed, periods assigned')
