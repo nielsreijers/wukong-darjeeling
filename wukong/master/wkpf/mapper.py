@@ -261,7 +261,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         port_number = sensorNode.reserveNextPort()
                         for wuclass in node.wuclasses():
                             if wuclass.wuclassdef().id == wuclassdef.id:
-                                wuobject = WuObject(port_number, wuclass)
+                                wuobject = WuObject.create(port_number, wuclass)
                         wuobject.save()
                         component.instances.append(wuobject)
                 else:
@@ -281,7 +281,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         wuclass = WuClass.find(wuclassdef_identity=wuclassdef.identity)
                         if not wuclass:
                           wuclass = WuClass.create(wuclassdef, node, True)
-                        wuobject = WuObject(port_number, wuclass)
+                        wuobject = WuObject.create(port_number, wuclass)
                         wuobject.save()
                         component.instances.append(wuobject)
 
@@ -307,16 +307,16 @@ def firstCandidate(logger, changesets, routingTable, locTree):
         for wuobject in component.instances:
             allcandidates.add(wuobject.wunode().id)
     allcandidates = list(allcandidates)
-    allcandidates = map(lambda x: Node.find(id=x), allcandidates)
-    constructHeartbeatGroups(changesets.heartbeatgroups, routingTable, allcandidates)
-    determinePeriodForHeartbeatGroups(changesets.components, changesets.heartbeatgroups)
+    allcandidates = map(lambda x: WuNode.find(id=x), allcandidates)
+    # constructHeartbeatGroups(changesets.heartbeatgroups, routingTable, allcandidates)
+    # determinePeriodForHeartbeatGroups(changesets.components, changesets.heartbeatgroups)
     logging.info('heartbeatGroups constructed, periods assigned')
     logging.info(changesets.heartbeatgroups)
 
     #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
     for component in changesets.components:
         for wuobj in component.instances:
-            senNd = locTree.getSensorById(wuobj.node_id)
+            senNd = locTree.getSensorById(wuobj.wunode().id)
             for j in senNd.temp_port_list:
                 senNd.port_list.remove(j)
             senNd.temp_port_list = []
