@@ -278,7 +278,7 @@ uint8_t wkpf_create_local_wuobjects_from_app_tables() {
 					else
 						return WKPF_ERR_PORT_IN_USE; // This is bad: the port is already in use by an object of different type
 				}
-				wkpf_error_code = wkpf_create_wuobject(wuclass->wuclass_id, WKPF_COMPONENT_ENDPOINT_PORT(i, j), NULL);
+				wkpf_error_code = wkpf_create_wuobject(wuclass->wuclass_id, WKPF_COMPONENT_ENDPOINT_PORT(i, j), NULL, false);
 				if (wkpf_error_code != WKPF_OK)
 					return wkpf_error_code;
 			}

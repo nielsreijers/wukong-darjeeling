@@ -179,10 +179,13 @@ void wkpf_comm_handle_message(void *data) {
 
 			for (uint8_t i=0; i<number_of_wuclasses_in_message; i++) {
 				wuclass_t *wuclass;
-				wkpf_get_wuclass_by_index(start_at_wuclass_index+i, &wuclass);
-				payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
-				payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
-				payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+				wkpf_get_wuclass_by_index(i, &wuclass);
+
+				if (wuclass->flags & WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE) {
+					payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
+					payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
+					payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+				}
 			}
 			response_size = 3*number_of_wuclasses_in_message + 3; // 3*wuclasses + 3 bytes for message nr, number of messages, number of wuclasses
 			response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
