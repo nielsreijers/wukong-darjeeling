@@ -182,46 +182,52 @@ class Communication:
 
       set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
 
-      reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
-
-      print 'Respond received'
-
-      if reply == None:
-        return []
-
-      if reply.command == pynvc.WKPF_ERROR_R:
-        print "WKPF RETURNED ERROR ", reply.payload
-        return []
-
       wuclasses = []
-      reply = reply.payload[3:]
-      while len(reply) > 1:
-        wuclass_id = (reply[0] <<8) + reply[1]
-        virtual = reply[2] == 1
+      total_number_of_messages = None
+      message_number = 0
 
-        node = WuNode.find(id=destination)
+      while (message_number != total_number_of_messages):
+        reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [message_number], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
+        message_number += 1
 
-        if not node:
-          print 'Unknown node id', destination
-          break
+        print 'Respond received'
+        if reply == None:
+          return []
+        if reply.command == pynvc.WKPF_ERROR_R:
+          print "WKPF RETURNED ERROR ", reply.payload
+          return []
+        if total_number_of_messages == None:
+          total_number_of_messages = reply.payload[3]
 
-        wuclassdef = WuClassDef.find(id=wuclass_id)
+        reply = reply.payload[5:]
+        while len(reply) > 1:
+          wuclass_id = (reply[0] <<8) + reply[1]
+          virtual = reply[2] == 1
 
-        if not wuclassdef:
-          print 'Unknown wuclass id', wuclass_id
-          break
+          node = WuNode.find(id=destination)
 
-        wuclass = WuClass.find(node_identity=node.identity,
-            wuclassdef_identity=wuclassdef.identity)
+          if not node:
+            print 'Unknown node id', destination
+            break
 
-        # Create one
-        if not wuclass:
-          wuclass = WuClass.create(wuclassdef, node, virtual)
-          # No need to recreate property definitions, as they are already
-          # created when parsing XML
+          wuclassdef = WuClassDef.find(id=wuclass_id)
 
-        wuclasses.append(wuclass)
-        reply = reply[3:]
+          if not wuclassdef:
+            print 'Unknown wuclass id', wuclass_id
+            break
+
+          wuclass = WuClass.find(node_identity=node.identity,
+              wuclassdef_identity=wuclassdef.identity)
+
+          # Create one
+          if not wuclass:
+            wuclass = WuClass.create(wuclassdef, node, virtual)
+            # No need to recreate property definitions, as they are already
+            # created when parsing XML
+
+          wuclasses.append(wuclass)
+          reply = reply[3:]
+
       return wuclasses
 
     def getWuObjectList(self, destination):
@@ -229,50 +235,55 @@ class Communication:
 
       set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
 
-      reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
-
-      print 'Respond received'
-
-
-      if reply == None:
-        return []
-
-      if reply.command == pynvc.WKPF_ERROR_R:
-        print "WKPF RETURNED ERROR ", reply.payload
-        return []
-
       wuobjects = []
-      reply = reply.payload[3:]
-      while len(reply) > 1:
-        wuclass_id = (reply[1] <<8) + reply[2]
-        port_number = reply[0]
-        node = WuNode.find(id=destination)
+      total_number_of_messages = None
+      message_number = 0
 
-        if not node:
-          print 'Unknown node id', destination
-          break
+      while (message_number != total_number_of_messages):
+        reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [message_number], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
+        message_number += 1
 
-        wuclassdef = WuClassDef.find(id=wuclass_id)
+        print 'Respond received'
+        if reply == None:
+          return []
+        if reply.command == pynvc.WKPF_ERROR_R:
+          print "WKPF RETURNED ERROR ", reply.payload
+          return []
+        if total_number_of_messages == None:
+          total_number_of_messages = reply.payload[3]
 
-        if not wuclassdef:
-          print 'Unknown wuclass id', wuclass_id
-          break
+        reply = reply.payload[5:]
+        while len(reply) > 1:
+          wuclass_id = (reply[1] <<8) + reply[2]
+          port_number = reply[0]
+          node = WuNode.find(id=destination)
 
-        wuclass = WuClass.find(node_identity=node.identity,
-            wuclassdef_identity=wuclassdef.identity)
+          if not node:
+            print 'Unknown node id', destination
+            break
 
-        if not wuclass:
-          print 'Unknown wuclass, should call getWuClassList before WuObjectList'
-          break
+          wuclassdef = WuClassDef.find(id=wuclass_id)
 
-        wuobject = WuObject.find(wuclass_identity=wuclass.identity)
+          if not wuclassdef:
+            print 'Unknown wuclass id', wuclass_id
+            break
 
-        # Create one
-        if not wuobject:
-          wuobject = WuObject.create(port_number, wuclass)
+          wuclass = WuClass.find(node_identity=node.identity,
+              wuclassdef_identity=wuclassdef.identity)
 
-        wuobjects.append(wuobject)
-        reply = reply[3:]
+          if not wuclass:
+            print 'Unknown wuclass, should call getWuClassList before WuObjectList'
+            break
+
+          wuobject = WuObject.find(wuclass_identity=wuclass.identity)
+
+          # Create one
+          if not wuobject:
+            wuobject = WuObject.create(port_number, wuclass)
+
+          wuobjects.append(wuobject)
+          reply = reply[3:]
+
       return wuobjects
 
     # Only used by inspector

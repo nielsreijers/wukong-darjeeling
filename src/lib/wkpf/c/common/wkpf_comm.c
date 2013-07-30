@@ -10,6 +10,9 @@
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
 
+#define NUMBER_OF_WUCLASSES_PER_MESSAGE 9
+#define NUMBER_OF_WUOBJECTS_PER_MESSAGE 9
+
 uint8_t send_message(wkcomm_address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
 	// Print some debug info
 #ifdef DEBUG
@@ -157,34 +160,61 @@ void wkpf_comm_handle_message(void *data) {
 		}
 		break;
 		case WKPF_COMM_CMD_GET_WUCLASS_LIST: {
+			// Request format: payload[0] request message number
+			// Response format: payload[0] response message number
+			// Response format: payload[1] total number of messages
+			// Response format: payload[2] number of wuclasses
+
 			uint8_t number_of_wuclasses = wkpf_get_number_of_wuclasses();
-			if (number_of_wuclasses > 9) // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-				number_of_wuclasses = 9;
-			payload[0] = number_of_wuclasses;
-			for (uint8_t i=0; i<number_of_wuclasses; i++) {
+			uint8_t number_of_messages = (number_of_wuclasses / NUMBER_OF_WUCLASSES_PER_MESSAGE);
+			if ((number_of_wuclasses % NUMBER_OF_WUCLASSES_PER_MESSAGE) != 0)
+				number_of_messages++;
+			uint8_t start_at_wuclass_index = payload[0]*NUMBER_OF_WUCLASSES_PER_MESSAGE;
+			payload[1] = number_of_messages;
+			payload[2] = number_of_wuclasses;
+
+			uint8_t number_of_wuclasses_in_message = number_of_wuclasses - start_at_wuclass_index;
+			if (number_of_wuclasses_in_message > NUMBER_OF_WUCLASSES_PER_MESSAGE)
+				number_of_wuclasses_in_message = NUMBER_OF_WUCLASSES_PER_MESSAGE;
+
+			for (uint8_t i=0; i<number_of_wuclasses_in_message; i++) {
 				wuclass_t *wuclass;
-				wkpf_get_wuclass_by_index(i, &wuclass);
-				payload[3*i + 1] = (uint8_t)(wuclass->wuclass_id >> 8);
-				payload[3*i + 2] = (uint8_t)(wuclass->wuclass_id);
-				payload[3*i + 3] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+				wkpf_get_wuclass_by_index(start_at_wuclass_index+i, &wuclass);
+				payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
+				payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
+				payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
 			}
-			response_size = 3*number_of_wuclasses + 1; // 3*wuclasses + 1 byte number of wuclasses
+			response_size = 3*number_of_wuclasses_in_message + 3; // 3*wuclasses + 3 bytes for message nr, number of messages, number of wuclasses
 			response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
 		}
 		break;
 		case WKPF_COMM_CMD_GET_WUOBJECT_LIST: {
+			// Request format: payload[0] request message number
+			// Response format: payload[0] response message number
+			// Response format: payload[1] total number of messages
+			// Response format: payload[2] number of wuobjects
+
+
 			uint8_t number_of_wuobjects = wkpf_get_number_of_wuobjects();
-			if (number_of_wuobjects > 9) // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
-				number_of_wuobjects = 9;
-			payload[0] = number_of_wuobjects;
-			for (uint8_t i=0; i<number_of_wuobjects; i++) {
+			uint8_t number_of_wuobject_messages = (number_of_wuobjects / NUMBER_OF_WUOBJECTS_PER_MESSAGE);
+			if ((number_of_wuobjects % NUMBER_OF_WUOBJECTS_PER_MESSAGE) != 0)
+				number_of_wuobject_messages++;
+			uint8_t start_at_wuobject_index = payload[0]*NUMBER_OF_WUOBJECTS_PER_MESSAGE;
+			payload[1] = number_of_wuobject_messages;
+			payload[2] = number_of_wuobjects;
+
+			uint8_t number_of_wuobjects_in_message = number_of_wuobjects - start_at_wuobject_index;
+			if (number_of_wuobjects_in_message > NUMBER_OF_WUOBJECTS_PER_MESSAGE)
+				number_of_wuobjects_in_message = NUMBER_OF_WUOBJECTS_PER_MESSAGE;
+
+			for (uint8_t i=0; i<number_of_wuobjects_in_message; i++) {
 				wuobject_t *wuobject;
-				wkpf_get_wuobject_by_index(i, &wuobject);
-				payload[3*i + 1] = (uint8_t)(wuobject->port_number);
-				payload[3*i + 2] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
-				payload[3*i + 3] = (uint8_t)(wuobject->wuclass->wuclass_id);
+				wkpf_get_wuobject_by_index(start_at_wuobject_index+i, &wuobject);
+				payload[3*i + 3] = (uint8_t)(wuobject->port_number);
+				payload[3*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
+				payload[3*i + 5] = (uint8_t)(wuobject->wuclass->wuclass_id);
 			}
-			response_size = 3*number_of_wuobjects + 1; // 3*wuobjects + 1 byte number of wuclasses
+			response_size = 3*number_of_wuobjects_in_message + 3; // 3*wuobjects + 3 bytes for message nr, number of messages, number of wuobjects
 			response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
 		}
 		break;
