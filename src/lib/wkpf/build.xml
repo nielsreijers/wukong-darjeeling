@@ -14,15 +14,20 @@
 	<import file="../lib.xml"/>
 
 	<target name="lib-specific-pre">
-		<!-- TODO: make codegen more specific. here we only need to generate code for the native classes, in the wkdeploy app we only need to generate Java base classes. -->
 		<exec executable="../../../wukong/master/wkpf/codegen.py">
-			<arg line="-i ../../../wukong/ComponentDefinitions/WuKongStandardLibrary.xml -p ../../.. -u ../../.. -e ${configtargetpath}/${enabled_wuclasses}"/>
+			<!-- we only need to generate the C part here, Java should be generated from wkpf-app.xml -->
+			<arg line="--input_xml ../../../wukong/ComponentDefinitions/WuKongStandardLibrary.xml --c_dir ../../../src/lib/wkpf/c/common/native_wuclasses --enabled_xml ${configtargetpath}/${enabled_wuclasses}"/>
 		</exec>
 	</target>
 
 	<target name="clean">
 		<delete>
 			<fileset dir="." casesensitive="yes">
+			  <include name="**/GENERATED*"/>
+			</fileset>
+		</delete>
+		<delete>
+			<fileset dir="../../../wukong/javax/wukong/virtualwuclasses" casesensitive="yes">
 			  <include name="**/GENERATED*"/>
 			</fileset>
 		</delete>

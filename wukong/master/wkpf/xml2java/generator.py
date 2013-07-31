@@ -45,8 +45,8 @@ class Generator:
         def wuclassvirtualclassname(wuclass):
             return "Virtual" + Convert.to_java(wuclass.name) + "WuObject"
 
-        def wuclassconstname(wuclass):
-            return "WUCLASS_" + Convert.to_constant(wuclass.name)
+        def wuclassid(wuclass):
+            return str(wuclass.id)
 
         def wuclassgenclassname(wuclass):
             return "GENERATEDVirtual" + Convert.to_java(wuclass.name) + "WuObject"
@@ -81,7 +81,7 @@ class Generator:
         jinja2_env.filters['nodeinjava'] = nodeinjava
         jinja2_env.filters['wuclassname'] = wuclassname
         jinja2_env.filters['wuclassvirtualclassname'] = wuclassvirtualclassname
-        jinja2_env.filters['wuclassconstname'] = wuclassconstname
+        jinja2_env.filters['wuclassid'] = wuclassid
         jinja2_env.filters['wuclassgenclassname'] = wuclassgenclassname
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
