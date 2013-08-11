@@ -194,7 +194,13 @@ Block.prototype.attach=function(parent) {
 	this.div.dblclick(function() {
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div id=propertyeditor_tab>');
-		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li><li><a href=#propertyeditor_editor>Editor</a></li></ul>');
+
+		$('#propertyeditor_tab').append('<div id=propertyeditor_editor><div id=propertyeditor_editor_area></div></div>');
+		$('#propertyeditor_editor_area').css('height','100%');
+		var ed = ace.edit('propertyeditor_editor_area');
+	    ed.setTheme("ace/theme/twilight");
+		ed.getSession().setMode('ace/mode/java');
 
 		$('#propertyeditor_tab').append('<div id=propertyeditor_loc><input type=text id=propertyeditor_location></input></div>');
 

@@ -24,7 +24,8 @@ def addHead():
 			'\t\t'+'<script type="text/javascript" src="/static/js/block.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/line.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/fbp.js"></script>'+'\n'+
-			'\t\t'+'<script type="text/javascript" src="/static/js/flowlist.js"></script>'+'\n'
+			'\t\t'+'<script type="text/javascript" src="/static/js/flowlist.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/ace/ace.js"></script>'+'\n'
             )
 	g.close()
 
