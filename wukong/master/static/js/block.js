@@ -175,6 +175,23 @@ Block.prototype.getActions=function() {
 	return this.actions;
 }
 
+Block.prototype.loadSourceCode=function(parent) {
+	var obj = $('#propertyeditor_editor_area');
+	var source = '';
+	source = 'package javax.wukong.virtualwuclasses;\n';
+	source = source + 'import javax.wukong.wkpf.WKPF;\n';
+	source = source + 'import javax.wukong.wkpf.VirtualWuObject;\n';
+	source = source + 'public class Virtual'+this.type+'WuObject extends GENERATEDVirtualThresholdWuObject {\n';
+	source = source + '    public Virtual'+this.type+'WuObject() {\n';
+	source = source + '        // Initialize the wuobject here\n';
+	source = source + '    }\n';
+	source = source + '    public void update() {\n';
+	source = source + '        // CHeck the update of the properties here\n';
+	source = source + '    }\n';
+	source = source + '}\n';
+	obj.text(source);
+}
+
 Block.prototype.attach=function(parent) {
 	parent.append(this.div);
 	this.div.draggable();
@@ -198,6 +215,7 @@ Block.prototype.attach=function(parent) {
 
 		$('#propertyeditor_tab').append('<div id=propertyeditor_editor><div id=propertyeditor_editor_area></div></div>');
 		$('#propertyeditor_editor_area').css('height','100%');
+		self.loadSourceCode();
 		var ed = ace.edit('propertyeditor_editor_area');
 	    ed.setTheme("ace/theme/twilight");
 		ed.getSession().setMode('ace/mode/java');
