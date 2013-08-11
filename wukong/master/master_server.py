@@ -2,6 +2,8 @@
 # author: Penn Su
 from gevent import monkey; monkey.patch_all()
 import gevent
+import serial
+import platform
 import os, sys, zipfile, re, time
 import tornado.ioloop, tornado.web
 import tornado.template as template
@@ -13,6 +15,7 @@ import traceback
 import StringIO
 import shutil, errno
 import datetime
+import glob
 
 import wkpf.wusignal
 from wkpf.wuapplication import WuApplication
@@ -121,6 +124,10 @@ def getPropertyValuesOfApp(mapping_results, property_names):
 
   return properties_json
 
+class idemain(tornado.web.RequestHandler):
+  def get(self):
+    self.content_type='text/html'
+    self.render('templates/ide.html')
 # List all uploaded applications
 class main(tornado.web.RequestHandler):
   def get(self):
@@ -535,6 +542,122 @@ class nodes(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
 
+class WuLibrary(tornado.web.RequestHandler):	
+  def get(self):
+  	self.content_type = 'application/xml'
+	try:
+		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
+		xml = f.read()
+		f.close()
+	except:
+		self.write('<error>1</error>')
+	self.write(xml)
+  def post(self):
+	xml = self.get_argument('xml')
+	try:
+		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
+		xml = f.write(xml)
+		f.close()
+	except:
+		self.write('<error>1</error>')
+	self.write('')
+
+class SerialPort(tornado.web.RequestHandler):
+  def get(self):
+	self.content_type = 'application/json'
+	system_name = platform.system()
+	if system_name == "Windows":
+		available = []
+		for i in range(256):
+			try:
+				s = serial.Serial(i)
+				available.append(i)
+				s.close()
+			except:
+				pass
+		self.write(json.dumps(available))
+		return
+	if system_name == "Darwin":
+		list = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
+	else:
+		print 'xxxxx'
+		list = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
+	available=[]
+	for l in list:
+		try:
+			s = serial.Serial(l)
+			available.append(l)
+			s.close()
+		except:
+			pass
+	self.write(json.dumps(available))
+
+class EnabledWuClass(tornado.web.RequestHandler):	
+  def get(self):
+  	self.content_type = 'application/xml'
+	try:
+		f = open('../../src/config/wunode/enabled_wuclasses.xml')
+		xml = f.read()
+		f.close()
+	except:
+		self.write('<error>1</error>')
+	self.write(xml)
+  def post(self):
+	try:
+		f = open('../../src/config/wunode/enabled_wuclasses.xml','w')
+		xml = self.get_argument('xml')
+		f.write(xml)
+		f.close()
+	except:
+		pass
+
+class WuClassSource(tornado.web.RequestHandler):	
+  def get(self):
+  	self.content_type = 'text/plain'
+	try:
+		type = self.get_argument('type')
+		if type == 'C':
+			name = self.get_argument('src')+'.c'
+		elif type == 'JAVA':
+			name = self.get_argument('src')+'.java'
+		f = open(self.findPath(name))
+		cont = f.read()
+		f.close()
+	except:
+		self.write(traceback.format_exc())
+		return
+	self.write(cont)
+  def post(self):
+	try:
+		print 'xxx'
+		name = self.get_argument('name')
+		type = self.get_argument('type')
+		if type == 'C':
+			name = name + '.c'
+		elif type == 'Java':
+			name = name + '.java'
+		print 'name=',name
+		f = open(self.findPath(name),'w')
+		f.write(self.get_argument('content'))
+		f.close()
+		self.write('OK')
+	except:
+		self.write('Error')
+		print traceback.format_exc()
+	
+  def findPath(self,p):
+	name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
+	if os.path.isfile(name):
+		return name
+	name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
+	if os.path.isfile(name):
+		return name
+	name = p
+	print 'yyyyy'
+	return name
+	
+	
+
 class tree(tornado.web.RequestHandler):	
   def post(self):
     global location_tree
@@ -590,6 +713,27 @@ class add_landmark(tornado.web.RequestHandler):
     self.content_type = 'application/json'
     self.write({'status':0})
 
+class Build(tornado.web.RequestHandler):  
+  def get(self):
+    self.content_type = 'text/plain'
+    os.system('cd ../../src/config/wunode; ant')
+    self.write('ok')
+
+class Upload(tornado.web.RequestHandler):  
+  def get(self):
+    self.content_type = 'text/plain'
+    port = self.get_argument("port")
+
+    f = open("../../src/settings.xml","w")
+    s = '<project name="settings">' + '\n' + \
+      '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
+      '</project>'
+    f.write(s)
+    f.close()
+    
+    os.system('cd ../../src/config/wunode; ant avrdude-only')
+    self.write('ok')
+
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
   debug=True
@@ -598,6 +742,7 @@ settings = dict(
 ioloop = tornado.ioloop.IOLoop.instance()
 wukong = tornado.web.Application([
   (r"/", main),
+  (r"/ide", idemain),
   (r"/main", main),
   (r"/testrtt/exclude", exclude_testrtt),
   (r"/testrtt/include", include_testrtt),
@@ -619,7 +764,13 @@ wukong = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
   (r"/loc_tree", tree),
   (r"/loc_tree/save", save_tree),
-  (r"/loc_tree/land_mark", add_landmark)
+  (r"/loc_tree/land_mark", add_landmark),
+  (r"/componentxml",WuLibrary),
+  (r"/wuclasssource",WuClassSource),
+  (r"/serialport",SerialPort),
+  (r"/enablexml",EnabledWuClass),
+  (r"/build",Build),
+  (r"/upload",Upload)
 ], IP, **settings)
 
 if __name__ == "__main__":
