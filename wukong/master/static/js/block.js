@@ -276,7 +276,7 @@ Block.prototype.attach=function(parent) {
 					$('#propertyeditor').dialog("close");
 				}
 			},
-			width:700, height:400,
+			width:'90%', height:400,
 			title:"Property Editor"
 
 		}).dialog("open");

@@ -40,10 +40,10 @@ def addEnd():
     g = open(end_path, "a")
     g.write(
                 '\t'+'</head>'+'\n'+
-                '\t'+'<body scrolling="no">'+'\n'+
-                '\t\t'+'<canvas id=canvas style="position:absolute; left:205; top:50;" height=600 width=800></canvas>'+'\n'+
+                '\t'+'<body style="overflow:hidden">'+'\n'+
+                '\t\t'+'<canvas id=canvas style="position:absolute; left:205; top:50;" height=600 width=2000></canvas>'+'\n'+
                 '\t\t'+'<div id=client></div>'+'\n'+
-                '\t\t'+'<canvas id=canvastop style="position:absolute; left:0; top:50;" height=600 width=800></canvas>'+'\n'+
+                '\t\t'+'<canvas id=canvastop style="position:absolute; left:0; top:50;" height=600 width=2000></canvas>'+'\n'+
                 '\t\t'+'<div id=connection>'+'\n'+
                 '\t\t'+'<table>'+'\n'+
 				'\t\t'+'<tr><td>From</td></tr>'+'\n'+
