@@ -62,7 +62,7 @@ class Communication:
       if force or self.all_node_infos == []:
         nodeIds = self.getNodeIds()
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
-      print 'got all nodeInfos'
+
       return self.all_node_infos
 
     def getRoutingInformation(self):

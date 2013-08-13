@@ -484,6 +484,7 @@ class refresh_nodes(tornado.web.RequestHandler):
     global node_infos
 
     comm = getComm()
+    logging.info("getting node infos")
     node_infos = comm.getActiveNodeInfos(force=True)
     logging.info("building tree from discovery")
     location_tree.buildTree(node_infos)
@@ -491,7 +492,6 @@ class refresh_nodes(tornado.web.RequestHandler):
     location_tree.printTree()
     logging.info("getting routing information")
     routingTable = getComm().getRoutingInformation()
-    logging.info(routingTable)
     # default is false
     set_location = self.get_argument('set_location', False)
 
