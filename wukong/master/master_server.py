@@ -485,7 +485,7 @@ class refresh_nodes(tornado.web.RequestHandler):
 
     comm = getComm()
     logging.info("getting node infos")
-    node_infos = comm.getActiveNodeInfos(force=True)
+    node_infos = comm.getActiveNodeInfos()
     logging.info("building tree from discovery")
     location_tree.buildTree(node_infos)
     #furniture data loaded from fake data for purpose of 

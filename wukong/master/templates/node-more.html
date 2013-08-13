@@ -1,5 +1,7 @@
 {# needed the \\ because this is treated as a multiline string #} \
-{% if node_info.isResponding() %} \
+<h1> \
+  {{ len(node_info.wuclasses()) }} WuClasses and {{ len(node_info.wuobjects) }} WuObjects
+</h1> \
 <h4>WuClasses:</h4> \
 <ul> \
   {% for wuclass in node_info.wuclasses() %} \
@@ -13,7 +15,6 @@
   </li> \
   {% end %} \
 </ul> \
-\
 <h4>WuObjects:</h4> \
 <ul> \
   {% for wuobject in node_info.wuobjects() %} \
@@ -27,6 +28,3 @@
   </li> \
   {% end %} \
 </ul> \
-{% else %} \
-<h4>Not responding</h4> \
-{% end %} \

@@ -41,28 +41,17 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self, force=False):
-      logging.info('getActiveNodeInfos 2')
-
+    def getActiveNodeInfos(self):
       set_wukong_status("Discovery: Requesting node info")
-
-      self.all_node_infos = self.getAllNodeInfos(force=force)
-
-      set_wukong_status("")
-      return filter(lambda item: item.isResponding(), self.all_node_infos)
+      sleep(1)
+      return filter(lambda item: item.isResponding(), self.getAllNodeInfos())
 
     def getNodeInfos(self, node_ids):
-      print 'getNodeInfos', node_ids
-      if self.all_node_infos:
-        return filter(lambda info: info.id in node_ids, self.all_node_infos)
-      else:
-        return [self.getNodeInfo(int(destination)) for destination in node_ids]
+      return filter(lambda info: info.id in node_ids, self.getAllNodeInfos())
 
-    def getAllNodeInfos(self, force=False):
-      if force or self.all_node_infos == []:
-        nodeIds = self.getNodeIds()
-        self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
-
+    def getAllNodeInfos(self):
+      if self.all_node_infos == []:
+        self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in self.getNodeIds()]
       return self.all_node_infos
 
     def getRoutingInformation(self):
