@@ -259,7 +259,9 @@ class deploy_application(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       # Discovery results
-      node_infos = location_tree.getAllNodeInfos()
+      #node_infos = location_tree.getAllNodeInfos() # location tree is returning nil
+      comm = getComm()
+      node_infos = comm.getAllNodeInfos()
       deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
               app=applications[app_ind],
               app_id=app_id, node_infos=node_infos,

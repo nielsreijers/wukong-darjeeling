@@ -11,7 +11,7 @@
     </thead>
     <tbody>
         {% for component in changesets.components %}
-          {% if len(componnet.instances) > 0 %}
+          {% if len(component.instances) > 0 %}
             {% for wuobject in component.instances %}
             <tr class=success>
                 <td>
