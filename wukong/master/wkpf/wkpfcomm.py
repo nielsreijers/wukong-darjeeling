@@ -42,8 +42,8 @@ class Communication:
       return self.zwave.discovery()
 
     def getActiveNodeInfos(self):
-      set_wukong_status("Discovery: Requesting node info")
-      sleep(1)
+      #set_wukong_status("Discovery: Requesting node info")
+      gevent.sleep(1)
       return filter(lambda item: item.isResponding(), self.getAllNodeInfos())
 
     def getNodeInfos(self, node_ids):
@@ -169,7 +169,7 @@ class Communication:
     def getWuClassList(self, destination):
       print 'getWuClassList'
 
-      set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
+      #set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
 
@@ -216,7 +216,7 @@ class Communication:
     def getWuObjectList(self, destination):
       print 'getWuObjectList'
 
-      set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
+      #set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
 
