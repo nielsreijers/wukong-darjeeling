@@ -253,14 +253,13 @@ class deploy_application(tornado.web.RequestHandler):
     global location_tree
     global node_infos
     #try:
-    # Discovery results
-
     app_ind = getAppIndex(app_id)
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      node_infos = comm.getAllNodeInfos()
+      # Discovery results
+      node_infos = location_tree.getAllNodeInfos()
       deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
               app=applications[app_ind],
               app_id=app_id, node_infos=node_infos,
