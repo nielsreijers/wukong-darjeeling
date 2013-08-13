@@ -252,31 +252,31 @@ class deploy_application(tornado.web.RequestHandler):
     global applications
     global location_tree
     global node_infos
-    try:
-      # Discovery results
-      node_infos = location_tree.getAllNodeInfos()
+    #try:
+    # Discovery results
 
-      app_ind = getAppIndex(app_id)
-      if app_ind == None:
-        self.content_type = 'application/json'
-        self.write({'status':1, 'mesg': 'Cannot find the application'})
-      else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
-                app=applications[app_ind],
-                app_id=app_id, node_infos=node_infos,
-                logs=applications[app_ind].logs(),
-                changesets=applications[app_ind].changesets, 
-                set_location=False, 
-                default_location=LOCATION_ROOT)
-        self.content_type = 'application/json'
-        self.write({'status':0, 'page': deployment})
-      
-    except Exception as e:
-      exc_type, exc_value, exc_traceback = sys.exc_info()
-      print traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                      limit=2, file=sys.stdout)
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
       self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      node_infos = comm.getAllNodeInfos()
+      deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
+              app=applications[app_ind],
+              app_id=app_id, node_infos=node_infos,
+              logs=applications[app_ind].logs(),
+              changesets=applications[app_ind].changesets, 
+              set_location=False, 
+              default_location=LOCATION_ROOT)
+      self.content_type = 'application/json'
+      self.write({'status':0, 'page': deployment})
+      
+    #except Exception as e:
+      #exc_type, exc_value, exc_traceback = sys.exc_info()
+      #print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      #limit=2, file=sys.stdout)
+      #self.content_type = 'application/json'
+      #self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
   def post(self, app_id):
     global location_tree

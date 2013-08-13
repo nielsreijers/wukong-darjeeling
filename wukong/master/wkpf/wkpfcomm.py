@@ -43,7 +43,6 @@ class Communication:
 
     def getActiveNodeInfos(self):
       #set_wukong_status("Discovery: Requesting node info")
-      gevent.sleep(1)
       return filter(lambda item: item.isResponding(), self.getAllNodeInfos())
 
     def getNodeInfos(self, node_ids):
