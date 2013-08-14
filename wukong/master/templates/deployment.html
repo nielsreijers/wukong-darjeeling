@@ -25,11 +25,12 @@
                             <ul class="nav nav-pills">
                                 <li><a id="nodes-btn" href="#nodes" data-toggle="tab">Discover</a></li>
                                 <li><a id="mapping_results-btn" href="#mapping_results" data-toggle="tab">Map</a></li>
-                                <li><a id="deploy-btn" href="#deploy_results" data-toggle="tab">Deploy</a></li>
+                                <li class="disabled"><a id="deploy-btn" href="#deploy_results" data-toggle="tab">Deploy</a></li>
                             </ul>
                             <div class=tab-content>
                                 <div class="tab-pane" id="nodes">
-                                    {% include "monitor-nodes.html" %}
+                                    <h1>Loading</h1>
+                                    {# include "monitor-nodes.html" #}
                                 </div>
                                 <div class="tab-pane" id="mapping_results">
                                     {% include "monitor-mapping-results.html" %}

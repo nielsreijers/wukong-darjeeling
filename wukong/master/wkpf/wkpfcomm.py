@@ -25,6 +25,7 @@ class Communication:
       self.all_node_infos = []
       self.broker = getAgent()
       self.zwave = getZwaveAgent()
+      self.routing = None
       if not self.zwave:
         print 'cannot initiate zwaveagent'
         raise Exception
@@ -54,7 +55,9 @@ class Communication:
       return self.all_node_infos
 
     def getRoutingInformation(self):
-      return self.zwave.routing()
+      if self.routing == None:
+        self.routing = self.zwave.routing()
+      return self.routing
 
     def onAddMode(self):
       return self.zwave.add()

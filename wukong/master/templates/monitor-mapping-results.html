@@ -10,40 +10,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for component in changesets.components %}
-          {% if len(component.instances) > 0 %}
-            {% for wuobject in component.instances %}
-            <tr class=success>
-                <td>
-                    {{ component.index }}
-                </td>
-                <td>
-                    {{ component.type }}
-                </td>
-                <td>
-                    {{ wuobject.node_id }}
-                </td>
-                <td>
-                    {{ wuobject.port_number }}
-                </td>
-            </tr>
-            {% end %}
-          {% else %}
-            <tr class=error>
-                <td>
-                    {{ component.index }}
-                </td>
-                <td>
-                    {{ component.type }}
-                </td>
-                <td>
-                </td>
-                <td>
-                </td>
-            </tr>
-          {% end %}
-        {% end %}
-
+      <!-- rows will be inserted from javascript in deployemnt.js -->
     </tbody>
 </table>
 
