@@ -26,6 +26,10 @@ $(document).ready(function() {
         FBP_addBlock();
     });
 */
+    toolbar.append('<td valign="top"><button id=toolbar_editComponent>Edit Component</button></td>');
+    $('#toolbar_editComponent').click(function() {
+        FBP_editComponent();
+    });
     toolbar.append('<td valign="top"><button id=toolbar_importBlock>Import</button></td>');
     $('#toolbar_importBlock').click(function() {
         FBP_importBlock();
@@ -79,6 +83,23 @@ $(document).ready(function() {
     window.progress = $('#progress');
     $('#progress').dialog({autoOpen:false, modal:true, width:'50%', height:'300'});
 });
+
+
+function FBP_editComponent()
+{
+	$('body').append('<div id=edit_component></div>');
+	$('#edit_component').append('<iframe width=100% height=90% src=/static/editcomponent.html?appid='+id+'></iframe>');
+	$('#edit_component').dialog({
+		width:'80%',
+		height:800,
+		buttons:{
+			'OK': function() {
+				$('#edit_component').dialog('close');
+				$('#edit_component').remove();
+			}
+		}
+	});
+}
 
 function FBP_fillBlockType(div)
 {

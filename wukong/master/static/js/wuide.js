@@ -1,18 +1,35 @@
 // vim: ts=4 sw=4
 $(document).ready(function() {
-	ide = new WuIDE();
+	appid = getURLParameter('appid')
+	try {
+		ide = new WuIDE(g_user);
+	} catch(e) {
+		ide = new WuIDE(false);
+	}
 });
 
+function getURLParameter(name) 
+{
+    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+}
 
-
-function WuIDE()
+function WuIDE(user)
 {
     var self = this;
-	$.get('/componentxml',function(r) {
-		self.xml = $.parseXML(r);
-		self.parseXML();
-		self.parseEnableXML();
-	});
+	this.is_user = user;
+	if (user) {
+		$.get('/componentxmluser?appid='+appid,function(r) {
+			self.xml = $.parseXML(r);
+			self.parseXML();
+			self.load();
+		});
+	} else {
+		$.get('/componentxml',function(r) {
+			self.xml = $.parseXML(r);
+			self.parseXML();
+			self.parseEnableXML();
+		});
+	}
 	this.initUI();
 }
 
@@ -159,14 +176,18 @@ WuIDE.prototype.load = function() {
 	$('#saveall').unbind().click(function() {
 		var xml = self.toXML();
 		data = {xml:xml};
-		$.post('/componentxml', data);
-		var xml = '<WuKong>\n';
-		$.each(self.classes,function(i,val) {
-			if (val.enabled)
-				xml = xml + '    <WuClass name="'+val.name+'" />\n';
-		});
-		xml = xml + '</WuKong>';
-		$.post('/enablexml', {xml:xml});
+		if (self.is_user) {
+			$.post('/componentxmluser?appid='+appid, data);
+		} else {
+			$.post('/componentxml', data);
+			var xml = '<WuKong>\n';
+			$.each(self.classes,function(i,val) {
+				if (val.enabled)
+					xml = xml + '    <WuClass name="'+val.name+'" />\n';
+			});
+			xml = xml + '</WuKong>';
+			$.post('/enablexml', {xml:xml});
+		}
 	});
 		
 	

@@ -492,6 +492,7 @@ class refresh_nodes(tornado.web.RequestHandler):
 
     comm = getComm()
     node_infos = comm.getActiveNodeInfos(force=True)
+    print node_infos
     logging.info("building tree from discovery")
     location_tree.buildTree(node_infos)
     #furniture data loaded from fake data for purpose of 
@@ -556,6 +557,33 @@ class WuLibrary(tornado.web.RequestHandler):
 	xml = self.get_argument('xml')
 	try:
 		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
+		xml = f.write(xml)
+		f.close()
+	except:
+		self.write('<error>1</error>')
+	self.write('')
+class WuLibraryUser(tornado.web.RequestHandler):	
+  def get(self):
+  	global applications
+  	self.content_type = 'application/xml'
+	appid = self.get_argument('appid')
+	app = applications[getAppIndex(appid)]
+	print app.dir
+	try:
+		f = open(app.dir+'/WKDeployCustomComponents.xml')
+		xml = f.read()
+		f.close()
+		self.write(xml)
+	except:
+		self.write('<WuKong><WuClass name="Custom1" id="100"></WuClass></WuKong>')
+		return
+  def post(self):
+  	global applications
+	xml = self.get_argument('xml')
+	appid = self.get_argument('appid')
+	app = applications[getAppIndex(appid)]
+	try:
+		f = open(app.dir+'/WKDeployCustomComponents.xml','w')
 		xml = f.write(xml)
 		f.close()
 	except:
@@ -766,6 +794,7 @@ wukong = tornado.web.Application([
   (r"/loc_tree/save", save_tree),
   (r"/loc_tree/land_mark", add_landmark),
   (r"/componentxml",WuLibrary),
+  (r"/componentxmluser",WuLibraryUser),
   (r"/wuclasssource",WuClassSource),
   (r"/serialport",SerialPort),
   (r"/enablexml",EnabledWuClass),
