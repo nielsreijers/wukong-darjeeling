@@ -42,6 +42,8 @@ WuIDE.prototype.parseEnableXML = function() {
 			for(i=0;i<self.classes.length;i++) {
 				if (self.classes[i].name == $(val).attr('name')) {
 					self.classes[i].enabled = true;
+					self.classes[i].appCanCreateInstances=$(val).attr('appCanCreateInstances');
+					self.classes[i].createInstancesAtStartup=$(val).attr('createInstancesAtStartup');
 					return;
 				}
 			}
@@ -62,6 +64,7 @@ WuIDE.prototype.parseXML = function() {
 		var virtual = $(val).attr('virtual');
 		var type = $(val).attr('type');
 		var properties = $(val).find('property');
+		var privateCData = $(val).find("privateCData");
 		var prop = [];
 		$.each(properties, function(j, val) {
 			var pname = $(val).attr('name');
@@ -70,7 +73,7 @@ WuIDE.prototype.parseXML = function() {
 			var def = $(val).attr('default');
 			prop.push({name:pname, datatype:datatype, access:access, default:def});
 		});
-		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false});
+		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateData:privateCData});
 	});
 	self.types=[];
 	$.each(types,function(i,v) {
@@ -100,7 +103,11 @@ WuIDE.prototype.toXML = function() {
 		xml = xml + '    </WuTypedef>\n';
 	}
 	for(i=0;i<self.classes.length;i++) {
-		xml = xml + '    <WuClass name="'+self.classes[i].name+'" id="'+self.classes[i].id+'" virtual="'+self.classes[i].virtual+'" type="'+self.classes[i].type+'">\n';
+		xml = xml + '    <WuClass name="'+self.classes[i].name+'" id="'+self.classes[i].id+'" virtual="'+self.classes[i].virtual+'" type="'+self.classes[i].typa+'"';
+		if (self.classes[i].privateCData)
+		    xml = xml +' privateCData="'+self.classes[i].privateCData+'">\n';
+		else
+		    xml = xml + '>\n';
 		for(j=0;j<this.classes[i].properties.length;j++) {
 			
 			xml = xml + '        <property name="'+self.classes[i].properties[j].name+'" ';
@@ -182,8 +189,14 @@ WuIDE.prototype.load = function() {
 			$.post('/componentxml', data);
 			var xml = '<WuKong>\n';
 			$.each(self.classes,function(i,val) {
-				if (val.enabled)
-					xml = xml + '    <WuClass name="'+val.name+'" />\n';
+				if (val.enabled) {
+					xml = xml + '    <WuClass name="'+val.name+'"';
+					if (val.appCanCreateInstances)
+						xml = xml + ' appCanCreateInstances="'+val.appCanCreateInstances+'"';
+					if (val.createInstancesAtStartup)
+						xml = xml + ' createInstancesAtStartup="'+val.createInstancesAtStartup+'"';
+					xml = xml +' />\n';
+				}
 			});
 			xml = xml + '</WuKong>';
 			$.post('/enablexml', {xml:xml});
@@ -207,7 +220,7 @@ WuIDE.prototype.load = function() {
 					},
 					'._enable@id': function(arg) {
 						return 'class_check'+self.classes[arg.pos].id;
-					}
+					},
 				}
 			}
 		});
@@ -386,6 +399,15 @@ WuClass.prototype.updateClass=function() {
 	} else {
 		self.val.type = 'soft';
 	}
+	if ($('#class_editor_create').val() == 'y') {
+		self.val.appCanCreateInstances = 'true';
+	} else {
+		self.val.appCanCreateInstances = null;
+	}
+	if ($('#class_editor_instance').val() == "")
+		self.val.createInstancesAtStartup = null;
+	else
+		self.val.createInstancesAtStartup = $('#class_editor_instance').val();
 	$.each(self.val.properties,function(i,v) {
 		v.name = $('#property'+i+' ._name').val();
 		v.datatype = $('#property'+i+' ._datatype').val();
@@ -460,6 +482,12 @@ WuClass.prototype.render=function(id) {
 		$('#class_editor_type').val('h');
 	else 
 		$('#class_editor_type').val('s');
+	if (this.val.appCanCreateInstances == 'true')
+		$('#class_editor_create').val('y');
+	else 
+		$('#class_editor_create').val('n');
+	$('#class_editor_instance').val(this.val.createInstancesAtStartup);
+
 	$('#class_editor_done').unbind().click(function() {
 		$('#class_editor').hide();
 		$('#class_list').show();
