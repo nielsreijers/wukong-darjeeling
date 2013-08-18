@@ -646,7 +646,7 @@ class WuClassSource(tornado.web.RequestHandler):
 		type = self.get_argument('type')
 		if type == 'C':
 			name = self.get_argument('src')+'.c'
-		elif type == 'JAVA':
+		else:
 			name = self.get_argument('src')+'.java'
 		f = open(self.findPath(name))
 		cont = f.read()
@@ -662,7 +662,7 @@ class WuClassSource(tornado.web.RequestHandler):
 		type = self.get_argument('type')
 		if type == 'C':
 			name = name + '.c'
-		elif type == 'Java':
+		else:
 			name = name + '.java'
 		print 'name=',name
 		f = open(self.findPath(name),'w')
