@@ -66,7 +66,6 @@ Block.prototype.serialize=function(obj) {
 	obj.location = this.location;
 	obj.group_size = this.group_size;
 	obj.reaction_time = this.reaction_time;
-	obj.actions = this.actProper;
 	obj.signals = this.sigProper;
 	obj.monitor = this.monitorProper;
 	/*
@@ -97,7 +96,6 @@ Block.restore=function(a) {
 	n.location = a.location;
 	n.group_size = a.group_size;
 	n.reaction_time = a.reaction_time;
-    n.actProper = a.actProper;
     n.sigProper = a.sigProper;
     n.monitorProper = a.monitorProper;
 
@@ -171,9 +169,6 @@ Block.prototype.findActionPos=function(s) {
 	}
 	return -1;
 }
-Block.prototype.getActions=function() {
-	return this.actions;
-}
 
 Block.prototype.loadSourceCode=function(parent) {
 	var obj = $('#propertyeditor_editor_area');
@@ -211,14 +206,8 @@ Block.prototype.attach=function(parent) {
 	this.div.dblclick(function() {
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div id=propertyeditor_tab>');
-		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li><li><a href=#propertyeditor_editor>Editor</a></li></ul>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_default>Default</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
 
-		$('#propertyeditor_tab').append('<div id=propertyeditor_editor><div id=propertyeditor_editor_area></div></div>');
-		$('#propertyeditor_editor_area').css('height','100%');
-		self.loadSourceCode();
-		var ed = ace.edit('propertyeditor_editor_area');
-	    ed.setTheme("ace/theme/twilight");
-		ed.getSession().setMode('ace/mode/java');
 
 		$('#propertyeditor_tab').append('<div id=propertyeditor_loc><input type=text id=propertyeditor_location></input></div>');
 
@@ -236,41 +225,17 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor_reactiontime').spinner("value",self.reaction_time);
 
  
-		$("#propertyeditor_tab").append('<div id=propertyeditor_action></div>');
-		$("#propertyeditor_tab").append('<div id=propertyeditor_signal></div></div>');
+		$("#propertyeditor_tab").append('<div id=propertyeditor_default></div></div>');
 		$("#propertyeditor_tab").append('<div id=propertyeditor_monitor></div></div>');
-		$("#propertyeditor_action").empty();
-		$("#propertyeditor_signal").empty();
+		$("#propertyeditor_default").empty();
 		$("#propertyeditor_monitor").empty();
 		$("#propertyeditor_tab").tabs();
 		
-		var _actlist = Block.current.getActions();
-		for(i=0;i<_actlist.length;i++) {
-    		var act = _actlist[i];
-    		$('#propertyeditor_action').append(act.name);
-//    		if(act.type=="boolean"){
-	    		$('#propertyeditor_action').append('<input type=text id=a'+act.name+'></input><br>');
-	    		$('#a'+act.name).val(self.actProper[act.name]);
-//	    	}else{
-//	    		$('#propertyeditor_action').append('<select id=a'+act.name+'></select><br>');
-//    			for(j=0;j++;j<2){
-//	    			$('#propertyeditor_action').append('<option value='+j+'>'+j+'</option>');
-//	    		}
-//	    		$('#a'+act.name).val(self.actProper[i]);
-//	    	}
-			$('#propertyeditor_monitor').append(act.name+'<input type=checkbox id=m'+act.name+'></input><br>');
-			try {
-				$('#m'+act.name).val(self.monitorProper[act.name]);
-			} catch (e){
-
-			}
-
-		}
 		var _siglist = Block.current.getSignals();
 		for(i=0;i<_siglist.length;i++) {
     		var sig = _siglist[i];
-    		$('#propertyeditor_signal').append(sig.name);
-    		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input><br>');
+    		$('#propertyeditor_default').append(sig.name);
+    		$('#propertyeditor_default').append('<input type=text id=s'+sig.name+'></input><br>');
     		try {
     			$('#s'+sig.name).val(self.sigProper[sig.name]);
     		} catch (e) {
@@ -288,11 +253,6 @@ Block.prototype.attach=function(parent) {
 					for(i=0;i<_siglist.length;i++){
 						sig = _siglist[i];
 						self.sigProper[sig.name]=$('#s'+sig.name).val();
-					}
-					for(i=0;i<_actlist.length;i++){
-						act = _actlist[i];
-						self.actProper[act.name]=$('#a'+act.name).val();
-						self.monitorProper[act.name]=$('#m'+act.name).val();
 					}
 					$('#propertyeditor').dialog("close");
 				},
