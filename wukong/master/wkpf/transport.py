@@ -127,11 +127,7 @@ class ZwaveAgent(TransportAgent):
     def __init__(self):
         self._mode = 'stop'
 
-        # pyzwave
-        try:
-            pyzwave.init(ZWAVE_GATEWAY_IP)
-        except IOError as e:
-            return False
+        pyzwave.init(ZWAVE_GATEWAY_IP)
 
         TransportAgent.__init__(self)
 
@@ -326,6 +322,108 @@ class ZwaveAgent(TransportAgent):
 
             gevent.sleep(0)
 
+# Mock agent behavior, will only provide fixed responses and will not contact any external devices
+# So no receive, and no call to any c library, no calls to broker, etc
+class MockAgent(TransportAgent):
+    _agent = None
+    @classmethod
+    def init(cls):
+        if not cls._agent:
+            cls._agent = MockAgent()
+        return cls._agent
+
+    def __init__(self):
+        self._mode = 'stop'
+
+        TransportAgent.__init__(self)
+
+    # add a defer to queue
+    def deferSend(self, destination, command, payload, allowed_replies, cb, error_cb):
+        def callback(reply):
+            cb(reply)
+
+        def error_callback(reply):
+            error_cb(reply)
+
+        defer = new_defer(callback, 
+                error_callback,
+                self.verify(allowed_replies), 
+                allowed_replies, 
+                new_message(destination, command, self.getNextSequenceNumberAsPrefixPayload() + payload), int(round(time.time() * 1000)) + 10000)
+        tasks.put_nowait(defer)
+        return defer
+
+    def send(self, destination, command, payload, allowed_replies):
+        result = AsyncResult()
+
+        def callback(reply):
+            result.set(reply)
+
+        def error_callback(reply):
+            result.set(reply)
+
+
+        defer = new_defer(callback, 
+                error_callback,
+                self.verify(allowed_replies), 
+                allowed_replies, 
+                new_message(destination, command, self.getNextSequenceNumberAsPrefixPayload() + payload), int(round(time.time() * 1000)) + 10000)
+        tasks.put_nowait(defer)
+
+        message = result.get() # blocking
+
+        # received ack from Agent
+        return message
+
+    def routing(self):
+
+        result = AsyncResult()
+
+        def callback(reply):
+            result.set(reply)
+
+        defer = new_defer(callback,
+                callback,
+                None,
+                None,
+                new_message(1, "routing", 0),
+                0)
+        tasks.put_nowait(defer)
+
+        return result.get()
+
+    def discovery(self):
+        return []
+
+    def add(self):
+        if self._mode != 'stop':
+            return False
+        return True
+
+    def delete(self):
+        if self._mode != 'stop':
+            return False
+        return True
+
+    def stop(self):
+        self._mode = 'stop'
+        return True
+
+    def poll(self):
+        return "Not availble"
+
+    # to be run in a thread, and others will use ioloop to monitor this thread
+    def handler(self):
+        while 1:
+            defer = tasks.get()
+
+            if defer.message.command == "discovery":
+                defer.callback(self.discovery())
+            elif defer.message.command == "routing":
+                defer.callback({})
+            else:
+                defer.callback(None)
+
 class BrokerAgent:
     _broker_agent = None
     @classmethod
@@ -381,6 +479,9 @@ class BrokerAgent:
 
 def getAgent():
     return BrokerAgent.init()
+
+def getMockAgent():
+    return MockAgent.init()
 
 def getZwaveAgent():
     return ZwaveAgent.init()

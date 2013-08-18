@@ -28,7 +28,13 @@
                 <li class=""><a id="locationTree" href="#">Location Tree</a></li>
             </ul>
           </div>
-        </div>  
+        </div>
+        {% if not connected %}
+        <div class="alert">
+          <h4>It appears that you have not connected to a zwave gateway</h4>
+          <p>Please connect a zwave gateway to the master and restart.</p>
+        </div>
+        {% end %}
         <table width="100%" border=0 height="100%">
             <tbody>
                 <tr valign=top>

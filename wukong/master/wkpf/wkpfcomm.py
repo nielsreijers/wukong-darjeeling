@@ -24,11 +24,12 @@ class Communication:
     def __init__(self):
       self.all_node_infos = []
       self.broker = getAgent()
-      self.zwave = getZwaveAgent()
+      try:
+        self.zwave = getZwaveAgent()
+      except:
+        is_not_connected()
+        self.zwave = getMockAgent()
       self.routing = None
-      if not self.zwave:
-        print 'cannot initiate zwaveagent'
-        raise Exception
 
     def addActiveNodesToLocTree(self, locTree):
       for node_info in self.getActiveNodeInfos():

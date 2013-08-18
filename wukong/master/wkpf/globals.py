@@ -2,8 +2,13 @@ active_ind = 0
 applications = []
 location_tree = None
 wukong_status = ""
+connected = True # whether zwave gateway is connected
 
 MASTER_BUSY = False
+
+def is_not_connected():
+  global connected
+  connected = False
 
 def is_master_busy():
     global MASTER_BUSY
