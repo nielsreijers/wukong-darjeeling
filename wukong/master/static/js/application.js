@@ -133,7 +133,7 @@ function application_fillList(r)
                             window.options = {repeat: true};
 
                             poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
-                                console.log(data)
+                                //console.log(data)
                                 data.wukong_status = data.wukong_status.trim();
                                 data.application_status = data.application_status.trim();
                                 if (data.wukong_status === "clear" || data.application_status === "clear") {
@@ -389,13 +389,13 @@ function poll(url, version, options, callback)
         // TODO:mapping_results too
         // TODO:node infos too
 
-        if (forceRepeat) {
-            console.log('repeat');
-        } else {
-            console.log('no repeat');
-        }
+        //if (forceRepeat) {
+            //console.log('repeat');
+        //} else {
+            //console.log('no repeat');
+        //}
         if (forceRepeat || data.returnCode < 0) {
-            console.log("repeating");
+            //console.log("repeating");
             setTimeout(function() {
                 poll(url, data.version, options, callback);
             }, 1000);

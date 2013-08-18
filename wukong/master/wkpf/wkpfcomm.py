@@ -24,10 +24,12 @@ class Communication:
     def __init__(self):
       self.all_node_infos = []
       self.broker = getAgent()
-      self.zwave = getZwaveAgent()
-      if not self.zwave:
-        print 'cannot initiate zwaveagent'
-        raise Exception
+      try:
+        self.zwave = getZwaveAgent()
+      except:
+        is_not_connected()
+        self.zwave = getMockAgent()
+      self.routing = None
 
     def addActiveNodesToLocTree(self, locTree):
       for node_info in self.getActiveNodeInfos():
@@ -41,32 +43,22 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self, force=False):
-      logging.info('getActiveNodeInfos 2')
-
-      set_wukong_status("Discovery: Requesting node info")
-
-      self.all_node_infos = self.getAllNodeInfos(force=force)
-
-      set_wukong_status("")
-      return filter(lambda item: item.isResponding(), self.all_node_infos)
+    def getActiveNodeInfos(self):
+      #set_wukong_status("Discovery: Requesting node info")
+      return filter(lambda item: item.isResponding(), self.getAllNodeInfos())
 
     def getNodeInfos(self, node_ids):
-      print 'getNodeInfos', node_ids
-      if self.all_node_infos:
-        return filter(lambda info: info.id in node_ids, self.all_node_infos)
-      else:
-        return [self.getNodeInfo(int(destination)) for destination in node_ids]
+      return filter(lambda info: info.id in node_ids, self.getAllNodeInfos())
 
-    def getAllNodeInfos(self, force=False):
-      if force or self.all_node_infos == []:
-        nodeIds = self.getNodeIds()
-        self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
-      print 'got all nodeInfos'
+    def getAllNodeInfos(self):
+      if self.all_node_infos == []:
+        self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in self.getNodeIds()]
       return self.all_node_infos
 
     def getRoutingInformation(self):
-      return self.zwave.routing()
+      if self.routing == None:
+        self.routing = self.zwave.routing()
+      return self.routing
 
     def onAddMode(self):
       return self.zwave.add()
@@ -180,7 +172,7 @@ class Communication:
     def getWuClassList(self, destination):
       print 'getWuClassList'
 
-      set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
+      #set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
 
       wuclasses = []
       total_number_of_messages = None
@@ -233,7 +225,7 @@ class Communication:
     def getWuObjectList(self, destination):
       print 'getWuObjectList'
 
-      set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
+      #set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
 
       wuobjects = []
       total_number_of_messages = None
