@@ -378,7 +378,6 @@ class CodeGen:
         init_function_lines = ['''
 
         uint8_t wkpf_native_wuclasses_init() {
-          uint8_t retval;
 
 
           DEBUG_LOG(DBG_WKPF, "WKPF: (INIT) Running wkpf native init for node id: %x\\n", wkcomm_get_node_id());
@@ -415,9 +414,12 @@ class CodeGen:
             if createInstancesAtStartup > 0:
                 for i in range(createInstancesAtStartup):
                     init_function_lines.append('''
+					    {
+                        uint8_t retval;
                         retval = wkpf_create_wuobject(%s.wuclass_id, %d, 0, true);
                         if (retval != WKPF_OK)
                             return retval;
+						}
                         ''' % (wuclass.getCName(), portCnt))
                     portCnt += 1
                     assert portCnt < 256, 'number of wuobject exceeds 256'
