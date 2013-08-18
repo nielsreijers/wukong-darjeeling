@@ -103,7 +103,7 @@ WuIDE.prototype.toXML = function() {
 		xml = xml + '    </WuTypedef>\n';
 	}
 	for(i=0;i<self.classes.length;i++) {
-		xml = xml + '    <WuClass name="'+self.classes[i].name+'" id="'+self.classes[i].id+'" virtual="'+self.classes[i].virtual+'" type="'+self.classes[i].typa+'"';
+		xml = xml + '    <WuClass name="'+self.classes[i].name+'" id="'+self.classes[i].id+'" virtual="'+self.classes[i].virtual+'" type="'+self.classes[i].type+'"';
 		if (self.classes[i].privateCData)
 		    xml = xml +' privateCData="'+self.classes[i].privateCData+'">\n';
 		else
@@ -408,6 +408,14 @@ WuClass.prototype.updateClass=function() {
 		self.val.createInstancesAtStartup = null;
 	else
 		self.val.createInstancesAtStartup = $('#class_editor_instance').val();
+	self.val.privateCData = $('#class_editor_private').val();
+	if (self.val.privateCData == 'n')
+		self.val.privateCData = null;
+	else if (self.val.privateCData == 's')
+		self.val.privateCData = 'short';
+	else if (self.val.privateCData == 'b')
+		self.val.privateCData = 'bool';
+
 	$.each(self.val.properties,function(i,v) {
 		v.name = $('#property'+i+' ._name').val();
 		v.datatype = $('#property'+i+' ._datatype').val();
@@ -486,7 +494,15 @@ WuClass.prototype.render=function(id) {
 		$('#class_editor_create').val('y');
 	else 
 		$('#class_editor_create').val('n');
+	
 	$('#class_editor_instance').val(this.val.createInstancesAtStartup);
+	if (this.val.privateCData == 'short')
+		$('#class_editor_private').val('s');
+	else if (this.val.privateCData == 'bool')
+		$('#class_editor_private').val('b');
+	else
+		$('#class_editor_private').val('n');
+
 
 	$('#class_editor_done').unbind().click(function() {
 		$('#class_editor').hide();
