@@ -1,4 +1,4 @@
-<button id="refresh">Refresh</button>
+<!--<button id="refresh">Refresh</button>-->
 <table class="table">
     <thead>
         <tr>
@@ -33,11 +33,8 @@
 
 <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">Modal header</h3>
     </div>
     <div class="modal-body">
-        <p>One fine body…</p>
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -57,6 +54,7 @@
     $(function() {
         $('#myModal').hide();
 
+        /*
         $('#refresh').click(function() {
             console.log('refresh nodes');
             $('#nodes').block({
@@ -69,6 +67,7 @@
                 $('#nodes').unblock();
             });
         });
+        */
 
         $('.set-location').click(function() {
             var nodeId = $.trim($(this).closest('tr').find('#nodeId').text());
@@ -94,18 +93,18 @@
                 }
             });
         });
-    });
 
-    {% for node_info in node_infos %}
-    
-    $('#node{{ node_info.id }}').click(function(e) {
-        e.preventDefault();
-        console.log('click');
-        $('#myModal .modal-header').html('Node Info');
-        $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
-    });
-    //$('#node{{ node_info.id }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
+        {% for node_info in node_infos %}
 
-    {% end %}
+        var more = "{% include 'node-more.html' %}";
+
+        $('#node{{ node_info.id }}').click(function(e) {
+            e.preventDefault();
+            $('#myModal .modal-header').html('<h1>Node Info</h1>');
+            $('#myModal .modal-body').html(more);
+        });
+
+        {% end %}
+    });
 </script>
 

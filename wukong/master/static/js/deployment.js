@@ -4,10 +4,9 @@ $(function() {
     window.options = {repeat: true};
 
     $('a#nodes-btn').click(function(e) {
-        e.preventDefault();
+        console.log('refresh nodes');
         $(this).tab('show');
 
-        console.log('refresh nodes');
         $('#nodes').block({
             message: '<h1>Processing</h1>',
             css: { border: '3px solid #a00' }
@@ -19,43 +18,31 @@ $(function() {
     });
 
     $('a#mapping_results-btn').click(function(e) {
+        console.log('map result');
         $.post('/applications/' + current_application + '/deploy/map', function(data) {
             // Already an object
-            console.log(data)
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
                 var $table = $('#mapping_results table tbody');
                 $table.empty();
 
-                console.log(data.mapping_results);
-                if (data.mapping_results) {
-                  $('a#deploy-btn').disabler().disabler("enable");
-                }
-                else {
-                   // $('a#deploy-btn').attr('disabled', 'disabled');
-                   // $('a#deploy-btn').removeAttr('disabled');
-                   alert("No mapping result!")
-                   $('a#deploy-btn').disabler().disabler("disable");
-                   
-                }
-                var no_result = false
+                //console.log('data.mapping_results');
+                //console.log(data.mapping_results);
+
                 _.each(data.mapping_results, function(result) {
-                    var compiled;
-                    if (result.nodeId == null){
-                        $('a#deploy-btn').disabler().disabler("disable");
-                        no_result = true;
-                    }
-                    if (result.leader) {
-                        compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    if (result.instances.length > 0) {
+                        _.each(result.instances, function(instance) {
+                            if (instance.portNumber) {
+                                $table.append(_.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                            } else {
+                                $table.append(_.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                            }
+                        });
                     } else {
-                        compiled = _.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                        $table.append(_.template('<tr class=error><td><%= instanceId %></td><td><%= name %></td><td>Cannot find matching wuobjects</td><td></td></tr>')(result));
                     }
-                    $table.append(compiled(result));
                 });
-                if (no_result){
-                    alert("No mapping result!");
-                }
             }
         });
     });

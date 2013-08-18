@@ -45,7 +45,6 @@ def make_FBP():
 	test_1.make()	
 
 location_tree = LocationTree(LOCATION_ROOT)
-routingTable = {}
 
 # Helper functions
 def setup_signal_handler_greenlet():
@@ -259,31 +258,32 @@ class deploy_application(tornado.web.RequestHandler):
     global applications
     global location_tree
     global node_infos
-    try:
-      # Discovery results
-      node_infos = location_tree.getAllNodeInfos()
-
-      app_ind = getAppIndex(app_id)
-      if app_ind == None:
-        self.content_type = 'application/json'
-        self.write({'status':1, 'mesg': 'Cannot find the application'})
-      else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
-                app=applications[app_ind],
-                app_id=app_id, node_infos=node_infos,
-                logs=applications[app_ind].logs(),
-                changesets=applications[app_ind].changesets, 
-                set_location=False, 
-                default_location=LOCATION_ROOT)
-        self.content_type = 'application/json'
-        self.write({'status':0, 'page': deployment})
-      
-    except Exception as e:
-      exc_type, exc_value, exc_traceback = sys.exc_info()
-      print traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                      limit=2, file=sys.stdout)
+    #try:
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
       self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      # Discovery results
+      #node_infos = location_tree.getAllNodeInfos() # location tree is returning nil
+      comm = getComm()
+      node_infos = comm.getActiveNodeInfos()
+      deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
+              app=applications[app_ind],
+              app_id=app_id, node_infos=node_infos,
+              logs=applications[app_ind].logs(),
+              changesets=applications[app_ind].changesets, 
+              set_location=False, 
+              default_location=LOCATION_ROOT)
+      self.content_type = 'application/json'
+      self.write({'status':0, 'page': deployment})
+      
+    #except Exception as e:
+      #exc_type, exc_value, exc_traceback = sys.exc_info()
+      #print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      #limit=2, file=sys.stdout)
+      #self.content_type = 'application/json'
+      #self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
   def post(self, app_id):
     global location_tree
@@ -307,7 +307,6 @@ class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
     global location_tree
-    global routingTable
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
@@ -318,21 +317,29 @@ class map_application(tornado.web.RequestHandler):
       # TODO: need platforms from fbp
 
       # Map with location tree info (discovery), this will produce mapping_results
-      applications[app_ind].map(location_tree, routingTable)
-
-    #  print applications[app_ind].mapping_results
+      applications[app_ind].map(location_tree, getComm().getRoutingInformation())
 
       ret = []
       for component in applications[app_ind].changesets.components:
-        for ind, wuobj in enumerate(component.instances):
-          if ind == 0:
-            ret.append({'leader': True, 'instanceId': component.index,
-                    'name': wuobj.wuclass().wuclassdef().name, 'nodeId': wuobj.wunode().id,
-                    'portNumber': wuobj.port_number})
-          else:
-            ret.append({'leader': False, 'instanceId': component.index, 'name':
-                    wuobj.wuclass().wuclassdef().name, 'nodeId': wuobj.wunode().id, 'portNumber':
-                    wuobj.port_number})
+        obj_hash = {
+          'instanceId': component.index,
+          'location': component.location,
+          'group_size': component.group_size,
+          'name': component.type,
+          'instances': []
+        }
+
+        for wuobj in component.instances:
+          wuobj_hash = {
+            'instanceId': component.index,
+            'name': component.type,
+            'nodeId': wuobj.wunode().id,
+            'portNumber': wuobj.port_number
+          }
+
+          obj_hash['instances'].append(wuobj_hash)
+        
+        ret.append(obj_hash)
 
       self.content_type = 'application/json'
       self.write({'status':0, 'mapping_results': ret, 'version': applications[app_ind].version})
@@ -487,19 +494,17 @@ class testrtt(tornado.web.RequestHandler):
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
     global location_tree
-    global routingTable
     global node_infos
 
     comm = getComm()
-    node_infos = comm.getActiveNodeInfos(force=True)
-    print node_infos
+    logging.info("getting node infos")
+    node_infos = comm.getActiveNodeInfos()
     logging.info("building tree from discovery")
     location_tree.buildTree(node_infos)
     #furniture data loaded from fake data for purpose of 
     location_tree.printTree()
     logging.info("getting routing information")
-    routingTable = getComm().getRoutingInformation()
-    logging.info(routingTable)
+    getComm().getRoutingInformation()
     # default is false
     set_location = self.get_argument('set_location', False)
 
@@ -527,7 +532,6 @@ class nodes(tornado.web.RequestHandler):
     if location:
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
-        routingTable = comm.getRoutingInformation()
         # update our knowledge too
         for info in comm.getActiveNodeInfos():
           if info.id == int(nodeId):

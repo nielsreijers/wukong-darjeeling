@@ -131,9 +131,21 @@ class WuApplication:
             return #TODO: need to handle this
 
           type = componentTag.getAttribute('type')
-          location = componentTag.getElementsByTagName('location')[0].getAttribute('requirement')
-          group_size = int(componentTag.getElementsByTagName('group_size')[0].getAttribute('requirement'))
-          reaction_time = float(componentTag.getElementsByTagName('reaction_time')[0].getAttribute('requirement'))
+
+          if componentTag.getElementsByTagName('location'):
+            location = componentTag.getElementsByTagName('location')[0].getAttribute('requirement')
+          else:
+            location = LOCATION_ROOT
+
+          if componentTag.getElementsByTagName('group_size'):
+            group_size = int(componentTag.getElementsByTagName('group_size')[0].getAttribute('requirement'))
+          else:
+            group_size = 1
+
+          if componentTag.getElementsByTagName('reaction_time'):
+            reaction_time = float(componentTag.getElementsByTagName('reaction_time')[0].getAttribute('requirement'))
+          else:
+            reaction_time = 2.0
 
           action_attributes = {}
           # set default output property values for components in application

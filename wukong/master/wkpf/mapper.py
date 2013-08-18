@@ -240,7 +240,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         port_number = sensorNode.reserveNextPort()
                         for wuclass in node.wuclasses():
                             if wuclass.wuclassdef().id == wuclassdef.id:
-                                wuobject = WuObject(port_number, wuclass)
+                                wuobject = WuObject.create(port_number, wuclass)
                         wuobject.save()
                         component.instances.append(wuobject)
             else:
