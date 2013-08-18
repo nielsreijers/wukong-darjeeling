@@ -802,21 +802,12 @@ wukong = tornado.web.Application([
   (r"/upload",Upload)
 ], IP, **settings)
 
+logging.info("Starting up...")
+setup_signal_handler_greenlet()
+Parser.parseLibrary(COMPONENTXML_PATH)
+update_applications()
+import_wuXML()
+make_FBP()
+wukong.listen(MASTER_PORT)
 if __name__ == "__main__":
-  logging.info("WuKong starting up...")
-  setup_signal_handler_greenlet()
-  if os.path.exists('standardlibrary.db'):
-    os.remove('standardlibrary.db') 
-  Parser.parseLibrary(COMPONENTXML_PATH)
-  update_applications()
-  import_wuXML()
-  make_FBP()
-  wukong.listen(MASTER_PORT)
   ioloop.start()
-else: # so it could be called from test or other external libraries
-  logging.info("WuKong starting up in tests...")
-  setup_signal_handler_greenlet()
-  update_applications()
-  import_wuXML()
-  make_FBP()
-  wukong.listen(MASTER_PORT)
