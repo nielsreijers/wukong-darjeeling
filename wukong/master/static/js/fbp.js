@@ -318,7 +318,6 @@ function FBP_renderPage(page)
 		line.source = hash[page.lines[i].source];
 		line.signal = page.lines[i].signal;
 		line.dest = hash[page.lines[i].dest];
-		line.action = page.lines[i].action;
         g_lines.push(Line.restore(line));
     }
     FBP_refreshLines();
@@ -341,17 +340,6 @@ function FBP_parseXMLPage(comps)
         meta.id = c.attr("instanceId");
         meta.type = c.attr("type");
         
-        meta.actProper = {};
-        var properties = c.find("actionProperty");
-        if(properties.length > 0) {
-            var attrs = properties[0].attributes;
-            if(attrs) {
-                for(j=0;j<attrs.length;j++) {
-                    var attr = attrs[j];
-                    meta.actProper[attr.name] = attr.value;
-                }
-            }
-        }
 
         meta.sigProper = {};
         var properties = c.find("signalProperty");
@@ -606,14 +594,6 @@ function FBP_toXML(gnodes,glines)
             xml = xml + '        <reaction_time requirement="'+source.reaction_time+'" />\n';
         }
 //sato add start            
-        if(source.actions){
-			xml = xml + '        <actionProperty ';
-			var l;	var act;
-			$.each(source.actions, function(name, val) {
-				xml = xml + name + '="'+val+'" ';
-			});
-			xml = xml + ' />\n';
-		}
 		if(source.signals) {
 			xml = xml + '        <signalProperty ';
 			var l;	var sig;
@@ -640,14 +620,6 @@ function FBP_toXML(gnodes,glines)
 	        }
            
 //sato add start            
-            if(gnodes[k].actions){
-				xml = xml + '        <actionProperty ';
-				var l;	var act;
-				$.each(gnodes[k].actions, function(name, val) {
-					xml = xml + name + '="'+val+'" ';
-				});
-				xml = xml + ' />\n';
-			}
 			if(gnodes[k].signals) {
 				xml = xml + '        <signalProperty ';
 				var l;	var sig;
