@@ -133,6 +133,9 @@ Block.prototype.addSignal=function(con) {
 Block.prototype.getSignals=function() {
 	return this.signals;
 }
+Block.prototype.getActions=function() {
+	return this.actions;
+}
 Block.prototype.addAction=function(con) {
 	var i;
 
