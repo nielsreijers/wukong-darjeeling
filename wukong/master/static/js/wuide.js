@@ -513,7 +513,7 @@ WuClass.prototype.render=function(id) {
 	});
 	$('#class_editor_edit').click(function() {
 		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
-		$.get('/wuclasssource?src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
+		$.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
 			var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
 			TextEditor.load(code);
 		});
@@ -537,7 +537,7 @@ TextEditor.load=function(self) {
 		$('#texteditor').hide();
 		$('#editor').remove();
 		$('#class_editor').show();
-		var arg={name:TextEditor.source.name, type:TextEditor.source.lang,content: TextEditor.editor.getValue()};
+		var arg={name:TextEditor.source.name, appid:appid,type:TextEditor.source.lang,content: TextEditor.editor.getValue()};
 		$.post('/wuclasssource', arg,function () {
 		});
 	});

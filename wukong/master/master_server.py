@@ -616,13 +616,30 @@ class WuClassSource(tornado.web.RequestHandler):
   	self.content_type = 'text/plain'
 	try:
 		type = self.get_argument('type')
+		try:
+		    appid = self.get_argument('appid')
+		except:
+			appid = None
+
 		if type == 'C':
 			name = self.get_argument('src')+'.c'
 		else:
 			name = self.get_argument('src')+'.java'
-		f = open(self.findPath(name))
-		cont = f.read()
-		f.close()
+		try:
+		    if appid != None:
+		        app = wkpf.globals.applications[getAppIndex(appid)]
+		        f = open(app.dir+name)
+		    else:
+		        f = open(self.findPath(name))
+		    cont = f.read()
+		    f.close()
+		except:
+		    # We may use jinja2 here
+			f = open('templates/wuclass.tmpl')
+			cont = f.read()
+			f.close()
+			cont = cont.replace('{{class}}',name)
+
 	except:
 		self.write(traceback.format_exc())
 		return
@@ -632,12 +649,20 @@ class WuClassSource(tornado.web.RequestHandler):
 		print 'xxx'
 		name = self.get_argument('name')
 		type = self.get_argument('type')
+		try:
+		    appid = self.get_argument('appid')
+		except:
+			appid = None
 		if type == 'C':
 			name = name + '.c'
 		else:
 			name = name + '.java'
 		print 'name=',name
-		f = open(self.findPath(name),'w')
+		if appid != None:
+		    app = wkpf.globals.applications[getAppIndex(appid)]
+		    f = open(app.dir+name,'w')
+		else:
+		    f = open(self.findPath(name),'w')
 		f.write(self.get_argument('content'))
 		f.close()
 		self.write('OK')
