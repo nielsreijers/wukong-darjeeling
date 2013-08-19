@@ -628,7 +628,7 @@ class WuClassSource(tornado.web.RequestHandler):
 		try:
 		    if appid != None:
 		        app = wkpf.globals.applications[getAppIndex(appid)]
-		        f = open(app.dir+name)
+		        f = open(app.dir+'/'+name)
 		    else:
 		        f = open(self.findPath(name))
 		    cont = f.read()
@@ -660,7 +660,7 @@ class WuClassSource(tornado.web.RequestHandler):
 		print 'name=',name
 		if appid != None:
 		    app = wkpf.globals.applications[getAppIndex(appid)]
-		    f = open(app.dir+name,'w')
+		    f = open(app.dir+'/'+name,'w')
 		else:
 		    f = open(self.findPath(name),'w')
 		f.write(self.get_argument('content'))
