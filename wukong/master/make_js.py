@@ -67,8 +67,7 @@ def check(name):
 	return isFile
         
 class make_main:
-	def make(self):
-		filename = COMPONENTXML_PATH
+	def make(self,filename=COMPONENTXML_PATH):
 		f = open(filename,"r")
 		fileName = ""
 		existFile = False

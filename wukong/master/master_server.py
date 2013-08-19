@@ -558,6 +558,7 @@ class WuLibraryUser(tornado.web.RequestHandler):
       f = open(app.dir+'/WKDeployCustomComponents.xml','w')
       xml = f.write(xml)
       f.close()
+      make_main().make(app.dir+'/WKDeployCustomComponents.xml')
     except:
       self.write('<error>1</error>')
     self.write('')
