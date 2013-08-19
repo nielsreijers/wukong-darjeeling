@@ -1,4 +1,5 @@
 #SatoKatsunori made Oct.16 2012 
+# vim: ts=4 sw=4 expandtab
 
 import os
 import logging
@@ -67,7 +68,9 @@ def check(name):
 	return isFile
         
 class make_main:
-	def make(self,filename=COMPONENTXML_PATH):
+    def make(self,filename=COMPONENTXML_PATH):
+        self.make1(False,filename)
+    def make1(self,force,filename):
 		f = open(filename,"r")
 		fileName = ""
 		existFile = False
@@ -78,14 +81,14 @@ class make_main:
 					fileName = getName(list_,"name")
 					existFile = check(fileName)
 					lst.append(fileName.lower())
-					if not existFile:
+					if force or not existFile:
 						addHead(fileName)
 					else:
 						break
-			  	elif "property" in aList and not existFile:
+			  	elif "property" in aList and ((not existFile) or force):
 				  	getPropertyName(list_,fileName)
 					break
-				elif "</WuClass>" in aList and not existFile:
+				elif "</WuClass>" in aList and ((not existFile) or force):
 				  	addEnd(fileName)
 					name = ""
 					break
