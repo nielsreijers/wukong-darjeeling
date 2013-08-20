@@ -48,6 +48,10 @@ def make_FBP():
 
 wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 
+def rebuildTree(nodes):
+  wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
+  wkpf.globals.location_tree.buildTree(nodes)
+
 # Helper functions
 def setup_signal_handler_greenlet():
   logging.info('setting up signal handler')
@@ -251,16 +255,13 @@ class reset_application(tornado.web.RequestHandler):
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
     global node_infos
-    #try:
     app_ind = getAppIndex(app_id)
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      # Discovery results
-      #node_infos = wkpf.globals.location_tree.getAllNodeInfos() # location tree is returning nil
-      comm = getComm()
-      node_infos = comm.getActiveNodeInfos()
+      node_infos = getComm().getActiveNodeInfos()
+      rebuildTree(node_infos)
       deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
               app=wkpf.globals.applications[app_ind],
               app_id=app_id, node_infos=node_infos,
@@ -468,15 +469,9 @@ class testrtt(tornado.web.RequestHandler):
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
     global node_infos
-
-    comm = getComm()
-    logging.info("getting node infos")
-    node_infos = comm.getActiveNodeInfos()
-    logging.info("building tree from discovery")
-    wkpf.globals.location_tree.buildTree(node_infos)
+    node_infos = getComm().getActiveNodeInfos()
+    rebuildTree(node_infos)
     #furniture data loaded from fake data for purpose of 
-    wkpf.globals.location_tree.printTree()
-    logging.info("getting routing information")
     getComm().getRoutingInformation()
     # default is false
     set_location = self.get_argument('set_location', False)
