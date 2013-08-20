@@ -513,10 +513,17 @@ WuClass.prototype.render=function(id) {
 	});
 	$('#class_editor_edit').click(function() {
 		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
-		$.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
-			var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
-			TextEditor.load(code);
-		});
+        if (self.is_user) {
+            $.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
+                var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
+                TextEditor.load(code);
+            });
+        } else {
+            $.get('/wuclasssource?src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
+                var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
+                TextEditor.load(code);
+            });
+        }
 	});
 	$('#addprop').unbind().click(function() {
 		self.val.properties.push({id:self.val.properties.length,name:'myname',access:'readwrite',datatype:'boolean',default:''});

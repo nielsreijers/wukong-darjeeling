@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# vim: ts=2 sw=2 expandtab
+
 # author: Penn Su
 from gevent import monkey; monkey.patch_all()
 import gevent
@@ -519,23 +521,23 @@ class nodes(tornado.web.RequestHandler):
 
 class WuLibrary(tornado.web.RequestHandler):	
   def get(self):
-  	self.content_type = 'application/xml'
-	try:
-		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
-		xml = f.read()
-		f.close()
-	except:
-		self.write('<error>1</error>')
-	self.write(xml)
+    self.content_type = 'application/xml'
+    try:
+      f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
+      xml = f.read()
+      f.close()
+    except:
+      self.write('<error>1</error>')
+    self.write(xml)
   def post(self):
-	xml = self.get_argument('xml')
-	try:
-		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
-		xml = f.write(xml)
-		f.close()
-	except:
-		self.write('<error>1</error>')
-	self.write('')
+    xml = self.get_argument('xml')
+    try:
+      f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
+      xml = f.write(xml)
+      f.close()
+    except:
+      self.write('<error>1</error>')
+    self.write('')
 class WuLibraryUser(tornado.web.RequestHandler):	
   def get(self):
     self.content_type = 'application/xml'
@@ -565,124 +567,127 @@ class WuLibraryUser(tornado.web.RequestHandler):
 
 class SerialPort(tornado.web.RequestHandler):
   def get(self):
-	self.content_type = 'application/json'
-	system_name = platform.system()
-	if system_name == "Windows":
-		available = []
-		for i in range(256):
-			try:
-				s = serial.Serial(i)
-				available.append(i)
-				s.close()
-			except:
-				pass
-		self.write(json.dumps(available))
-		return
-	if system_name == "Darwin":
-		list = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
-	else:
-		print 'xxxxx'
-		list = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
-	available=[]
-	for l in list:
-		try:
-			s = serial.Serial(l)
-			available.append(l)
-			s.close()
-		except:
-			pass
-	self.write(json.dumps(available))
+    self.content_type = 'application/json'
+    system_name = platform.system()
+    if system_name == "Windows":
+      available = []
+      for i in range(256):
+        try:
+          s = serial.Serial(i)
+          available.append(i)
+          s.close()
+        except:
+          pass
+      self.write(json.dumps(available))
+      return
+    if system_name == "Darwin":
+      list = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
+    else:
+      print 'xxxxx'
+      list = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
+    available=[]
+    for l in list:
+      try:
+        s = serial.Serial(l)
+        available.append(l)
+        s.close()
+      except:
+        pass
+    self.write(json.dumps(available))
 
 class EnabledWuClass(tornado.web.RequestHandler):	
   def get(self):
-  	self.content_type = 'application/xml'
-	try:
-		f = open('../../src/config/wunode/enabled_wuclasses.xml')
-		xml = f.read()
-		f.close()
-	except:
-		self.write('<error>1</error>')
-	self.write(xml)
+    self.content_type = 'application/xml'
+    try:
+      f = open('../../src/config/wunode/enabled_wuclasses.xml')
+      xml = f.read()
+      f.close()
+    except:
+      self.write('<error>1</error>')
+    self.write(xml)
   def post(self):
-	try:
-		f = open('../../src/config/wunode/enabled_wuclasses.xml','w')
-		xml = self.get_argument('xml')
-		f.write(xml)
-		f.close()
-	except:
-		pass
+    try:
+      f = open('../../src/config/wunode/enabled_wuclasses.xml','w')
+      xml = self.get_argument('xml')
+      f.write(xml)
+      f.close()
+    except:
+      pass
 
 class WuClassSource(tornado.web.RequestHandler):	
   def get(self):
-  	self.content_type = 'text/plain'
-	try:
-		type = self.get_argument('type')
-		try:
-		    appid = self.get_argument('appid')
-		except:
-			appid = None
+    self.content_type = 'text/plain'
+    try:
+      type = self.get_argument('type')
+      try:
+        appid = self.get_argument('appid')
+      except:
+        appid = None
 
-		if type == 'C':
-			name = self.get_argument('src')+'.c'
-		else:
-			name = self.get_argument('src')+'.java'
-		try:
-		    if appid != None:
-		        app = wkpf.globals.applications[getAppIndex(appid)]
-		        f = open(app.dir+'/'+name)
-		    else:
-		        f = open(self.findPath(name))
-		    cont = f.read()
-		    f.close()
-		except:
-		    # We may use jinja2 here
-			f = open('templates/wuclass.tmpl')
-			cont = f.read()
-			f.close()
-			cont = cont.replace('{{class}}',name)
+      if type == 'C':
+        name = self.get_argument('src')+'.c'
+      else:
+        name = self.get_argument('src')+'.java'
+      try:
+          if appid != None:
+              print appid
+              app = wkpf.globals.applications[getAppIndex(appid)]
+              f = open(app.dir+'/'+name)
+          else:
+              f = open(self.findPath(name))
+          cont = f.read()
+          f.close()
+      except:
+        traceback.print_exc()
+        # We may use jinja2 here
+        f = open('templates/wuclass.tmpl')
+        cont = f.read()
+        f.close()
+        cont = cont.replace('{{class}}',name)
 
-	except:
-		self.write(traceback.format_exc())
-		return
-	self.write(cont)
+    except:
+      self.write(traceback.format_exc())
+      return
+    self.write(cont)
   def post(self):
-	try:
-		print 'xxx'
-		name = self.get_argument('name')
-		type = self.get_argument('type')
-		try:
-		    appid = self.get_argument('appid')
-		except:
-			appid = None
-		if type == 'C':
-			name = name + '.c'
-		else:
-			name = name + '.java'
-		print 'name=',name
-		if appid != None:
-		    app = wkpf.globals.applications[getAppIndex(appid)]
-		    f = open(app.dir+'/'+name,'w')
-		else:
-		    f = open(self.findPath(name),'w')
-		f.write(self.get_argument('content'))
-		f.close()
-		self.write('OK')
-	except:
-		self.write('Error')
-		print traceback.format_exc()
-	
+    try:
+      print 'xxx'
+      name = self.get_argument('name')
+      type = self.get_argument('type')
+      try:
+        appid = self.get_argument('appid')
+      except:
+        appid = None
+
+      if type == 'C':
+        name = name + '.c'
+      else:
+        name = name + '.java'
+      print 'name=',name
+      if appid != None:
+          app = wkpf.globals.applications[getAppIndex(appid)]
+          f = open(app.dir+'/'+name,'w')
+      else:
+          f = open(self.findPath(name),'w')
+      f.write(self.get_argument('content'))
+      f.close()
+      self.write('OK')
+    except:
+      self.write('Error')
+      print traceback.format_exc()
+  
   def findPath(self,p):
-	name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
-	if os.path.isfile(name):
-		return name
-	name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
-	if os.path.isfile(name):
-		return name
-	name = p
-	print 'yyyyy'
-	return name
-	
-	
+    name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
+    if os.path.isfile(name):
+      return name
+    name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
+    if os.path.isfile(name):
+      return name
+    name = p
+    print 'yyyyy'
+    return name
+  
+  
 
 class tree(tornado.web.RequestHandler):	
   def post(self):
