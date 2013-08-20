@@ -33,8 +33,10 @@ def bootstrap_database():
     c.execute('''CREATE TABLE IF NOT EXISTS wuobjects
         (identity INTEGER PRIMARY KEY AUTOINCREMENT, 
          port_number INTEGER,
-         wuclass_identity INTEGER,
-         FOREIGN KEY(wuclass_identity) REFERENCES wuclasses(identity))''')
+         wuclassdef_identity INTEGER,
+         node_identity INTEGER,
+         FOREIGN KEY(wuclassdef_identity) REFERENCES wuclassdefs(identity),
+         FOREIGN KEY(node_identity) REFERENCES nodes(identity))''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuproperties
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          datatype TEXT,
@@ -379,12 +381,11 @@ class WuNode(Definition):
     '''
 
     wuobjects_cache = []
-    for wuclass_cache in self.wuclasses():
-      r = (wuclass_cache.identity,)
-      where = "WHERE wuclass_identity=?"
-      results = self.__class__.c.execute("SELECT * from wuobjects %s" % (where), r).fetchall()
-      for result in results:
-        wuobjects_cache.append(WuObject(*list(result)))
+    r = (self.identity,)
+    where = "WHERE node_identity=?"
+    results = self.__class__.c.execute("SELECT * from wuobjects %s" % (where), r).fetchall()
+    for result in results:
+      wuobjects_cache.append(WuObject(*list(result)))
     return wuobjects_cache
 
   def isResponding(self):
@@ -435,11 +436,11 @@ class WuObject(Definition):
   tablename = 'wuobjects'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'port_number', 'wuclass_identity']
+  columns = ['identity', 'port_number', 'wuclassdef_identity', 'node_identity']
 
   @classmethod
-  def create(cls, port_number, wuclass):
-    wuobject = WuObject(None, port_number, wuclass.identity)
+  def create(cls, wuclassdef, node, port_number):
+    wuobject = WuObject(None, wuclassdef.identity, node.identity, port_number)
     wuobject.save()
 
     # Might have to make an exception here, since Property is ususally
@@ -456,33 +457,32 @@ class WuObject(Definition):
 
     return wuobject
 
-  def __init__(self, identity, port_number, wuclass_identity):
+  def __init__(self, identity, wuclassdef_identity, node_identity, port_number):
     self.identity = identity
     self.port_number = port_number
-    self.wuclass_identity = wuclass_identity
-
-  def __repr__(self):
-    return '''
-    %s(
-      %r
-    )''' % (self.__class__.__name__, self.__dict__.items() + [('node_id', self.wunode().id)])
+    self.wuclassdef_identity = wuclassdef_identity
+    self.node_identity = node_identity
 
   def wunode(self):
-    wuclass = self.wuclass()
-    if not wuclass:
-      raise Exception('WuObject has no WuClass')
-    r = (wuclass.node_identity,)
+    r = (self.node_identity,)
     where = "WHERE identity=?"
     result = self.__class__.c.execute("SELECT * from wunodes %s" % (where),
         r).fetchone()
     return WuNode(*list(result))
 
   def wuclass(self):
-    r = (self.wuclass_identity,)
-    where = "WHERE identity=?"
+    r = (self.node_identity, self.wuclassdef_identity,)
+    where = "WHERE node_identity=? wuclassdef_identity=?"
     result = self.__class__.c.execute("SELECT * from wuclasses %s" % (where),
         r).fetchone()
     return WuClass(*list(result))
+
+  def wuclassdef(self):
+    r = (self.wuclassdef_identity,)
+    where = "WHERE identity=?"
+    result = self.__class__.c.execute("SELECT * from wuclassdefs %s" % (where),
+        r).fetchone()
+    return WuClassDef(*list(result))
 
   def wuproperties(self):
     properties = []

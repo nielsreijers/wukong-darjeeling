@@ -271,7 +271,7 @@ class Communication:
 
           # Create one
           if not wuobject:
-            wuobject = WuObject.create(port_number, wuclass)
+            wuobject = WuObject.create(wuclassdef, node, port_number)
 
           wuobjects.append(wuobject)
           reply = reply[3:]
@@ -321,7 +321,7 @@ class Communication:
       master_busy()
 
       wuobject = wuproperty.wuobject()
-      wuclassdef = wuobject.wuclass().wuclassdef()
+      wuclassdef = wuobject.wuclassdef()
       wunode = wuobject.wunode()
       value = wuproperty.value
       datatype = wuproperty.datatype

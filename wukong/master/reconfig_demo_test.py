@@ -60,7 +60,7 @@ def fakeDeploy(commands):
 
 def setFakeProperty(wuproperty):
   wuobject = wuproperty.wuobject()
-  wuclassdef = wuobject.wuclass().wuclassdef()
+  wuclassdef = wuobject.wuclassdef()
   wunode = wuobject.wunode()
   value = wuproperty.value
   datatype = wuproperty.datatype

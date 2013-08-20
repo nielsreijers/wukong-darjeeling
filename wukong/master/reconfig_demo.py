@@ -167,7 +167,7 @@ def to_node(node_dom):
       #print 'Creating wuobject', wuclassdef.id
       # TODO: need to be certain about port number or reconfig will fail
       port_number = 4
-      wuobject = WuObject.create(port_number, wuclass)
+      wuobject = WuObject.create(wuclassdef, node, port_number)
 
     # Should create wuproperty here but need to discuss later if we should have
     # a procedure to retrieve property
@@ -213,7 +213,7 @@ def to_node_zwave(node_id):
 
   if not wuobject:
     port_number = 4
-    wuobject = WuObject.create(port_number, wuclass)
+    wuobject = WuObject.create(wuclassdef, node, port_number)
 
   return node
 

@@ -230,7 +230,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                     if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
                         # use existing wuobject
                         for wuobject in node.wuobjects():
-                            if wuobject.wuclass().wuclassdef().id == wuclassdef.id:
+                            if wuobject.wuclassdef().id == wuclassdef.id:
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -240,7 +240,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         port_number = sensorNode.reserveNextPort()
                         for wuclass in node.wuclasses():
                             if wuclass.wuclassdef().id == wuclassdef.id:
-                                wuobject = WuObject.create(port_number, wuclass)
+                                wuobject = WuObject.create(wuclass.wuclassdef(), node, port_number)
                         wuobject.save()
                         component.instances.append(wuobject)
             else:
@@ -250,7 +250,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                     if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
                         # use existing wuobject
                         for wuobject in node.wuobjects():
-                            if wuobject.wuclass().wuclassdef().id == wuclassdef.id:
+                            if wuobject.wuclassdef().id == wuclassdef.id:
                                 wuobject.save()
                                 component.instances.append(wuobject)
                                 break
@@ -261,7 +261,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         port_number = sensorNode.reserveNextPort()
                         for wuclass in node.wuclasses():
                             if wuclass.wuclassdef().id == wuclassdef.id:
-                                wuobject = WuObject.create(port_number, wuclass)
+                                wuobject = WuObject.create(wuclass.wuclassdef(), node, port_number)
                         wuobject.save()
                         component.instances.append(wuobject)
                 else:
@@ -269,7 +269,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                     if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
                         # use existing virtual wuobject
                         for wuobject in node.wuobjects():
-                            if wuobject.wuclass().wuclassdef().id == wuclassdef.id:
+                            if wuobject.wuclassdef().id == wuclassdef.id:
                                 wuobject.save()
                                 component.instances.append(wuobject)
                                 break
@@ -281,15 +281,10 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         wuclass = WuClass.find(wuclassdef_identity=wuclassdef.identity)
                         if not wuclass:
                           wuclass = WuClass.create(wuclassdef, node, True)
-                        wuobject = WuObject.create(port_number, wuclass)
+                        wuobject = WuObject.create(wuclassdef, node, port_number)
                         wuobject.save()
                         component.instances.append(wuobject)
 
-        def prefer_hard(wuobject):
-            return not wuobject.wuclass().virtual
-
-        component.instances = sorted(component.instances, key=prefer_hard, reverse=True)
-        
         if len(component.instances) == 0:
           logger.error ('[ERROR] No avilable match could be found for component %s' % (component))
           return False
