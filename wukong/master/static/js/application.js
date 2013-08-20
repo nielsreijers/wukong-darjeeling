@@ -39,10 +39,10 @@ function init()
         $('#locationTree').parent().addClass('active');
         window.options.repeat = false;
         $.post('/loc_tree', function(data) {
-	    		make_tree(data);
-	    		$('#content').append(data.node);
-	    		load_landmark(data.xml);	    		
-		});                    
+                make_tree(data);
+                $('#content').append(data.node);
+                load_landmark(data.xml);                
+        });                    
     });
     
     application_fill();
@@ -381,7 +381,7 @@ function poll(url, version, options, callback)
         }
 
         _.each(data.logs, function(line) {
-            if (line != '') {
+            if (line !== '') {
                 $('#log').append('<pre>' + line + '</pre>');
             }
         });
@@ -405,7 +405,7 @@ function poll(url, version, options, callback)
         }
 
         _.each(data.logs, function(line) {
-            if (line != '') {
+            if (line !== '') {
                 $('#log').append('<pre>' + line + '</pre>');
             }
         });
@@ -414,64 +414,81 @@ function poll(url, version, options, callback)
 }
 
 
-function make_tree(rt)
-{
-	$('#content').empty();
-	$('#content').append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
-		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
+function display_tree(rt) {
+    $('#content').empty();
+    $('#content').append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
+        '<script type="text/javascript" src="/static/js/tree_expand.js"></script>'+
+        '<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>'
+        );
 
-	var r = JSON.parse(rt.loc);
-    var temp = 0
-    var html_tree = ''
-    html_tree = '<table width="100%">'
-    html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>'
-    html_tree += '<tr><td></td><td>'
-    html_tree += '<ul id="display" class="treeview">'
-    for( i in r){
-		l = i % 10
-		if(l == 0){
-			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
-		}else if(l == temp){
-			if(r[i].indexOf("#") == -1){
-				html_tree += '</li><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
-			}else{
-				html_tree += '</li><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0.-1)
-			}
-		}else if(l > temp){
-			if(r[i].indexOf("#") == -1){
-				html_tree += '<ul><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
-			}else{
-				html_tree += '<ul><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
-			}
-		}else if(l < temp){
-			m = temp - l
-			for(var j=0; j<m ;j++){
-				html_tree += '</li></ul>'
-			}
-			if(m > 1){
-				for(var j=0; j<m-1 ;j++){
-					html_tree += '</li>'
-				}
-			}
-			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
-		}
-
-		temp = l
-	}
-	
-	for(var j=0; j<temp+1; j++){
-		html_tree += '</li></ul>'
-	}
-	html_tree += '</td><td valign="top">'
-	html_tree += '<button id="saveTree">SAVE</button>'+
-				 '<button id="addNode">ADD</button>'+
-				 '<button id="delNode">DEL</button>'+
-				 '<button type="button" class="change-location">Set Location</button><br>'+
-				 'SensorID <input id="SensorId" type=text size="10"><br>'+
-				 'Location <input id="locName" type=text size="100"><br>'
-	html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>'
-//	html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
-	html_tree += '</td></tr></table>'
-	$('#content').append(html_tree);
+    var node_data = JSON.parse(rt.loc);
+    var tree_level = 0;
+    var html_tree = '';
+    html_tree = '<table width="100%">';
+    html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>';
+    html_tree += '<tr><td></td><td>';
+    html_tree += '<ul id="display" class="treeview">';
+    for(var i=0; i<node_data.length;i++){
+          if(node_data[i][1] == tree_level){
+              //do nothing
+          }else if(node_data[i][1] > tree_level){
+            html_tree +='<ul>';
+            tree_level = node_data[i][1];
+        }else if (node_data[i][1]<tree_level){
+          for(var j=0; j<tree_level-node_data[i][1] ;j++){
+                  html_tree += '</ul></li>';
+              }
+              tree_level = node_data[i][1];
+        }
+        //see locationTree.py, class locationTree.toJason() function for detailed data format
+          if(node_data[i][0] === 0){ //this is a tree node
+            if (node_data[i][1] === 0){  //root
+                  html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+            }else{
+                for (var j=i+1;j<node_data.length;++j) {
+                    if (node_data[j][1]==node_data[i][1]){
+                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+                        break;
+                    }
+                    if (node_data[j][1]<node_data[i][1]){
+                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+                        break;
+                    }
+                    if (j==node_data.length-1){
+                        html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+                    }
+                }
+            }
+          }else if (node_data[i][0] == 1){            //this is a sensor 
+                html_tree += '<li id=se'+node_data[i][2][0]+' data-toggle=modal  role=button class="btn" >'+node_data[i][2][0]+node_data[i][2][1]+'</li>';
+          }else if(node_data[i][0]==2){               //this is a landmark
+                html_tree += '<li id=lm'+node_data[i][2][1]+' data-toggle=modal  role=button class="btn" >'+node_data[i][2][0]+node_data[i][2][1]+'</li>';
+          }
+        }
+    html_tree += '</td><td valign="top">';
+    html_tree += '<button id="saveTree">SAVE Landmarks</button>' +
+                 '<button id="addNode">ADD Landmark</button>'+
+                 '<button id="delNode">DEL Landmark</button>'+
+                 '<button type="button" class="set_node">Save Node Configuration</button><br>'+
+                 'type <div id="nodeType"></div><br>'+
+                 'ID <input id="SensorId" type=text size="10"><br>'+
+                 'Location <input id="locName" type=text size="100"><br>'+
+                 'Local Coordinate <input id="localCoord" type=text size="100"><br>'+
+                 'Global Coordinate <input id="gloCoord" type=text size="100"><br>'+
+                 'Size <input id = "size" type=text size="100"><br>'+
+                 'Direction <input id = "direction" type=text size="100"><br>'+
+                 'Distance Modifier <button id="addModifier">Add Modifier</button> '+ 
+                 '<button id="delModifier">Delete Modifier</button><br>' +
+                 'start treenode ID<input id = "distmod_start_id" type=text size="20"><br>'+
+                 'end treenode ID<input id = "distmod_end_id" type=text size="20"><br>'+
+                 'distance<input id = "distmod_distance" type=text size="20"><br>'+
+                 'Existing Modifiers <div id="distmod_list"></div><br>';
+    html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>';
+//  html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
+    html_tree += '</td></tr></table>';
+    $('#content').append(html_tree);
+    $("#display").treeview({
+  collapsed: true,
+  unique: true});
 }
 

@@ -5,7 +5,7 @@
 #any kind of spaces, tabs or "\n" are not allowed in URL
 import sys, traceback, os
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "./pyparsing")))
+sys.path.append(os.path.join(os.path.dirname(__file__), "./pyparsing"))
 from configuration import *
 from models import *
 from locationTree import *
@@ -33,7 +33,7 @@ class LocationParser:
         self.locationTree = locationTree
 
     def evaluateAnd(self, locTreeNode, argument):
-        print "argument in evalAnd:"+str(argument)
+        #print "argument in evalAnd:"+str(argument)
         if len(argument)==1:
             return self.evaluate(locTreeNode, argument[0])
         return self.evaluate(locTreeNode, argument[0]).intersection(self.evaluate(locTreeNode, argument[1]))
@@ -48,7 +48,7 @@ class LocationParser:
         
     def evaluateFunction(self, locTreeNode, argument):
         arglst = argument[1:]
-        print "function arguments:", argument
+       # print "function arguments:", argument
         return self._funct_dict[argument[0]](locTreeNode, *arglst)
     
     def parsePath(self):
@@ -58,14 +58,14 @@ class LocationParser:
         return evaluatePath
         
     def evaluateSpec(self, locTreeNode, argument):
-        print "argument: "+str(argument)
+       # print "argument: "+str(argument)
         locTreeNode = argument[0]
         if len(argument)<2:     #if no functions after URL, shortcut for URL#getAll()
             return locTreeNode.getAllAliveNodeIds()
         return self.evaluate(locTreeNode, argument[1])
         
     def evaluate(self, locTreeNode, argument):
-        print 'name: '+argument.getName()+" "+str(argument)
+       # print 'name: '+argument.getName()+" "+str(argument)
         return self._funct_dict[argument.getName()](self, locTreeNode, argument)
         
     #different functions
@@ -79,7 +79,7 @@ class LocationParser:
     def getAll(locationTreeNode):
         return locationTreeNode.getAllAliveNodeIds()
         
-    def near(locationTreeNode, dist, x, y=None,z=None):
+    def range(locationTreeNode, dist, x, y=None,z=None):
         ret_val = set([])
         dist = float(dist)
         obj = None
@@ -167,7 +167,7 @@ class LocationParser:
             sum = (sum[0] + sensorNd.coord[0], 
                    sum[1] + sensorNd.coord[1],
                    sum[2] + sensorNd.coord[2])
-        return LocationParser.__dict__["closest"] (locationTreeNode, sum[0], sum[1], sum[2], count, idLst)
+        return LocationParser.__dict__["closest"] (locationTreeNode, sum[0]/len(idLst), sum[1]/len(idLst), sum[2]/len(idLst), count, idLst)
         
     def inside(locationTreeNode, landMarkName):
         landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
@@ -276,7 +276,7 @@ class LocationParser:
     _funct_dict = {
             u"specification":evaluateSpec,u"function":evaluateFunction,
             u"not":evaluateNegate, u"and":evaluateAnd, u"or": evaluateOr, 
-            u"near":near, u"isID":isID, u"getAll":getAll, u"hasClass":hasClass,
+            u"range":range, u"isID":isID, u"getAll":getAll, u"hasClass":hasClass,
             u"inside":inside, u"outside":outside, u"tangent":tangent, 
             u"above":above, u"below":below,u"front":front, u"back":back,
             u"closest": closest, u"farthest":farthest, u"findCenter":findCenter}
@@ -342,10 +342,10 @@ if __name__ == "__main__":
     loc1 = u"universal/Boli_Building/3F/N_Corridor/Room318@(8,1,3)"
     loc2 = u"universal/Boli_Building/2F/South_Corridor/Room318@(4,4,4)"
     loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318@(2,6,8)"
-    senNd0 = SensorNode(WuNode.create(0, loc0))
-    senNd1 = SensorNode(WuNode.create(1, loc1))
-    senNd2 = SensorNode(WuNode.create(2, loc2))
-    senNd3 = SensorNode(WuNode.create(3, loc3))
+    senNd0 = SensorNode(Node(0, loc0))
+    senNd1 = SensorNode(Node(1, loc1))
+    senNd2 = SensorNode(Node(2, loc2))
+    senNd3 = SensorNode(Node(3, loc3))
     locTree.addSensor(senNd0)
     locTree.addSensor(senNd1)
     locTree.addSensor(senNd2)
@@ -367,4 +367,3 @@ if __name__ == "__main__":
     loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318#getAll()"
 #res = LocationParser.loc_def.parseString(loc3)
 #print res
-   #
