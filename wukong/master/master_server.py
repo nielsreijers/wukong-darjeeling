@@ -37,12 +37,12 @@ node_infos = []
 from make_js import make_main
 from make_fbp import fbp_main
 def import_wuXML():
-	test = make_main()
-	test.make()
-	
+  test = make_main()
+  test.make()
+  
 def make_FBP():
-	test_1 = fbp_main()
-	test_1.make()	
+  test_1 = fbp_main()
+  test_1.make() 
 
 wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 
@@ -499,6 +499,17 @@ class nodes(tornado.web.RequestHandler):
   def put(self, nodeId):
     global node_infos
     location = self.get_argument('location')
+    if SIMULATION !=0:
+      for info in node_infos:
+        if info.nodeId == int(nodeId):
+          info.location = location
+          senNd = SensorNode(info)
+#          senNd = SensorNode(info, 0, 0, 0)
+          wkpf.globals.location_tree.addSensor(senNd)
+      wkpf.globals.location_tr.printTree()
+      self.content_type = 'application/json'
+      self.write({'status':0})
+      return
     if location:
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
@@ -517,26 +528,26 @@ class nodes(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
 
-class WuLibrary(tornado.web.RequestHandler):	
+class WuLibrary(tornado.web.RequestHandler):  
   def get(self):
-  	self.content_type = 'application/xml'
-	try:
-		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
-		xml = f.read()
-		f.close()
-	except:
-		self.write('<error>1</error>')
-	self.write(xml)
+    self.content_type = 'application/xml'
+  try:
+    f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
+    xml = f.read()
+    f.close()
+  except:
+    self.write('<error>1</error>')
+  self.write(xml)
   def post(self):
-	xml = self.get_argument('xml')
-	try:
-		f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
-		xml = f.write(xml)
-		f.close()
-	except:
-		self.write('<error>1</error>')
-	self.write('')
-class WuLibraryUser(tornado.web.RequestHandler):	
+  xml = self.get_argument('xml')
+  try:
+    f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
+    xml = f.write(xml)
+    f.close()
+  except:
+    self.write('<error>1</error>')
+  self.write('')
+class WuLibraryUser(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'application/xml'
     appid = self.get_argument('appid')
@@ -565,126 +576,126 @@ class WuLibraryUser(tornado.web.RequestHandler):
 
 class SerialPort(tornado.web.RequestHandler):
   def get(self):
-	self.content_type = 'application/json'
-	system_name = platform.system()
-	if system_name == "Windows":
-		available = []
-		for i in range(256):
-			try:
-				s = serial.Serial(i)
-				available.append(i)
-				s.close()
-			except:
-				pass
-		self.write(json.dumps(available))
-		return
-	if system_name == "Darwin":
-		list = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
-	else:
-		print 'xxxxx'
-		list = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
-	available=[]
-	for l in list:
-		try:
-			s = serial.Serial(l)
-			available.append(l)
-			s.close()
-		except:
-			pass
-	self.write(json.dumps(available))
+  self.content_type = 'application/json'
+  system_name = platform.system()
+  if system_name == "Windows":
+    available = []
+    for i in range(256):
+      try:
+        s = serial.Serial(i)
+        available.append(i)
+        s.close()
+      except:
+        pass
+    self.write(json.dumps(available))
+    return
+  if system_name == "Darwin":
+    list = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
+  else:
+    print 'xxxxx'
+    list = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
+  available=[]
+  for l in list:
+    try:
+      s = serial.Serial(l)
+      available.append(l)
+      s.close()
+    except:
+      pass
+  self.write(json.dumps(available))
 
-class EnabledWuClass(tornado.web.RequestHandler):	
+class EnabledWuClass(tornado.web.RequestHandler): 
   def get(self):
-  	self.content_type = 'application/xml'
-	try:
-		f = open('../../src/config/wunode/enabled_wuclasses.xml')
-		xml = f.read()
-		f.close()
-	except:
-		self.write('<error>1</error>')
-	self.write(xml)
+    self.content_type = 'application/xml'
+  try:
+    f = open('../../src/config/wunode/enabled_wuclasses.xml')
+    xml = f.read()
+    f.close()
+  except:
+    self.write('<error>1</error>')
+  self.write(xml)
   def post(self):
-	try:
-		f = open('../../src/config/wunode/enabled_wuclasses.xml','w')
-		xml = self.get_argument('xml')
-		f.write(xml)
-		f.close()
-	except:
-		pass
+  try:
+    f = open('../../src/config/wunode/enabled_wuclasses.xml','w')
+    xml = self.get_argument('xml')
+    f.write(xml)
+    f.close()
+  except:
+    pass
 
-class WuClassSource(tornado.web.RequestHandler):	
+class WuClassSource(tornado.web.RequestHandler):  
   def get(self):
-  	self.content_type = 'text/plain'
-	try:
-		type = self.get_argument('type')
-		try:
-		    appid = self.get_argument('appid')
-		except:
-			appid = None
+    self.content_type = 'text/plain'
+  try:
+    type = self.get_argument('type')
+    try:
+        appid = self.get_argument('appid')
+    except:
+      appid = None
 
-		if type == 'C':
-			name = self.get_argument('src')+'.c'
-		else:
-			name = self.get_argument('src')+'.java'
-		try:
-		    if appid != None:
-		        app = wkpf.globals.applications[getAppIndex(appid)]
-		        f = open(app.dir+'/'+name)
-		    else:
-		        f = open(self.findPath(name))
-		    cont = f.read()
-		    f.close()
-		except:
-		    # We may use jinja2 here
-			f = open('templates/wuclass.tmpl')
-			cont = f.read()
-			f.close()
-			cont = cont.replace('{{class}}',name)
+    if type == 'C':
+      name = self.get_argument('src')+'.c'
+    else:
+      name = self.get_argument('src')+'.java'
+    try:
+        if appid != None:
+            app = wkpf.globals.applications[getAppIndex(appid)]
+            f = open(app.dir+'/'+name)
+        else:
+            f = open(self.findPath(name))
+        cont = f.read()
+        f.close()
+    except:
+        # We may use jinja2 here
+      f = open('templates/wuclass.tmpl')
+      cont = f.read()
+      f.close()
+      cont = cont.replace('{{class}}',name)
 
-	except:
-		self.write(traceback.format_exc())
-		return
-	self.write(cont)
+  except:
+    self.write(traceback.format_exc())
+    return
+  self.write(cont)
   def post(self):
-	try:
-		print 'xxx'
-		name = self.get_argument('name')
-		type = self.get_argument('type')
-		try:
-		    appid = self.get_argument('appid')
-		except:
-			appid = None
-		if type == 'C':
-			name = name + '.c'
-		else:
-			name = name + '.java'
-		print 'name=',name
-		if appid != None:
-		    app = wkpf.globals.applications[getAppIndex(appid)]
-		    f = open(app.dir+'/'+name,'w')
-		else:
-		    f = open(self.findPath(name),'w')
-		f.write(self.get_argument('content'))
-		f.close()
-		self.write('OK')
-	except:
-		self.write('Error')
-		print traceback.format_exc()
-	
+  try:
+    print 'xxx'
+    name = self.get_argument('name')
+    type = self.get_argument('type')
+    try:
+        appid = self.get_argument('appid')
+    except:
+      appid = None
+    if type == 'C':
+      name = name + '.c'
+    else:
+      name = name + '.java'
+    print 'name=',name
+    if appid != None:
+        app = wkpf.globals.applications[getAppIndex(appid)]
+        f = open(app.dir+'/'+name,'w')
+    else:
+        f = open(self.findPath(name),'w')
+    f.write(self.get_argument('content'))
+    f.close()
+    self.write('OK')
+  except:
+    self.write('Error')
+    print traceback.format_exc()
+  
   def findPath(self,p):
-	name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
-	if os.path.isfile(name):
-		return name
-	name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
-	if os.path.isfile(name):
-		return name
-	name = p
-	print 'yyyyy'
-	return name
-	
-	
+  name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
+  if os.path.isfile(name):
+    return name
+  name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
+  if os.path.isfile(name):
+    return name
+  name = p
+  print 'yyyyy'
+  return name
+  
+  
 
-class tree(tornado.web.RequestHandler):	
+class tree(tornado.web.RequestHandler): 
   def post(self):
     global node_infos
     
@@ -694,7 +705,7 @@ class tree(tornado.web.RequestHandler):
     if(False):
       f = open("../ComponentDefinitions/landmark.xml","r")
       for row in f:
-        load_xml += row	
+        load_xml += row 
     else:
       pass
     print node_infos      
@@ -705,13 +716,71 @@ class tree(tornado.web.RequestHandler):
 
     self.content_type = 'application/json'
     self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})
+  
+  def get(self, node_id):
+    global location_tree
+    global node_infos
+    node_id = int(node_id)
+    curNode = location_tree.findLocationById(node_id)
+    if curNode == None:
+        self.write({'status':1,'message':'cannot find node id '+str(node_id)})
+        return
+    else:
+        self.write({'status':0, 'message':'succeed in finding node id'+str(node_id), 
+                    'distanceModifier':str(curNode.distanceModifier), 'centerPnt':curNode.centerPnt, 
+                    'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
+                    'global_coord':curNode.getGlobalOrigPnt()}) 
 
-class save_tree(tornado.web.RequestHandler):
-    def put(self):
+class sensor_info(tornado.web.RequestHandler):  
+    def get(self, node_id, sensor_id):
+        global node_infos
+        node_id = int(node_id)
+        curNode = wkpf.globals.location_tr.findLocationById(node_id)
+        if curNode == None:
+            self.write({'status':1,'message':'cannot find node id '+str(node_id)})
+            return
+        if sensor_id[0:2] =='se':   #sensor case
+            se_id = int(sensor_id[2:])
+            sensr = curNode.getSensorById(se_id)
+            self.write({'status':0,'message':'find sensor id '+str(se_id), 'location':sensr.location})
+        elif sensor_id[0:2] =='lm': #landmark case
+            lm_id = int(sensor_id[2:])
+            landmk = curNode.findLandmarkById(lm_id)
+            self.write({'status':0,'message':'find landmark id '+str(lm_id), 'location':landmk.location,'size':landmk.size, 'direction':landmk.direction})
+        else:
+            self.write({'status':1, 'message':'failed in finding '+sensor_id+" in node"+ str(node_id)})
+    
+    
+class tree_modifier(tornado.web.RequestHandler):
+  def put(self, mode):
+    start_id = self.get_argument("start")
+    end_id = self.get_argument("end")
+    distance = self.get_argument("distance")
+    paNode = wkpf.globals.location_tr.findLocationById(int(start_id)//100)      #find parent node
+    if paNode !=None:
+        if int(mode) == 0:        #adding modifier between siblings
+            if paNode.addDistanceModifier(int(start_id), int(end_id), int(distance)):
+                self.write({'status':0,'message':'adding distance modifier between '+str(start_id) +'and'+str(end_id)+'to node'+str(int(start_id)//100)})
+                return
+            else:
+                self.write({'status':1,'message':'adding faild due to not able to find common direct father of the two nodes'})
+                return
+        elif int(mode) == 1:        #deleting modifier between siblings
+            if paNode.delDistanceModifier(int(start_id), int(end_id), int(distance)):
+                self.write({'status':0,'message':'deletinging distance modifier between '+str(start_id) +'and'+str(end_id)+'to node'+str(int(start_id)//100)})
+                return
+            else:
+                self.write({'status':1,'message':'deleting faild due to not able to find common direct father of the two nodes'})
+                return
+    self.write({'status':1,'message':'operation faild due to not able to find common direct father of the two nodes'})
+    
+ 
+class save_landmark(tornado.web.RequestHandler):
+  def put(self):
         
         self.write({'tree':wkpf.globals.location_tree})
 
-    def post(self):
+  def post(self):
         landmark_info = self.get_argument('xml')
         f = open("../ComponentDefinitions/landmark.xml","w")
         f.write(landmark_info)
@@ -722,19 +791,28 @@ class add_landmark(tornado.web.RequestHandler):
     global landId
 
     name = self.get_argument("name")
+    id = 0;
     location = self.get_argument("location")
     operation = self.get_argument("ope")
-    
+    size  = self.get_argument("size")
+    direct = self.get_argument("direction")
+    landmark = None
+    rt_val = 0
+    msg = ''
     if(operation=="1"):
       landId += 1
-      landmark = LandmarkNode(landId, name, location, 0) 
-      wkpf.globals.location_tree.addLandmark(landmark)
+      landmark = LandmarkNode(name, location, size, direct) 
+      rt_val = wkpf.globals.location_tr.addLandmark(landmark)
+      msg = 'add fails'
       wkpf.globals.location_tree.printTree()
-#    elif(operation=="0")
-#      wkpf.globals.location_tree.delLandmark()
-    
+    elif(operation=="0"):
+      wkpf.globals.location_tree.delLandmark()
+      msg = 'deletion fails'
     self.content_type = 'application/json'
-    self.write({'status':0})
+    if rt_val ==0:
+        self.write({'status':0, 'id':landmark.getId()})
+    if rt_val ==1:
+        self.write({'status':1, 'id':landmark.getId(), 'msg':msg})
 
 class Build(tornado.web.RequestHandler):  
   def get(self):
@@ -785,8 +863,11 @@ wukong = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/monitor", monitor_application),
   (r"/applications/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
+  (r"/loc_tree/nodes/([0-9]*)", loc_tree),
+  (r"/loc_tree/nodes/([0-9]*)/(\w+)", sensor_info),
   (r"/loc_tree", tree),
-  (r"/loc_tree/save", save_tree),
+  (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
+  (r"/loc_tree/save", save_landmark),
   (r"/loc_tree/land_mark", add_landmark),
   (r"/componentxml",WuLibrary),
   (r"/componentxmluser",WuLibraryUser),
