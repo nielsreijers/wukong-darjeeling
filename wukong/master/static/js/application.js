@@ -279,8 +279,6 @@ function application_polling(app_id, destination, property)
             //$('#deploy_results #wukong_status').text(data.wukong_status);
             //$('#deploy_results #application_status').text(data.application_status);
         //}
-
-
     });
 }
 
@@ -403,7 +401,9 @@ function poll(url, version, options, callback)
             callback(data);
         }
 
-        if (forceRepeat || data.returnCode < 0) {
+        if (data.ops.indexOf('c') != -1) {
+            stop_polling();
+        } else if (forceRepeat) {
             setTimeout(function() {
                 poll(url, data.version, options, callback);
             }, 1000);

@@ -56,6 +56,7 @@ class WuApplication:
     # a log of deploying results warning or errors
     # format: a list of dict of {'msg': '', 'level': 'warn|error'}
     self.deploy_status = []
+    self.deploy_ops = ''
 
   def clearMappingStatus(self):
     self.mapping_status = []
@@ -68,6 +69,10 @@ class WuApplication:
 
   def clearDeployStatus(self):
     self.deploy_status = []
+
+  # signal to client to stop polling
+  def stopDeployStatus(self):
+    self.deploy_ops = 'c'
 
   def logDeployStatus(self, msg):
     self.info(msg)
@@ -340,6 +345,7 @@ class WuApplication:
           return False
         self.logDeployStatus('...has completed')
     self.logDeployStatus('Application has been deployed!')
+    self.stopDeployStatus()
     master_available()
     return True
 

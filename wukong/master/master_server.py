@@ -393,6 +393,7 @@ class poll(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({
         'status':0,
+        'ops': application.deploy_ops,
         'version': application.version,
         'deploy_status': application.deploy_status,
         'mapping_status': application.mapping_status,
