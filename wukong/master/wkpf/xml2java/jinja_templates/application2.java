@@ -38,7 +38,8 @@ public class WKDeploy {
         //all WuClasses from the same group has the same instanceIndex and wuclass
         {%- for component in changesets.components %}
             {% for wuobject in component.instances %}
-                {% if wuobject.wuclass().virtual %}
+                // If wuclass is not on nodes and has to create a virtual wuobject
+                {% if wuobject.virtual %}
         if (WKPF.isLocalComponent((short){{ component.index }})) {
             VirtualWuObject wuclassInstance{{ wuobject.wuclass().wuclassdef()|wuclassname }} = new {{ wuobject.wuclass().wuclassdef()|wuclassvirtualclassname }}();
             WKPF.createWuObject((short){{ wuobject.wuclass().wuclassdef()|wuclassid }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass().wuclassdef()|wuclassname }});
