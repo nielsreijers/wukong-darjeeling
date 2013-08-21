@@ -293,10 +293,8 @@ class WuApplication:
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
 
-      self.logDeployStatus("Generating java library code")
-      gevent.sleep(0)
-
-      self.logDeployStatus("Generating java application")
+      self.logDeployStatus("Preparing java library code...")
+      self.logDeployStatus("Generating java application...")
       gevent.sleep(0)
 
       try:
@@ -305,45 +303,43 @@ class WuApplication:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                       limit=2, file=sys.stdout)
-        self.errorDeployStatus("Error generating java application")
-        self.errorDeployStatus(e)
-        gevent.sleep(0)
+        self.errorDeployStatus("An error has encountered while generating java application! Backtrace is shown below:")
+        self.errorDeployStatus(exc_traceback)
         return False
-
-      self.logDeployStatus("Compressing java to bytecode format")
       gevent.sleep(0)
 
       # Build the Java code
-      self.logDeployStatus('==Compressing application code to bytecode format')
+      self.logDeployStatus('Compressing application code to bytecode format...')
       pp = Popen('cd %s/..; ant clean; ant' % (JAVA_OUTPUT_DIR), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       (infomsg,errmsg) = pp.communicate()
+      gevent.sleep(0)
 
       self.version += 1
       if pp.returncode != 0:
-        self.errorDeployStatus('==Error generating wkdeploy.dja')
         self.logDeployStatus(infomsg)
+        self.errorDeployStatus('Error generating wkdeploy.dja! Backtrack is shown below:')
         self.errorDeployStatus(errmsg)
-        gevent.sleep(0)
         return False
-      self.logDeployStatus('==Finishing compression')
+      self.logDeployStatus('Compression finished')
       gevent.sleep(0)
 
       comm = getComm()
 
       # Deploy nvmdefault.h to nodes
-      self.logDeployStatus('==Deploying to nodes %s' % (str(destination_ids)))
+      self.logDeployStatus('Preparing to deploy to nodes %s' % (str(destination_ids)))
       remaining_ids = copy.deepcopy(destination_ids)
       gevent.sleep(0)
 
       for node_id in destination_ids:
         remaining_ids.remove(node_id)
-        self.logDeployStatus("Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids)))
-        if not comm.reprogram(node_id, os.path.join(JAVA_OUTPUT_DIR, '..', 'build', 'wkdeploy.dja'), retry=3):
-          self.errorDeployStatus("Deploy unsucessful for node %d" % (node_id))
+        self.logDeployStatus("Deploying to node %d, remaining %s" % (node_id, str(remaining_ids)))
+        retries = 3
+        if not comm.reprogram(node_id, os.path.join(JAVA_OUTPUT_DIR, '..', 'build', 'wkdeploy.dja'), retry=retries):
+          self.errorDeployStatus("Deploy was unsucessful after %d tries!" % (retries))
           return False
-        self.logDeployStatus('...completed')
-    self.logDeployStatus('==Deployment has completed')
+        self.logDeployStatus('...has completed')
+    self.logDeployStatus('Application has been deployed!')
     master_available()
     return True
 
