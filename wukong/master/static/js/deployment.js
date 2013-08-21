@@ -68,20 +68,12 @@ $(function() {
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                // TODO: Real time polling should be optional if user don't want it,
-                // show it in a dialog but should cancel if user hit the close button
-                // starts a new polling to deploy-progress
-                //application_polling(current_application, '#deploy-progress');
+                // Print deploy status to #deploy-progress
+                // Starts a new polling to deploy-progress
+                application_polling(current_application, '#deploy-progress', 'deploy_status');
                 //$('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
-                    //$.post('/applications/' + current_application + '/reset');
                     //$('#deploy_results').dialog("close");
                 //});
-                
-                // print deploy status to #deploy-progress
-                $('#deploy-progress').empty();
-                for (var i=0; i<data.deploy_status.length; i++) {
-                  $('#deploy-progress').append("<pre>[" + data.deploy_status[i].level + "]" + data.deploy_status[i].msg + "</pre>");
-                }
             }
         });
     });

@@ -300,8 +300,7 @@ class deploy_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({
         'status':0,
-        'version': wkpf.globals.applications[app_ind].version,
-        'deploy_status': wkpf.globals.applications[app_ind].deploy_status})
+        'version': wkpf.globals.applications[app_ind].version})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):

@@ -243,7 +243,7 @@ function stop_polling()
     window.options = {repeat: false};
 }
 
-function application_polling(app_id, destination)
+function application_polling(app_id, destination, property)
 {
     // stops previous polling
     stop_polling();
@@ -258,13 +258,18 @@ function application_polling(app_id, destination)
         destination = '#mapping-progress';
     }
 
+    // sets default property
+    if (typeof property == 'undefined') {
+        property = 'all_wukong_status';
+    }
+
     poll('/applications/' + app_id + '/poll', 0, window.options, function(data) {
-        data.wukong_status = data.wukong_status.trim();
-        data.application_status = data.application_status.trim();
+        //data.wukong_status = data.wukong_status.trim();
+        //data.application_status = data.application_status.trim();
         console.log(data);
-        $('#mapping-progress').empty();
-        for (var i=0; i<data.all_wukong_status.length; i++) {
-            $('#mapping-progress').append("<pre>" + data.all_wukong_status[i] + "</pre>");
+        $(destination).empty();
+        for (var i=0; i<data[property].length; i++) {
+            $(destination).append("<pre>[" + data[property][i].level + "] " + data[property][i].msg + "</pre>");
         }
         
         //if (data.wukong_status === "close" || data.application_status === "close") {
