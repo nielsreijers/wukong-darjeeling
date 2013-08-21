@@ -22,8 +22,8 @@ def bootstrap_database():
     c.execute('''CREATE TABLE IF NOT EXISTS wunodes
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          id INTEGER not null,
-         energy REAL,
-         location TEXT)''')
+         location TEXT,
+         energy REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuclasses
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          wuclassdef_identity INTEGER,
@@ -33,9 +33,9 @@ def bootstrap_database():
          FOREIGN KEY(node_identity) REFERENCES nodes(identity))''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuobjects
         (identity INTEGER PRIMARY KEY AUTOINCREMENT, 
-         port_number INTEGER,
          wuclassdef_identity INTEGER,
          node_identity INTEGER,
+         port_number INTEGER,
          virtual BOOLEAN,
          FOREIGN KEY(wuclassdef_identity) REFERENCES wuclassdefs(identity),
          FOREIGN KEY(node_identity) REFERENCES nodes(identity))''')
@@ -367,7 +367,7 @@ class WuNode(Definition):
   tablename = 'wunodes'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'id', 'energy', 'location']
+  columns = ['identity', 'id', 'location', 'energy']
 
   @classmethod
   def new(cls, id, location, energy=100.0):
@@ -422,8 +422,7 @@ class WuClass(Definition):
   tablename = 'wuclasses'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'wuclassdef_identity', 'node_identity', 
-      'virtual']
+  columns = ['identity', 'wuclassdef_identity', 'node_identity', 'virtual']
 
   @classmethod
   def new(cls, wuclassdef, node, virtual):
@@ -463,7 +462,7 @@ class WuObject(Definition):
   tablename = 'wuobjects'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'port_number', 'wuclassdef_identity', 'node_identity', 'virtual']
+  columns = ['identity', 'wuclassdef_identity', 'node_identity', 'port_number', 'virtual']
 
   @classmethod
   def new(cls, wuclassdef, node, port_number, virtual=False):
