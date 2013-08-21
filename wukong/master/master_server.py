@@ -18,6 +18,7 @@ import StringIO
 import shutil, errno
 import datetime
 import glob
+import copy
 
 import wkpf.wusignal
 from wkpf.wuapplication import WuApplication
@@ -48,9 +49,11 @@ def make_FBP():
 
 wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 
+# using cloned nodes
 def rebuildTree(nodes):
+  nodes_clone = copy.deepcopy(nodes)
   wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
-  wkpf.globals.location_tree.buildTree(nodes)
+  wkpf.globals.location_tree.buildTree(nodes_clone)
 
 # Helper functions
 def setup_signal_handler_greenlet():
@@ -141,7 +144,7 @@ class list_applications(tornado.web.RequestHandler):
 
   def post(self):
     update_applications()
-    apps = sorted([application.config() for application in wkpf.globals.applications], key=lambda k: k['name'])
+    apps = sorted([application.config() for application in wkpf.globals.applications], key=lambda k: k['app_name'])
     self.content_type = 'application/json'
     self.write(json.dumps(apps))
 
@@ -151,14 +154,25 @@ class new_application(tornado.web.RequestHandler):
     #self.redirect('/applications/'+str(applications[-1].id), permanent=True)
     #self.render('templates/upload.html')
     try:
-      app_name = 'application' + str(len(wkpf.globals.applications))
+      try:
+        app_name = self.get_argument('app_name')
+      except:
+        app_name = 'application' + str(len(wkpf.globals.applications))
       app_id = hashlib.md5(app_name).hexdigest()
 
+      if getAppIndex(app_id):
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg':'Cannot create application with the same name'})
+        return
+
       # copy base for the new application
-      logging.info('creating application...')
+      logging.info('creating application... "%s"' % (app_name))
       copyAnything(BASE_DIR, os.path.join(APP_DIR, app_id))
 
-      app = WuApplication(id=app_id, name=app_name, dir=os.path.join(APP_DIR, app_id))
+      app = WuApplication(id=app_id, app_name=app_name, dir=os.path.join(APP_DIR, app_id))
+      logging.info('app constructor')
+      logging.info(app.app_name)
+
       wkpf.globals.applications.append(app)
 
       # dump config file to app
@@ -247,8 +261,8 @@ class reset_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      wkpf.globals.set_wukong_status("clear")
-      wkpf.globals.applications[app_ind].status = "clear"
+      wkpf.globals.set_wukong_status("close")
+      wkpf.globals.applications[app_ind].status = "close"
       self.content_type = 'application/json'
       self.write({'status':0, 'version': wkpf.globals.applications[app_ind].version})
 
@@ -260,8 +274,7 @@ class deploy_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      node_infos = getComm().getActiveNodeInfos()
-      rebuildTree(node_infos)
+      # deployment.js will call refresh_node eventually, rebuild location tree there
       deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
               app=wkpf.globals.applications[app_ind],
               app_id=app_id, node_infos=node_infos,
@@ -275,8 +288,7 @@ class deploy_application(tornado.web.RequestHandler):
   def post(self, app_id):
     app_ind = getAppIndex(app_id)
 
-    wkpf.globals.set_wukong_status("Start deploying")
-    wkpf.globals.applications[app_ind].status = "    "
+    wkpf.globals.set_wukong_status("Deploying")
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
@@ -287,7 +299,10 @@ class deploy_application(tornado.web.RequestHandler):
       wkpf.globals.set_active_application_index(app_ind)
          
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': wkpf.globals.applications[app_ind].version})
+      self.write({
+        'status':0,
+        'version': wkpf.globals.applications[app_ind].version,
+        'deploy_status': wkpf.globals.applications[app_ind].deploy_status})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
@@ -299,9 +314,11 @@ class map_application(tornado.web.RequestHandler):
     else:
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
+      node_infos = getComm().getActiveNodeInfos()
+      rebuildTree(node_infos)
 
       # Map with location tree info (discovery), this will produce mapping_results
-      wkpf.globals.applications[app_ind].map(wkpf.globals.location_tree, getComm().getRoutingInformation())
+      mapping_result = wkpf.globals.applications[app_ind].map(wkpf.globals.location_tree, getComm().getRoutingInformation())
 
       ret = []
       for component in wkpf.globals.applications[app_ind].changesets.components:
@@ -318,7 +335,8 @@ class map_application(tornado.web.RequestHandler):
             'instanceId': component.index,
             'name': component.type,
             'nodeId': wuobj.wunode().id,
-            'portNumber': wuobj.port_number
+            'portNumber': wuobj.port_number,
+            'virtual': wuobj.virtual
           }
 
           obj_hash['instances'].append(wuobj_hash)
@@ -326,7 +344,12 @@ class map_application(tornado.web.RequestHandler):
         ret.append(obj_hash)
 
       self.content_type = 'application/json'
-      self.write({'status':0, 'mapping_results': ret, 'version': wkpf.globals.applications[app_ind].version})
+      self.write({
+        'status':0,
+        'mapping_result': mapping_result, # True or False
+        'mapping_results': ret,
+        'version': wkpf.globals.applications[app_ind].version,
+        'mapping_status': wkpf.globals.applications[app_ind].mapping_status})
 
 class monitor_application(tornado.web.RequestHandler):
   def get(self, app_id):
@@ -367,21 +390,22 @@ class poll(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      #if int(applications[app_ind].version) <= int(self.get_argument('version')):
-        #self.content_type = 'application/json'
-        #self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'logs': applications[app_ind].retrieve()})
-      #else:
-
-      logging.info(wkpf.globals.get_wukong_status())
-      wukong_status = wkpf.globals.get_wukong_status()
-      wkpf.globals.set_wukong_status("")
+      application = wkpf.globals.applications[app_ind]
 
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': wkpf.globals.applications[app_ind].version,
-          'wukong_status': wukong_status, 
-          'application_status': wkpf.globals.applications[app_ind].status, 
-          'returnCode': wkpf.globals.applications[app_ind].returnCode, 
-          'logs': wkpf.globals.applications[app_ind].retrieve()})
+      self.write({
+        'status':0,
+        'version': application.version,
+        'deploy_status': application.deploy_status,
+        'mapping_status': application.mapping_status,
+        'wukong_status': wkpf.globals.get_wukong_status(),
+        'application_status': application.status, 
+        'returnCode': application.returnCode})
+
+      # TODO: log should not be requested in polling, should be in a separate page
+      # dedicated for it
+      # because logs could go up to 10k+ entries
+      #'logs': wkpf.globals.applications[app_ind].logs()
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
