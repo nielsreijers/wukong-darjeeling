@@ -20,9 +20,9 @@ from globals import *
 ChangeSets = namedtuple('ChangeSets', ['components', 'links', 'heartbeatgroups'])
 
 class WuApplication:
-  def __init__(self, id='', name='', desc='', file='', dir='', outputDir="", templateDir=TEMPLATE_DIR, componentXml=open(COMPONENTXML_PATH).read()):
+  def __init__(self, id='', app_name='', desc='', file='', dir='', outputDir="", templateDir=TEMPLATE_DIR, componentXml=open(COMPONENTXML_PATH).read()):
     self.id = id
-    self.name = name
+    self.app_name = app_name
     self.desc = desc
     self.file = file
     self.xml = ''
@@ -30,7 +30,7 @@ class WuApplication:
     self.compiler = None
     self.version = 0
     self.returnCode = 1
-    self.status = ""
+    self.status = "" # deprecated, replaced by wukong_status and deploy_status
     self.deployed = False
     self.mapper = None
     self.inspector = None
@@ -48,6 +48,38 @@ class WuApplication:
     self.componentXml = componentXml
 
     self.changesets = ChangeSets([], [], [])
+
+    # a log of mapping results warning or errors
+    # format: a list of dict of {'msg': '', 'level': 'warn|error'}
+    self.mapping_status = []
+
+    # a log of deploying results warning or errors
+    # format: a list of dict of {'msg': '', 'level': 'warn|error'}
+    self.deploy_status = []
+
+  def clearMappingStatus(self):
+    self.mapping_status = []
+
+  def errorMappingStatus(self, msg):
+    self.mapping_status.append({'msg': msg, 'level': 'error'})
+
+  def warnMappingStatus(self, msg):
+    self.mapping_status.append({'msg': msg, 'level': 'warn'})
+
+  def clearDeployStatus(self):
+    self.deploy_status = []
+
+  def logDeployStatus(self, msg):
+    self.info(msg)
+    self.deploy_status.append({'msg': msg, 'level': 'log'})
+
+  def errorDeployStatus(self, msg):
+    self.error(msg)
+    self.deploy_status.append({'msg': msg, 'level': 'error'})
+
+  def warnDeployStatus(self, msg):
+    self.warning(msg)
+    self.deploy_status.append({'msg': msg, 'level': 'warn'})
 
   def setFlowDom(self, flowDom):
     self.applicationDom = flowDom
@@ -93,7 +125,7 @@ class WuApplication:
   def loadConfig(self):
     config = json.load(open(os.path.join(self.dir, 'config.json')))
     self.id = config['id']
-    self.name = config['name']
+    self.app_name = config['app_name']
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
@@ -113,7 +145,7 @@ class WuApplication:
     return self.status
 
   def config(self):
-    return {'id': self.id, 'name': self.name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml, 'version': self.version}
+    return {'id': self.id, 'app_name': self.app_name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml, 'version': self.version}
 
   def __repr__(self):
     return json.dumps(self.config())
@@ -243,9 +275,10 @@ class WuApplication:
   def map(self, location_tree, routingTable):
     self.changesets = ChangeSets([], [], [])
     self.parseApplication()
-    self.mapping(location_tree, routingTable)
+    result = self.mapping(location_tree, routingTable)
     logging.info("Mapping Results")
     logging.info(self.changesets)
+    return result
 
   def deploy_with_discovery(self,*args):
     #node_ids = [info.id for info in getComm().getActiveNodeInfos(force=False)]
@@ -255,70 +288,62 @@ class WuApplication:
   def deploy(self, destination_ids, platforms):
     master_busy()
     app_path = self.dir
+    self.clearDeployStatus()
     
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
 
-      self.status = "Generating java library code"
+      self.logDeployStatus("Generating java library code")
       gevent.sleep(0)
 
-      self.status = "Generating java application"
+      self.logDeployStatus("Generating java application")
       gevent.sleep(0)
 
-      # Mapper results, already did in map_application
-      # Generate java code
-      self.info('==Generating application code in target language (Java)')
       try:
         self.generateJava()
       except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                       limit=2, file=sys.stdout)
-        self.error(e)
-        self.status = "Error generating java application"
+        self.errorDeployStatus("Error generating java application")
+        self.errorDeployStatus(e)
         gevent.sleep(0)
         return False
 
-      self.status = "Compressing java to bytecode format"
+      self.logDeployStatus("Compressing java to bytecode format")
       gevent.sleep(0)
 
       # Build the Java code
-      self.info('==Compressing application code to bytecode format')
+      self.logDeployStatus('==Compressing application code to bytecode format')
       pp = Popen('cd %s/..; ant clean; ant' % (JAVA_OUTPUT_DIR), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       (infomsg,errmsg) = pp.communicate()
 
       self.version += 1
       if pp.returncode != 0:
-        self.error('==Error generating wkdeploy.dja')
-        self.status = "Error generating wkdeploy.dja"
-        self.info(infomsg)
-        self.error(errmsg)
+        self.errorDeployStatus('==Error generating wkdeploy.dja')
+        self.logDeployStatus(infomsg)
+        self.errorDeployStatus(errmsg)
         gevent.sleep(0)
         return False
-      self.info('==Finishing compression')
-
-      self.status = "Deploying bytecode to nodes"
+      self.logDeployStatus('==Finishing compression')
       gevent.sleep(0)
 
       comm = getComm()
-      # Deploy nvmdefault.h to nodes
-      self.info('==Deploying to nodes %s' % (str(destination_ids)))
-      remaining_ids = copy.deepcopy(destination_ids)
 
+      # Deploy nvmdefault.h to nodes
+      self.logDeployStatus('==Deploying to nodes %s' % (str(destination_ids)))
+      remaining_ids = copy.deepcopy(destination_ids)
       gevent.sleep(0)
+
       for node_id in destination_ids:
         remaining_ids.remove(node_id)
-        self.status = "Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids))
-        self.info('==Deploying to node id: %d' % (node_id))
+        self.logDeployStatus("Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids)))
         if not comm.reprogram(node_id, os.path.join(JAVA_OUTPUT_DIR, '..', 'build', 'wkdeploy.dja'), retry=3):
-          self.status = "Deploy unsucessful for node %d" % (node_id)
-          self.error('==Node not deployed successfully')
+          self.errorDeployStatus("Deploy unsucessful for node %d" % (node_id))
           return False
-        self.info('...completed')
-    self.info('==Deployment has completed')
-    self.status = "Deployment has succeeded"
-    self.status = "clear" # close the dialog
+        self.logDeployStatus('...completed')
+    self.logDeployStatus('==Deployment has completed')
     master_available()
     return True
 
@@ -331,7 +356,7 @@ class WuApplication:
     location_tree = LocationTree(LOCATION_ROOT)
     location_tree.buildTree(node_infos)
     routingTable = getComm().getRoutingInformation()
-    self.map(location_tree, routingTable)
-    self.deploy([info.id for info in node_infos], DEPLOY_PLATFORMS)
+    if self.map(location_tree, routingTable):
+      self.deploy([info.id for info in node_infos], DEPLOY_PLATFORMS)
     master_available()
 
