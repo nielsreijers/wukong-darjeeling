@@ -410,7 +410,7 @@ class Communication:
         payload_pos = [pos%256, pos/256]
         payload_data = bytecode[pos:pos+REPRG_CHUNK_SIZE]
         print "[wkpfcomm] Uploading bytes", pos, "to", pos+REPRG_CHUNK_SIZE, "of", len(bytecode)
-        print '[wkpfcomm] ' + pos/pagesize, (pos+len(payload_data))/pagesize, "of pagesize", pagesize
+        print '[wkpfcomm]', pos/pagesize, (pos+len(payload_data))/pagesize, "of pagesize", pagesize
         if pos/pagesize == (pos+len(payload_data))/pagesize:
           self.zwave.send(destination, pynvc.REPRG_DJ_WRITE, payload_pos+payload_data, [])
           pos += len(payload_data)
@@ -481,7 +481,7 @@ class Communication:
         payload_pos = [pos/256, pos%256]
         payload_data = bytecode[pos:pos+MESSAGESIZE]
         print "[wkpfcomm] Uploading bytes", pos, "to", pos+MESSAGESIZE, "of", len(bytecode)
-        print '[wkpfcomm] ' + pos/pagesize, (pos+len(payload_data))/pagesize, "of pagesize", pagesize
+        print '[wkpfcomm]', pos/pagesize, (pos+len(payload_data))/pagesize, "of pagesize", pagesize
         if pos/pagesize == (pos+len(payload_data))/pagesize:
           #pynvc.sendcmd(destination, pynvc.REPRG_WRITE, payload_pos+payload_data)
           self.zwave.send(destination, pynvc.REPRG_WRITE, payload_pos+payload_data, [])
