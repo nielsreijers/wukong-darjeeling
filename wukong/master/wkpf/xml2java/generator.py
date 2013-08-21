@@ -16,7 +16,9 @@ from wkpf.util import *
 class Generator:
     @staticmethod
     def generate(name, changesets):
+        print '[generator] generate Java App'
         Generator.generateJavaApplication(name, changesets)
+        print '[generator] generate Table XML'
         Generator.generateTablesXML(name, changesets)
 
     @staticmethod
@@ -76,7 +78,7 @@ class Generator:
             return properties
 
         # Generate the Java code
-        print 'generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
+        print '[generator] generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
         jinja2_env.filters['nodeinjava'] = nodeinjava
         jinja2_env.filters['wuclassname'] = wuclassname
