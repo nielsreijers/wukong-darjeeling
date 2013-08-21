@@ -40,8 +40,7 @@ node_infos = []
 from make_js import make_main
 from make_fbp import fbp_main
 def import_wuXML():
-	test = make_main()
-	test.make()
+	make_main()
 	
 def make_FBP():
 	test_1 = fbp_main()
