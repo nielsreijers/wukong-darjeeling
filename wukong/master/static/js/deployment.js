@@ -1,8 +1,6 @@
 
 
 $(function() {
-    window.options = {repeat: true};
-
     $('a#nodes-btn').click(function(e) {
         console.log('refresh nodes');
         $(this).tab('show');
@@ -18,7 +16,6 @@ $(function() {
     });
 
     $('a#mapping_results-btn').click(function(e) {
-        console.log('map result');
         $.post('/applications/' + current_application + '/deploy/map', function(data) {
             // Already an object
             if (data.status == 1) {
@@ -27,27 +24,41 @@ $(function() {
                 var $table = $('#mapping_results table tbody');
                 $table.empty();
 
-                //console.log('data.mapping_results');
-                //console.log(data.mapping_results);
-
                 _.each(data.mapping_results, function(result) {
                     if (result.instances.length > 0) {
                         _.each(result.instances, function(instance) {
-                            if (instance.portNumber) {
-                                $table.append(_.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                          if (instance.portNumber) {
+                            if (instance.virtual) {
+                              $table.append(_.template('<tr class=warning><td><%= instanceId %></td><td>(Virtual) <%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
                             } else {
-                                $table.append(_.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                              $table.append(_.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
                             }
+                          } else {
+                            $table.append(_.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                          }
                         });
                     } else {
                         $table.append(_.template('<tr class=error><td><%= instanceId %></td><td><%= name %></td><td>Cannot find matching wuobjects</td><td></td></tr>')(result));
                     }
                 });
+
+                // print mapping status to #mapping-progress
+                $('#mapping-progress').empty();
+                for (var i=0; i<data.mapping_status.length; i++) {
+                  $('#mapping-progress').append("<pre>[" + data.mapping_status[i].level + "]" + data.mapping_status[i].msg + "</pre>");
+                }
+
+                // disable deploy button if mapping is not successful
+                if (!data.mapping_result) {
+                  $('li a#deploy-btn').closest('li').hide();
+                } else {
+                  $('li a#deploy-btn').closest('li').show();
+                }
             }
         });
     });
 
-    // Actually deploy
+    // User clicking on deploy tab button (inner)
     $('a#deploy-btn').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
@@ -57,10 +68,20 @@ $(function() {
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
-                    $.post('/applications/' + current_application + '/reset');
-                    $('#deploy_results').dialog("close");
-                });
+                // TODO: Real time polling should be optional if user don't want it,
+                // show it in a dialog but should cancel if user hit the close button
+                // starts a new polling to deploy-progress
+                //application_polling(current_application, '#deploy-progress');
+                //$('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
+                    //$.post('/applications/' + current_application + '/reset');
+                    //$('#deploy_results').dialog("close");
+                //});
+                
+                // print deploy status to #deploy-progress
+                $('#deploy-progress').empty();
+                for (var i=0; i<data.deploy_status.length; i++) {
+                  $('#deploy-progress').append("<pre>[" + data.deploy_status[i].level + "]" + data.deploy_status[i].msg + "</pre>");
+                }
             }
         });
     });
