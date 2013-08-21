@@ -182,34 +182,29 @@ def first_of(changesets, network_info, last_changesets):
 
 
 def firstCandidate(logger, changesets, routingTable, locTree):
+    set_wukong_status('Mapping')
+    logger.clearMappingStatus() # clear previous mapping status
+
     #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
 
     # construct and filter candidates for every component on the FBP (could be the same wuclass but with different policy)
     for component in changesets.components:
-        locationquery = component.location
-        mincandidates = component.group_size
-
         # filter by location
         locParser = LocationParser(locTree)
         try:
-            tmpSet = locParser.parse(locationquery)
+            candidates = locParser.parse(component.location)
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            logger.error('cannot find match for location query %s, so we will invalid the query and pick all by default', locationquery)
-            logger.error('Locality conditions for component wuclass id "%s" are too strict; no available candidate found' % (wuObject[0].getWuClass().getId()))
-            logging.error("location Tree")
-            logging.error(locTree.printTree())
-            set_wukong_status(str(exc_type)+str(exc_value))
-            tmpSet = locTree.getAllAliveNodeIds()
-        candidates = tmpSet
+            logger.errorMappingStatus('Cannot find match for location query "%s" for component wuclass id "%s", so we will invalid the query and pick all by default', component.location, wuObject[0].getWuClass().getId())
+            candidates = locTree.getAllAliveNodeIds()
 
 
-        if len(candidates) < mincandidates:
-            msg = '[WARNING] there is no enough candidates %r for component %s, but mapper will continue to map' % (candidates, component)
+        if len(candidates) < component.group_size:
+            msg = 'There is not enough candidates %r for component %s, but mapper will continue to map' % (candidates, component)
             set_wukong_status(msg)
-            logger.warning(msg)
+            logger.warnMappingStatus(msg)
 
         # This is really tricky, basically there are two things you have to understand to understand this code
         # 1. There are wuclass that are only for reference and other for actually having a c function on the node
@@ -221,98 +216,73 @@ def firstCandidate(logger, changesets, routingTable, locTree):
 
         # construct wuobjects, instances of component
         for candidate in candidates:
-            node = locTree.getNodeInfoById(candidate)
             wuclassdef = WuClassDef.find(name=component.type)
-            if wuclassdef.type.lower() == 'hard':
-                # only native implementation
-                if wuclassdef.id in [x.wuclassdef().id for x in node.wuclasses()]:
-                    # has wuclass for native implementation
-                    if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
-                        # use existing wuobject
-                        for wuobject in node.wuobjects():
-                            if wuobject.wuclassdef().id == wuclassdef.id:
-                                component.instances.append(wuobject)
-                                break
-                    else:
-                        # create a new wuobject
-                        sensorNode = locTree.sensor_dict[node.id]
-                        sensorNode.initPortList(forceInit = False)
-                        port_number = sensorNode.reserveNextPort()
-                        for wuclass in node.wuclasses():
-                            if wuclass.wuclassdef().id == wuclassdef.id:
-                                wuobject = WuObject.create(wuclass.wuclassdef(), node, port_number)
-                        wuobject.save()
-                        component.instances.append(wuobject)
+            node = locTree.getNodeInfoById(candidate)
+            if wuclassdef.id in [wuobject.wuclassdef().id for wuobject in node.wuobjects()]:
+              # use existing wuobject
+              for wuobject in node.wuobjects():
+                if wuobject.wuclassdef().id == wuclassdef.id:
+                  component.instances.append(wuobject)
+                  break
+            elif wuclassdef.id in [wuclass.wuclassdef().id for wuclass in node.wuclasses()]:
+              # create a new wuobject from existing wuclasses published from node (could be virtual)
+              sensorNode = locTree.sensor_dict[node.id]
+              sensorNode.initPortList(forceInit = False)
+              port_number = sensorNode.reserveNextPort()
+              for wuclass in node.wuclasses():
+                if wuclass.wuclassdef().id == wuclassdef.id:
+                  wuobject = WuObject.new(wuclass.wuclassdef(), node, port_number)
+                  # don't save to db
+                  component.instances.append(wuobject)
+                  break
             else:
-                # prefer native implementation
-                if wuclassdef.id in [x.wuclassdef().id for x in node.wuclasses()]:
-                    # has wuclass for native implementation
-                    if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
-                        # use existing wuobject
-                        for wuobject in node.wuobjects():
-                            if wuobject.wuclassdef().id == wuclassdef.id:
-                                wuobject.save()
-                                component.instances.append(wuobject)
-                                break
-                    else:
-                        # create a new wuobject
-                        sensorNode = locTree.sensor_dict[node.id]
-                        sensorNode.initPortList(forceInit = False)
-                        port_number = sensorNode.reserveNextPort()
-                        for wuclass in node.wuclasses():
-                            if wuclass.wuclassdef().id == wuclassdef.id:
-                                wuobject = WuObject.create(wuclass.wuclassdef(), node, port_number)
-                        wuobject.save()
-                        component.instances.append(wuobject)
-                else:
-                    # no wuclass for native implementation
-                    if wuclassdef.id in [x.wuclass().wuclassdef().id for x in node.wuobjects()]:
-                        # use existing virtual wuobject
-                        for wuobject in node.wuobjects():
-                            if wuobject.wuclassdef().id == wuclassdef.id:
-                                wuobject.save()
-                                component.instances.append(wuobject)
-                                break
-                    else:
-                        # create a new virtual wuobject
-                        sensorNode = locTree.sensor_dict[node.id]
-                        sensorNode.initPortList(forceInit = False)
-                        port_number = sensorNode.reserveNextPort()
-                        wuclass = WuClass.find(wuclassdef_identity=wuclassdef.identity)
-                        if not wuclass:
-                          wuclass = WuClass.create(wuclassdef, node, True)
-                        wuobject = WuObject.create(wuclassdef, node, port_number)
-                        wuobject.save()
-                        component.instances.append(wuobject)
+              # create a new virtual wuobject where the node 
+              # doesn't have the wuclass for it
+              sensorNode = locTree.sensor_dict[node.id]
+              sensorNode.initPortList(forceInit = False)
+              port_number = sensorNode.reserveNextPort()
+              wuobject = WuObject.new(wuclassdef, node, port_number, True)
+              # don't save to db
+              component.instances.append(wuobject)
+
+              # TODO: looks like this will always return true for mapping
+              # regardless of whether java impl exist
+
+
+        # limit to min candidate if possible
+        component.instances = component.instances[:component.group_size]
 
         if len(component.instances) == 0:
-          logger.error ('[ERROR] No avilable match could be found for component %s' % (component))
+          logger.errorMappingStatus('No avilable match could be found for component %s' % (component))
           return False
+
+    # Done looping components
 
     # sort candidates
     # TODO:simple sorting, first fit, last fit, hardware fit, etc
     #sortCandidates(changesets.components)
 
-    # limit to min candidate if possible
-    component.instances = component.instances[:mincandidates]
-
+    # TODO: will uncomment this once I port my stuff from NanoKong v1
     # construct heartbeat groups plus period assignment
-    allcandidates = set()
-    for component in changesets.components:
-        for wuobject in component.instances:
-            allcandidates.add(wuobject.wunode().id)
-    allcandidates = list(allcandidates)
-    allcandidates = map(lambda x: WuNode.find(id=x), allcandidates)
+    #allcandidates = set()
+    #for component in changesets.components:
+        #for wuobject in component.instances:
+            #allcandidates.add(wuobject.wunode().id)
+    #allcandidates = list(allcandidates)
+    #allcandidates = map(lambda x: WuNode.find(id=x), allcandidates)
     # constructHeartbeatGroups(changesets.heartbeatgroups, routingTable, allcandidates)
     # determinePeriodForHeartbeatGroups(changesets.components, changesets.heartbeatgroups)
-    logging.info('heartbeatGroups constructed, periods assigned')
-    logging.info(changesets.heartbeatgroups)
+    #logging.info('heartbeatGroups constructed, periods assigned')
+    #logging.info(changesets.heartbeatgroups)
 
+    #Deprecated: tree will be rebuild before mapping
     #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
-    for component in changesets.components:
-        for wuobj in component.instances:
-            senNd = locTree.getSensorById(wuobj.wunode().id)
-            for j in senNd.temp_port_list:
-                senNd.port_list.remove(j)
-            senNd.temp_port_list = []
+    #for component in changesets.components:
+        #for wuobj in component.instances:
+            #senNd = locTree.getSensorById(wuobj.wunode().id)
+            #for j in senNd.temp_port_list:
+                #senNd.port_list.remove(j)
+            #senNd.temp_port_list = []
+
+    set_wukong_status('')
     return True
