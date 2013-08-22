@@ -575,10 +575,11 @@ class WuLibraryUser(tornado.web.RequestHandler):
     appid = self.get_argument('appid')
     app = wkpf.globals.applications[getAppIndex(appid)]
     try:
-      f = open(app.dir+'/WKDeployCustomComponents.xml','w')
+      component_path = app.dir+'/WKDeployCustomComponents.xml'
+      f = open(component_path, 'w')
       xml = f.write(xml)
       f.close()
-      make_main().make1(True,app.dir+'/WKDeployCustomComponents.xml')
+      make_main(component_path)
     except:
       self.write('<error>1</error>')
     self.write('')

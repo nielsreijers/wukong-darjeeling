@@ -12,8 +12,8 @@ postfix = ".js"
 
 jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
 
-def make_main():
-  dom = xml.dom.minidom.parseString(open(COMPONENTXML_PATH, "r").read())
+def make_main(path=COMPONENTXML_PATH):
+  dom = xml.dom.minidom.parseString(open(path, "r").read())
   for wuClass in dom.getElementsByTagName('WuClass'):
     name = wuClass.getAttribute('name')
     properties = wuClass.getElementsByTagName('property')
