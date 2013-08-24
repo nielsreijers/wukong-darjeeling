@@ -76,6 +76,7 @@ $(document).ready(function() {
         setTimeout(function() {
             $('#msg').hide();
         },2000);
+		g_selected_line = l;
     });
     $('#fileloader').dialog({autoOpen:false});
     $('#fileloader_file').val('fbp.sce');
