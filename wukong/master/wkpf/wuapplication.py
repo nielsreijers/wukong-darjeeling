@@ -130,7 +130,10 @@ class WuApplication:
   def loadConfig(self):
     config = json.load(open(os.path.join(self.dir, 'config.json')))
     self.id = config['id']
-    self.app_name = config['app_name']
+    try:
+        self.app_name = config['app_name']
+    except:
+        self.app_name='noname';
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
