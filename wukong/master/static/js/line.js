@@ -8,7 +8,7 @@ function Line(source,signal,dest,action)
 	this.action = action;
 }
 
-Line.prototype.draw=function(canvas) {
+Line.prototype.draw=function(obj) {
 	var loc = this.source.getPosition();
 	var size = this.source.getSize();
 	var signal_idx = this.source.findSignalPos(this.signal);
@@ -19,13 +19,26 @@ Line.prototype.draw=function(canvas) {
 	size = this.dest.getSize();
 	var x2 = loc[0]-205;
 	var y2 = loc[1]-FBP_CANVAS_TOP+action_idx*15+15/2+20;
-
-	canvas.drawLine({
-		strokeStyle: "#000",
-		strokeWidth: 4,
-		x1: x1, y1:y1,
-		x2: x2, y2:y2
-	});
+	var canvas = obj[0].getContext('2d');
+	canvas.save();
+	var dx = x2-x1;
+	var dy = y2-y1;
+	var len = Math.sqrt(dx*dx+dy*dy);
+	canvas.translate(x2,y2);
+	canvas.rotate(Math.atan2(dy,dx));
+	canvas.lineCap='round';
+	canvas.beginPath();
+	canvas.moveTo(0,0);
+	canvas.lineTo(-len,0);
+	canvas.closePath();
+	canvas.stroke();
+	canvas.beginPath();
+	canvas.moveTo(0,0);
+	canvas.lineTo(-7,-7);
+	canvas.lineTo(-7,7);
+	canvas.closePath();
+	canvas.fill();
+	canvas.restore();
 }
 Line.prototype.serialize=function() {
 	var obj = {};
