@@ -76,7 +76,12 @@ $(document).ready(function() {
         setTimeout(function() {
             $('#msg').hide();
         },2000);
+		tmp = g_selected_line;
 		g_selected_line = l;
+		if (tmp)
+			tmp.draw(FBP_canvas);
+		if (g_selected_line)
+			g_selected_line.draw(FBP_canvas);
     });
     $('#fileloader').dialog({autoOpen:false});
     $('#fileloader_file').val('fbp.sce');
