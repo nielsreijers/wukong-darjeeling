@@ -766,7 +766,8 @@ class Build(tornado.web.RequestHandler):
 
     os.system('cd ../../src/config/wunode; ant > tmp')
     f = open("../../src/config/wunode/tmp", "r")
-    log = f.read()
+    log = f.readlines()
+    log = "<br>".join(log)
     f.close()
     command = 'cd ../../src/config/wunode; rm -f tmp'
     os.system(command)
@@ -789,7 +790,8 @@ class Upload(tornado.web.RequestHandler):
     command = 'cd ../../src/config/wunode; ant avrdude > tmp'
     os.system(command)
     f = open("../../src/config/wunode/tmp", "r")
-    log = f.read()
+    log = f.readlines()
+    log = "<br>".join(log)
     f.close()
     command = 'cd ../../src/config/wunode; rm -f tmp'
     os.system(command)
