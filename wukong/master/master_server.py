@@ -763,8 +763,16 @@ class add_landmark(tornado.web.RequestHandler):
 class Build(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-    os.system('cd ../../src/config/wunode; ant')
-    self.write('ok')
+
+    os.system('cd ../../src/config/wunode; ant > tmp')
+    f = open("../../src/config/wunode/tmp", "r")
+    log = f.read()
+    f.close()
+    command = 'cd ../../src/config/wunode; rm -f tmp'
+    os.system(command)
+
+    self.write(log)
+
 
 class Upload(tornado.web.RequestHandler):  
   def get(self):
@@ -778,8 +786,24 @@ class Upload(tornado.web.RequestHandler):
     f.write(s)
     f.close()
     
-    os.system('cd ../../src/config/wunode; ant avrdude-only')
-    self.write('ok')
+    command = 'cd ../../src/config/wunode; ant avrdude > tmp'
+    os.system(command)
+    f = open("../../src/config/wunode/tmp", "r")
+    log = f.read()
+    f.close()
+    command = 'cd ../../src/config/wunode; rm -f tmp'
+    os.system(command)
+
+
+    #p = sub.Popen(command, stdout=sub.PIPE, stderr=sub.PIPE)
+    #output, errors = p.communicate()
+    #f = open("../../src/config/wunode/j", "w")
+    #f.write(output)
+    #f.close()
+
+    self.write(log)
+
+
 
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),

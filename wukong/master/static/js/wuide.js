@@ -137,14 +137,21 @@ WuIDE.prototype.initUI = function() {
 	});
 
 	$('#build').click(function() {
-		$.get('/build', function() {
-
+		$('#log').html("building...");
+		$.get('/build', function(data) {
+			$('#log').html(data);
 		})
 	});
 
 	$('#upload').click(function() {
-		$.get('/upload', {port: $('#serialport :selected').text()}, function() {
-
+		var port = $('#serialport :selected').text();
+		if(port == "") {
+			$('#log').html("Please select the port");
+			return;
+		}
+		$('#log').html("uploading...");
+		$.get('/upload', {port: port}, function(data) {
+			$('#log').html(data);
 		})
 	});	
 }
