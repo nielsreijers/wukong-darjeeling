@@ -357,6 +357,12 @@ WuIDE.prototype.refreshEnumList = function(item,i) {
 		item.name = $('#type_editor_name').val();
 		self.load();
 	});
+	$('#typeeditcancel').unbind().click(function() {
+		// Update the XML here
+		$('#type_editor').hide();
+		$('#type_list').show();
+		self.load();
+	});
 	$('#addenum').unbind().click(function() {
 		item.enums.push({name:'Dummy'});
 		self.refreshEnumList(item,i);
@@ -518,6 +524,14 @@ WuClass.prototype.render=function(id) {
 		ide.load();
 		$('#classes').show();
 	});
+
+	$('#class_editor_cancel').unbind().click(function() {
+		$('#class_editor').hide();
+		$('#class_list').show();
+		ide.load();
+		$('#classes').show();
+	});
+
 	$('#class_editor_edit').click(function() {
 		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
         if (self.is_user) {
