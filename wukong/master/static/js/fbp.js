@@ -336,6 +336,7 @@ function FBP_renderPage(page)
 		line.source = hash[page.lines[i].source];
 		line.signal = page.lines[i].signal;
 		line.dest = hash[page.lines[i].dest];
+		line.action = page.lines[i].action;
         g_lines.push(Line.restore(line));
     }
     FBP_refreshLines();
