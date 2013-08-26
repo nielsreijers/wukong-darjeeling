@@ -190,7 +190,7 @@ WuIDE.prototype.load = function() {
 	$('#saveall').unbind().click(function() {
 		var xml = self.toXML();
 		data = {xml:xml};
-		if (self.is_user) {
+		if (ide.is_user) {
 			$.post('/componentxmluser?appid='+appid, data);
 		} else {
 			$.post('/componentxml', data);
@@ -534,7 +534,7 @@ WuClass.prototype.render=function(id) {
 
 	$('#class_editor_edit').click(function() {
 		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
-        if (self.is_user) {
+        if (ide.is_user) {
             $.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
                 var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
                 TextEditor.load(code);
