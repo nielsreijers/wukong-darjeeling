@@ -64,7 +64,7 @@ WuIDE.prototype.parseXML = function() {
 		var virtual = $(val).attr('virtual');
 		var type = $(val).attr('type');
 		var properties = $(val).find('property');
-		var privateCData = $(val).find("privateCData");
+		var privateCData = $(val).attr("privateCData");
 		var prop = [];
 		$.each(properties, function(j, val) {
 			var pname = $(val).attr('name');
@@ -73,7 +73,7 @@ WuIDE.prototype.parseXML = function() {
 			var def = $(val).attr('default');
 			prop.push({name:pname, datatype:datatype, access:access, default:def});
 		});
-		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateData:privateCData});
+		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateCData:privateCData});
 	});
 	self.types=[];
 	$.each(types,function(i,v) {
