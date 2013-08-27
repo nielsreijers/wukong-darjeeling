@@ -64,7 +64,7 @@ WuIDE.prototype.parseXML = function() {
 		var virtual = $(val).attr('virtual');
 		var type = $(val).attr('type');
 		var properties = $(val).find('property');
-		var privateCData = $(val).find("privateCData");
+		var privateCData = $(val).attr("privateCData");
 		var prop = [];
 		$.each(properties, function(j, val) {
 			var pname = $(val).attr('name');
@@ -73,7 +73,7 @@ WuIDE.prototype.parseXML = function() {
 			var def = $(val).attr('default');
 			prop.push({name:pname, datatype:datatype, access:access, default:def});
 		});
-		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateData:privateCData});
+		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateCData:privateCData});
 	});
 	self.types=[];
 	$.each(types,function(i,v) {
@@ -190,7 +190,7 @@ WuIDE.prototype.load = function() {
 	$('#saveall').unbind().click(function() {
 		var xml = self.toXML();
 		data = {xml:xml};
-		if (self.is_user) {
+		if (ide.is_user) {
 			$.post('/componentxmluser?appid='+appid, data);
 		} else {
 			$.post('/componentxml', data);
@@ -534,7 +534,7 @@ WuClass.prototype.render=function(id) {
 
 	$('#class_editor_edit').click(function() {
 		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
-        if (self.is_user) {
+        if (ide.is_user) {
             $.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
                 var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
                 TextEditor.load(code);
