@@ -476,9 +476,10 @@ class WuObject(Definition):
       if isinstance(wuvalue, WuValueDef):
         wuvalue = wuvalue.value
       status = 0x10 #TODO: Dummy value. Niels: Don't have it in python yet
-      wuproperty = WuProperty.create(wutype.name,
+      wuproperty = WuProperty.new(wutype.name,
           wuvalue, status, wupropertydef.identity,
           wuobject.identity)
+      wuobject.wuproperty_cache.append(wuproperty)
 
     return wuobject
 
@@ -486,6 +487,19 @@ class WuObject(Definition):
   def create(cls, wuclassdef, node, port_number, virtual=False):
     wuobject = cls.new(wuclassdef, node, port_number, virtual)
     wuobject.save()
+
+    # Might have to make an exception here, since Property is ususally
+    # not generated explicitly as it is assumed to come with WuObjects
+    for wupropertydef in wuclassdef.wupropertydefs():
+      wutype = wupropertydef.wutype()
+      wuvalue = wupropertydef.default_wuvalue()
+      if isinstance(wuvalue, WuValueDef):
+        wuvalue = wuvalue.value
+      status = 0x10 #TODO: Dummy value. Niels: Don't have it in python yet
+      wuproperty = WuProperty.create(wutype.name,
+          wuvalue, status, wupropertydef.identity,
+          wuobject.identity)
+
     return wuobject
 
   def __init__(self, identity, wuclassdef_identity, node_identity, port_number, virtual):
@@ -494,6 +508,7 @@ class WuObject(Definition):
     self.wuclassdef_identity = wuclassdef_identity
     self.node_identity = node_identity
     self.virtual = virtual
+    self.wuproperty_cache = [] # use it when this instance is not saved to db
 
   def wunode(self):
     r = (self.node_identity,)
@@ -516,13 +531,17 @@ class WuObject(Definition):
         r).fetchone()
     return WuClassDef(*list(result))
 
+  # this is for fixing default values and mapper create new wuobjects
   def wuproperties(self):
-    properties = []
-    r = (self.identity,)
-    where = "WHERE wuobject_identity=?"
-    results = self.__class__.c.execute("SELECT * from wuproperties %s" % (where), r).fetchall()
-    for result in results:
-      properties.append(WuProperty(*list(result)))
+    if not self.identity:
+      properties = self.wuproperty_cache
+    else:
+      properties = []
+      r = (self.identity,)
+      where = "WHERE wuobject_identity=?"
+      results = self.__class__.c.execute("SELECT * from wuproperties %s" % (where), r).fetchall()
+      for result in results:
+        properties.append(WuProperty(*list(result)))
     return properties
 
 

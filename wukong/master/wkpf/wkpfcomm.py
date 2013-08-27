@@ -43,15 +43,15 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self):
+    def getActiveNodeInfos(self, force=False):
       #set_wukong_status("Discovery: Requesting node info")
-      return filter(lambda item: item.isResponding(), self.getAllNodeInfos())
+      return filter(lambda item: item.isResponding(), self.getAllNodeInfos(force=force))
 
     def getNodeInfos(self, node_ids):
       return filter(lambda info: info.id in node_ids, self.getAllNodeInfos())
 
-    def getAllNodeInfos(self):
-      if self.all_node_infos == []:
+    def getAllNodeInfos(self, force=False):
+      if self.all_node_infos == [] or force:
         print '[wkpfcomm] getting all nodes from discovery'
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in self.getNodeIds()]
       else:
@@ -199,30 +199,35 @@ class Communication:
         reply = reply.payload[5:]
         while len(reply) > 1:
           wuclass_id = (reply[0] <<8) + reply[1]
-          virtual = reply[2] == 1
+          virtual_or_publish = reply[2] == 1
 
-          node = WuNode.find(id=destination)
+          virtual = virtual_or_publish & 0x1
+          publish = virtual_or_publish & 0x2
 
-          if not node:
-            print '[wkpfcomm] Unknown node id', destination
-            break
+          if publish:
+            node = WuNode.find(id=destination)
 
-          wuclassdef = WuClassDef.find(id=wuclass_id)
+            if not node:
+              print '[wkpfcomm] Unknown node id', destination
+              break
 
-          if not wuclassdef:
-            print '[wkpfcomm] Unknown wuclass id', wuclass_id
-            break
+            wuclassdef = WuClassDef.find(id=wuclass_id)
 
-          wuclass = WuClass.find(node_identity=node.identity,
-              wuclassdef_identity=wuclassdef.identity)
+            if not wuclassdef:
+              print '[wkpfcomm] Unknown wuclass id', wuclass_id
+              break
 
-          # Create one
-          if not wuclass:
-            wuclass = WuClass.create(wuclassdef, node, virtual)
-            # No need to recreate property definitions, as they are already
-            # created when parsing XML
+            wuclass = WuClass.find(node_identity=node.identity,
+                wuclassdef_identity=wuclassdef.identity)
 
-          wuclasses.append(wuclass)
+            # Create one
+            if not wuclass:
+              wuclass = WuClass.create(wuclassdef, node, virtual)
+              # No need to recreate property definitions, as they are already
+              # created when parsing XML
+
+            wuclasses.append(wuclass)
+
           reply = reply[3:]
 
       return wuclasses

@@ -65,16 +65,12 @@ class Generator:
             else:
                 return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
 
-        def generateProperties(wuclass_properties, component_properties):
-            properties = []
-            for property in wuclass_properties:
-                if property.value.strip() != "" and (not property.wupropertydef().name in [x.wupropertydef().name for x in properties]):
-                    properties.append(property)
+        def generateProperties(wuobject_properties, component_properties):
+            properties = wuobject_properties
 
             for property in properties:
                 if property.wupropertydef().name in component_properties:
-                    if component_properties[property.wupropertydef().name].strip() != "":
-                        property.value = component_properties[property.wupropertydef().name]
+                    property.value = component_properties[property.wupropertydef().name]
             return properties
 
         # Generate the Java code
