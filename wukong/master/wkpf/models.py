@@ -533,7 +533,7 @@ class WuObject(Definition):
 
   # this is for fixing default values and mapper create new wuobjects
   def wuproperties(self):
-    if not self.identify:
+    if not self.identity:
       properties = self.wuproperty_cache
     else:
       properties = []
