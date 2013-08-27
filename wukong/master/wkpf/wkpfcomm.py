@@ -43,15 +43,15 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self):
+    def getActiveNodeInfos(self, force=False):
       #set_wukong_status("Discovery: Requesting node info")
-      return filter(lambda item: item.isResponding(), self.getAllNodeInfos())
+      return filter(lambda item: item.isResponding(), self.getAllNodeInfos(force=force))
 
     def getNodeInfos(self, node_ids):
       return filter(lambda info: info.id in node_ids, self.getAllNodeInfos())
 
-    def getAllNodeInfos(self):
-      if self.all_node_infos == []:
+    def getAllNodeInfos(self, force=False):
+      if self.all_node_infos == [] or force:
         print '[wkpfcomm] getting all nodes from discovery'
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in self.getNodeIds()]
       else:
