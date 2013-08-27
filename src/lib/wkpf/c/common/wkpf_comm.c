@@ -177,7 +177,6 @@ void wkpf_comm_handle_message(void *data) {
 			if (number_of_wuclasses_in_message > NUMBER_OF_WUCLASSES_PER_MESSAGE)
 				number_of_wuclasses_in_message = NUMBER_OF_WUCLASSES_PER_MESSAGE;
 
-      uint8_t until_index = 0;
 			for (uint8_t i=0; i<number_of_wuclasses_in_message; i++) {
 				wuclass_t *wuclass;
 				wkpf_get_wuclass_by_index(i+start_at_wuclass_index, &wuclass);
