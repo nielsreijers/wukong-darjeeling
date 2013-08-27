@@ -18,6 +18,7 @@ function init()
         $('#node-editor').parent().removeClass('active');
         $('#application').parent().addClass('active');
         $('#locationTree').parent().removeClass('active');
+        $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         application_fill();
     });
@@ -26,6 +27,7 @@ function init()
         $('#node-editor').parent().addClass('active');
         $('#application').parent().removeClass('active');
         $('#locationTree').parent().removeClass('active');
+        $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         $.get('/testrtt', function(data) {
             if (data.status == '1') {
@@ -41,12 +43,21 @@ function init()
         $('#node-editor').parent().removeClass('active');
         $('#application').parent().removeClass('active');
         $('#locationTree').parent().addClass('active');
+        $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         $.post('/loc_tree', function(data) {
 	    		make_tree(data);
 	    		$('#content').append(data.node);
 	    		load_landmark(data.xml);	    		
 		});                    
+    });
+    $('#designer').click(function() {
+        $('#node-editor').parent().removeClass('active');
+        $('#application').parent().removeClass('active');
+        $('#locationTree').parent().removeClass('active');
+        $('#designer').parent().addClass('active');
+        window.options.repeat = false;
+		$('#content').html('<iframe width=100% height=100% src=/ide></iframe>');
     });
     
     application_fill();
