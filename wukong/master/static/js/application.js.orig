@@ -401,15 +401,43 @@ function poll(url, version, options, callback)
             callback(data);
         }
 
+<<<<<<< HEAD
+        _.each(data.logs, function(line) {
+            if (line !== '') {
+                $('#log').append('<pre>' + line + '</pre>');
+            }
+        });
+
+        // TODO:mapping_results too
+        // TODO:node infos too
+
+        //if (forceRepeat) {
+            //console.log('repeat');
+        //} else {
+            //console.log('no repeat');
+        //}
+        if (forceRepeat || data.returnCode < 0) {
+            //console.log("repeating");
+=======
         if (data.ops.indexOf('c') != -1) {
             stop_polling();
         } else if (forceRepeat) {
+>>>>>>> 99f274f8c78b8630a5b99c7003d410557bbbf3db
             setTimeout(function() {
                 poll(url, data.version, options, callback);
             }, 1000);
         }
 
+<<<<<<< HEAD
+        _.each(data.logs, function(line) {
+            if (line !== '') {
+                $('#log').append('<pre>' + line + '</pre>');
+            }
+        });
+        window.polling = null;
+=======
         global_polling_status = false;
+>>>>>>> 99f274f8c78b8630a5b99c7003d410557bbbf3db
     });
 }
 

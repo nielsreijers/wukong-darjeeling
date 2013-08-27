@@ -3,6 +3,12 @@
 </script>
 <script type="text/javascript" src="/static/js/deployment.js"></script>
 
+<!-- optional, displays current wukong master status (e.g. mapping) -->
+<!-- could use polling to update in real time -->
+<div class="wukong-status">
+  <h1 id="msg"></h1>
+</div>
+
 <div id='wrapper'>
     <div class=row-fluid>
         <div class="span12">
@@ -25,7 +31,8 @@
                             <ul class="nav nav-pills">
                                 <li><a id="nodes-btn" href="#nodes" data-toggle="tab">Discover</a></li>
                                 <li><a id="mapping_results-btn" href="#mapping_results" data-toggle="tab">Map</a></li>
-                                <li class="disabled"><a id="deploy-btn" href="#deploy_results" data-toggle="tab">Deploy</a></li>
+                                <!-- deployment.js will reveal deploy-btn depending on mapping result -->
+                                <li style="display: none;"><a id="deploy-btn" href="#deploy_results" data-toggle="tab">Deploy</a></li>
                             </ul>
                             <div class=tab-content>
                                 <div class="tab-pane" id="nodes">
@@ -36,13 +43,9 @@
                                     {% include "monitor-mapping-results.html" %}
                                 </div>
                                 <div class="tab-pane" id="deploy_results">
-                                    <h1 id="wukong_status"></h1>
-                                    <h1 id="application_status"></h1>
+                                    <div id="deploy-progress">
+                                    </div>
                                 </div>
-
-                                <!--<div class="tab-pane" id="log">-->
-                                    <!--{% include "monitor-log.html" %}-->
-                                <!--</div>-->
                             </div>
                         </div>
                     </div>

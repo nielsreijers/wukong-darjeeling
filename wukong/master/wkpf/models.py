@@ -1,4 +1,5 @@
 import sqlite3
+import copy
 
 connection = None
 def global_conn():
@@ -21,8 +22,8 @@ def bootstrap_database():
     c.execute('''CREATE TABLE IF NOT EXISTS wunodes
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          id INTEGER not null,
-         energy REAL,
-         location TEXT)''')
+         location TEXT,
+         energy REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuclasses
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          wuclassdef_identity INTEGER,
@@ -32,9 +33,12 @@ def bootstrap_database():
          FOREIGN KEY(node_identity) REFERENCES nodes(identity))''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuobjects
         (identity INTEGER PRIMARY KEY AUTOINCREMENT, 
+         wuclassdef_identity INTEGER,
+         node_identity INTEGER,
          port_number INTEGER,
-         wuclass_identity INTEGER,
-         FOREIGN KEY(wuclass_identity) REFERENCES wuclasses(identity))''')
+         virtual BOOLEAN,
+         FOREIGN KEY(wuclassdef_identity) REFERENCES wuclassdefs(identity),
+         FOREIGN KEY(node_identity) REFERENCES nodes(identity))''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuproperties
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          datatype TEXT,
@@ -112,7 +116,7 @@ class Definition:
   def find(cls, **criteria):
     results = cls.where(**criteria)
     if results:
-      return results[0]
+      return copy.deepcopy(results[0])
     return None
 
   @classmethod
@@ -126,7 +130,7 @@ class Definition:
     where = "WHERE " + " AND ".join(criteria) if len(criteria) > 0 else ""
 
     results = cls.c.execute("SELECT * from %s %s" % (cls.tablename, where)).fetchall()
-    return map(lambda result: cls(*result), results)
+    return copy.deepcopy(map(lambda result: cls(*result), results))
 
   def save(self):
     '''
@@ -183,8 +187,12 @@ class WuClassDef(Definition):
   columns = ['identity', 'id', 'name', 'virtual', 'type']
 
   @classmethod
+  def new(cls, id, name, virtual, type):
+    return WuClassDef(None, id, name, virtual, type)
+
+  @classmethod
   def create(cls, id, name, virtual, type):
-    wuclass = WuClassDef(None, id, name, virtual, type)
+    wuclass = cls.new(id, name, virtual, type)
     wuclass.save()
     return wuclass
 
@@ -216,7 +224,7 @@ class WuPropertyDef(Definition):
       'default_value_identity', 'default_value', 'access', 'wuclass_id']
 
   @classmethod
-  def create(cls, number, name, datatype, default, access, wuclassdef):
+  def new(cls, number, name, datatype, default, access, wuclassdef):
     '''
     datatype and default will be string
     '''
@@ -234,6 +242,11 @@ class WuPropertyDef(Definition):
 
     wutype = WuPropertyDef(None, number, name, wutype.identity,
         wuvalue_identity, default, access, wuclassdef.id)
+    return wutype
+
+  @classmethod
+  def create(cls, number, name, datatype, default, access, wuclassdef):
+    wutype = cls.new(number, name, datatype, default, access, wuclassdef)
     wutype.save()
     return wutype
 
@@ -286,8 +299,12 @@ class WuTypeDef(Definition):
   columns = ['identity', 'name', 'type']
 
   @classmethod
+  def new(cls, name, type):
+    return WuTypeDef(None, name, type)
+
+  @classmethod
   def create(cls, name, type):
-    wutype = WuTypeDef(None, name, type)
+    wutype = cls.new(name, type)
     wutype.save()
     return wutype
 
@@ -320,8 +337,12 @@ class WuValueDef(Definition):
   columns = ['identity', 'value', 'wutype_identity']
 
   @classmethod
+  def new(cls, value, wutype_identity):
+    return WuValueDef(None, value, wutype_identity)
+
+  @classmethod
   def create(cls, value, wutype_identity):
-    wuvalue = WuValueDef(None, value, wutype_identity)
+    wuvalue = cls.new(value, wutype_identity)
     wuvalue.save()
     return wuvalue
 
@@ -346,11 +367,15 @@ class WuNode(Definition):
   tablename = 'wunodes'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'id', 'energy', 'location']
+  columns = ['identity', 'id', 'location', 'energy']
+
+  @classmethod
+  def new(cls, id, location, energy=100.0):
+    return WuNode(None, id, location, energy)
 
   @classmethod
   def create(cls, id, location, energy=100.0):
-    node = WuNode(None, id, location, energy)
+    node = cls.new(id, location, energy)
     node.save()
     return node
 
@@ -373,18 +398,17 @@ class WuNode(Definition):
       wuclasses_cache.append(WuClass(*list(result)))
     return wuclasses_cache
 
-  def wuobjects(self, force=False):
+  def wuobjects(self):
     '''
     Will query from database
     '''
 
     wuobjects_cache = []
-    for wuclass_cache in self.wuclasses():
-      r = (wuclass_cache.identity,)
-      where = "WHERE wuclass_identity=?"
-      results = self.__class__.c.execute("SELECT * from wuobjects %s" % (where), r).fetchall()
-      for result in results:
-        wuobjects_cache.append(WuObject(*list(result)))
+    r = (self.identity,)
+    where = "WHERE node_identity=?"
+    results = self.__class__.c.execute("SELECT * from wuobjects %s" % (where), r).fetchall()
+    for result in results:
+      wuobjects_cache.append(WuObject(*list(result)))
     return wuobjects_cache
 
   def isResponding(self):
@@ -398,12 +422,15 @@ class WuClass(Definition):
   tablename = 'wuclasses'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'wuclassdef_identity', 'node_identity', 
-      'virtual']
+  columns = ['identity', 'wuclassdef_identity', 'node_identity', 'virtual']
+
+  @classmethod
+  def new(cls, wuclassdef, node, virtual):
+    return WuClass(None, wuclassdef.identity, node.identity, virtual)
 
   @classmethod
   def create(cls, wuclassdef, node, virtual):
-    wuclass = WuClass(None, wuclassdef.identity, node.identity, virtual)
+    wuclass = cls.new(wuclassdef, node, virtual)
     wuclass.save()
     return wuclass
 
@@ -435,16 +462,35 @@ class WuObject(Definition):
   tablename = 'wuobjects'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'port_number', 'wuclass_identity']
+  columns = ['identity', 'wuclassdef_identity', 'node_identity', 'port_number', 'virtual']
 
   @classmethod
-  def create(cls, port_number, wuclass):
-    wuobject = WuObject(None, port_number, wuclass.identity)
+  def new(cls, wuclassdef, node, port_number, virtual=False):
+    wuobject = WuObject(None, wuclassdef.identity, node.identity, port_number, virtual)
+
+    # Might have to make an exception here, since Property is ususally
+    # not generated explicitly as it is assumed to come with WuObjects
+    for wupropertydef in wuclassdef.wupropertydefs():
+      wutype = wupropertydef.wutype()
+      wuvalue = wupropertydef.default_wuvalue()
+      if isinstance(wuvalue, WuValueDef):
+        wuvalue = wuvalue.value
+      status = 0x10 #TODO: Dummy value. Niels: Don't have it in python yet
+      wuproperty = WuProperty.new(wutype.name,
+          wuvalue, status, wupropertydef.identity,
+          wuobject.identity)
+      wuobject.wuproperty_cache.append(wuproperty)
+
+    return wuobject
+
+  @classmethod
+  def create(cls, wuclassdef, node, port_number, virtual=False):
+    wuobject = cls.new(wuclassdef, node, port_number, virtual)
     wuobject.save()
 
     # Might have to make an exception here, since Property is ususally
     # not generated explicitly as it is assumed to come with WuObjects
-    for wupropertydef in wuclass.wuclassdef().wupropertydefs():
+    for wupropertydef in wuclassdef.wupropertydefs():
       wutype = wupropertydef.wutype()
       wuvalue = wupropertydef.default_wuvalue()
       if isinstance(wuvalue, WuValueDef):
@@ -456,41 +502,46 @@ class WuObject(Definition):
 
     return wuobject
 
-  def __init__(self, identity, port_number, wuclass_identity):
+  def __init__(self, identity, wuclassdef_identity, node_identity, port_number, virtual):
     self.identity = identity
     self.port_number = port_number
-    self.wuclass_identity = wuclass_identity
-
-  def __repr__(self):
-    return '''
-    %s(
-      %r
-    )''' % (self.__class__.__name__, self.__dict__.items() + [('node_id', self.wunode().id)])
+    self.wuclassdef_identity = wuclassdef_identity
+    self.node_identity = node_identity
+    self.virtual = virtual
+    self.wuproperty_cache = [] # use it when this instance is not saved to db
 
   def wunode(self):
-    wuclass = self.wuclass()
-    if not wuclass:
-      raise Exception('WuObject has no WuClass')
-    r = (wuclass.node_identity,)
+    r = (self.node_identity,)
     where = "WHERE identity=?"
     result = self.__class__.c.execute("SELECT * from wunodes %s" % (where),
         r).fetchone()
     return WuNode(*list(result))
 
   def wuclass(self):
-    r = (self.wuclass_identity,)
-    where = "WHERE identity=?"
+    r = (self.node_identity, self.wuclassdef_identity,)
+    where = "WHERE node_identity=? wuclassdef_identity=?"
     result = self.__class__.c.execute("SELECT * from wuclasses %s" % (where),
         r).fetchone()
     return WuClass(*list(result))
 
+  def wuclassdef(self):
+    r = (self.wuclassdef_identity,)
+    where = "WHERE identity=?"
+    result = self.__class__.c.execute("SELECT * from wuclassdefs %s" % (where),
+        r).fetchone()
+    return WuClassDef(*list(result))
+
+  # this is for fixing default values and mapper create new wuobjects
   def wuproperties(self):
-    properties = []
-    r = (self.identity,)
-    where = "WHERE wuobject_identity=?"
-    results = self.__class__.c.execute("SELECT * from wuproperties %s" % (where), r).fetchall()
-    for result in results:
-      properties.append(WuProperty(*list(result)))
+    if not self.identify:
+      properties = self.wuproperty_cache
+    else:
+      properties = []
+      r = (self.identity,)
+      where = "WHERE wuobject_identity=?"
+      results = self.__class__.c.execute("SELECT * from wuproperties %s" % (where), r).fetchall()
+      for result in results:
+        properties.append(WuProperty(*list(result)))
     return properties
 
 
@@ -506,9 +557,15 @@ class WuProperty(Definition):
       'wupropertydef_identity', 'wuobject_identity']
 
   @classmethod
+  def new(cls, datatype, value, status, wupropertydef_identity,
+      wuobject_identity):
+    return WuProperty(None, datatype, value, status,
+        wupropertydef_identity, wuobject_identity)
+
+  @classmethod
   def create(cls, datatype, value, status, wupropertydef_identity,
       wuobject_identity):
-    wuproperty = WuProperty(None, datatype, value, status,
+    wuproperty = cls.new(datatype, value, status,
         wupropertydef_identity, wuobject_identity)
     wuproperty.save()
     return wuproperty

@@ -64,7 +64,7 @@ WuIDE.prototype.parseXML = function() {
 		var virtual = $(val).attr('virtual');
 		var type = $(val).attr('type');
 		var properties = $(val).find('property');
-		var privateCData = $(val).find("privateCData");
+		var privateCData = $(val).attr("privateCData");
 		var prop = [];
 		$.each(properties, function(j, val) {
 			var pname = $(val).attr('name');
@@ -73,7 +73,7 @@ WuIDE.prototype.parseXML = function() {
 			var def = $(val).attr('default');
 			prop.push({name:pname, datatype:datatype, access:access, default:def});
 		});
-		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateData:privateCData});
+		self.classes.push({name:name, id:id, virtual:virtual,type:type,properties:prop,enabled:false,privateCData:privateCData});
 	});
 	self.types=[];
 	$.each(types,function(i,v) {
@@ -137,14 +137,21 @@ WuIDE.prototype.initUI = function() {
 	});
 
 	$('#build').click(function() {
-		$.get('/build', function() {
-
+		$('#log').html("building...");
+		$.get('/build', function(data) {
+			$('#log').html(data);
 		})
 	});
 
 	$('#upload').click(function() {
-		$.get('/upload', {port: $('#serialport :selected').text()}, function() {
-
+		var port = $('#serialport :selected').text();
+		if(port == "") {
+			$('#log').html("Please select the port");
+			return;
+		}
+		$('#log').html("uploading...");
+		$.get('/upload', {port: port}, function(data) {
+			$('#log').html(data);
 		})
 	});	
 }
@@ -183,7 +190,7 @@ WuIDE.prototype.load = function() {
 	$('#saveall').unbind().click(function() {
 		var xml = self.toXML();
 		data = {xml:xml};
-		if (self.is_user) {
+		if (ide.is_user) {
 			$.post('/componentxmluser?appid='+appid, data);
 		} else {
 			$.post('/componentxml', data);
@@ -350,6 +357,12 @@ WuIDE.prototype.refreshEnumList = function(item,i) {
 		item.name = $('#type_editor_name').val();
 		self.load();
 	});
+	$('#typeeditcancel').unbind().click(function() {
+		// Update the XML here
+		$('#type_editor').hide();
+		$('#type_list').show();
+		self.load();
+	});
 	$('#addenum').unbind().click(function() {
 		item.enums.push({name:'Dummy'});
 		self.refreshEnumList(item,i);
@@ -511,12 +524,27 @@ WuClass.prototype.render=function(id) {
 		ide.load();
 		$('#classes').show();
 	});
+
+	$('#class_editor_cancel').unbind().click(function() {
+		$('#class_editor').hide();
+		$('#class_list').show();
+		ide.load();
+		$('#classes').show();
+	});
+
 	$('#class_editor_edit').click(function() {
 		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
-		$.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
-			var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
-			TextEditor.load(code);
-		});
+        if (ide.is_user) {
+            $.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
+                var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
+                TextEditor.load(code);
+            });
+        } else {
+            $.get('/wuclasssource?src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
+                var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
+                TextEditor.load(code);
+            });
+        }
 	});
 	$('#addprop').unbind().click(function() {
 		self.val.properties.push({id:self.val.properties.length,name:'myname',access:'readwrite',datatype:'boolean',default:''});

@@ -76,6 +76,12 @@ $(document).ready(function() {
         setTimeout(function() {
             $('#msg').hide();
         },2000);
+		tmp = g_selected_line;
+		g_selected_line = l;
+		if (tmp)
+			tmp.draw(FBP_canvas);
+		if (g_selected_line)
+			g_selected_line.draw(FBP_canvas);
     });
     $('#fileloader').dialog({autoOpen:false});
     $('#fileloader_file').val('fbp.sce');
@@ -123,6 +129,18 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
+	if (g_selected_line) {
+		var lines=[];
+		for(i=0;i<g_lines.length;i++) {
+			if (g_lines[i] != g_selected_line) {
+				lines.push(g_lines[i]);
+			}
+		}
+		g_lines = lines;
+		FBP_refreshLines();
+		g_selected_line = null;
+		return;
+	}
 	if (Block.current == null) return;
     for(i=0;i<g_nodes.length;i++) {
         if (g_nodes[i].id == Block.current.id) {
@@ -318,6 +336,7 @@ function FBP_renderPage(page)
 		line.source = hash[page.lines[i].source];
 		line.signal = page.lines[i].signal;
 		line.dest = hash[page.lines[i].dest];
+		line.action = page.lines[i].action;
         g_lines.push(Line.restore(line));
     }
     FBP_refreshLines();

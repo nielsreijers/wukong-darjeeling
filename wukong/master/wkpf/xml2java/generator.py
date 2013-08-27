@@ -16,7 +16,9 @@ from wkpf.util import *
 class Generator:
     @staticmethod
     def generate(name, changesets):
+        print '[generator] generate Java App'
         Generator.generateJavaApplication(name, changesets)
+        print '[generator] generate Table XML'
         Generator.generateTablesXML(name, changesets)
 
     @staticmethod
@@ -63,20 +65,16 @@ class Generator:
             else:
                 return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
 
-        def generateProperties(wuclass_properties, component_properties):
-            properties = []
-            for property in wuclass_properties:
-                if property.value.strip() != "" and (not property.wupropertydef().name in [x.wupropertydef().name for x in properties]):
-                    properties.append(property)
+        def generateProperties(wuobject_properties, component_properties):
+            properties = wuobject_properties
 
             for property in properties:
                 if property.wupropertydef().name in component_properties:
-                    if component_properties[property.wupropertydef().name].strip() != "":
-                        property.value = component_properties[property.wupropertydef().name]
+                    property.value = component_properties[property.wupropertydef().name]
             return properties
 
         # Generate the Java code
-        print 'generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
+        print '[generator] generating', os.path.join(JAVA_OUTPUT_DIR, "WKDeploy.java")
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
         jinja2_env.filters['nodeinjava'] = nodeinjava
         jinja2_env.filters['wuclassname'] = wuclassname

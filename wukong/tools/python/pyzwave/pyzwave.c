@@ -63,7 +63,7 @@ static PyObject* pyzwave_init(PyObject *self, PyObject *args) {
   regex_t regex;
   int regi;
 
-  regi = regcomp(&regex, "[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}", REG_EXTENDED);
+  regi = regcomp(&regex, "^[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}$", REG_EXTENDED | REG_NOSUB | REG_ICASE);
   if (regi) { fprintf(stderr, "Could not compile regex\n"); return NULL; }
   
   printf("pyzwave_init\n");

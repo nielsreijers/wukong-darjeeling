@@ -41,7 +41,7 @@ def fake_node(id, location, energy):
     #print 'Creating wuobject', wuclassdef.id
     # TODO: need to be certain about port number or reconfig will fail
     port_number = 4
-    wuobject = WuObject.create(port_number, wuclass)
+    wuobject = WuObject.create(wuclassdef, node, port_number)
 
   # Right now creating a new WuObject will also creates WuProperties
   # automatically
