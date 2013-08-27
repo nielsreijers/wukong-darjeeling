@@ -492,10 +492,10 @@ class testrtt(tornado.web.RequestHandler):
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
     global node_infos
-    node_infos = getComm().getActiveNodeInfos()
+    node_infos = getComm().getActiveNodeInfos(True)
     rebuildTree(node_infos)
     #furniture data loaded from fake data for purpose of 
-    getComm().getRoutingInformation()
+    #getComm().getRoutingInformation()
     # default is false
     set_location = self.get_argument('set_location', False)
 
