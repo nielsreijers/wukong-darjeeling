@@ -50,6 +50,7 @@ typedef int64_t dj_time_t;
 // #define DBG_WKCOMM true
 // #define DBG_WKREPROG true
 // #define DBG_ZWAVETRACE true
+#define DBG_WKROUTING true
 
 #define DARJEELING_PRINTF printf
 
