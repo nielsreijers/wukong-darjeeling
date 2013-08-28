@@ -109,10 +109,10 @@ class LocationTreeNode:
         curNd = self
         while curNd.parent !=None:
             curNd = curNd.parent
-            pa_global = (pa_global[0] + curNd..transformToGlobal(origPoint[0]), 
+            pa_global = (pa_global[0] + curNd.transformToGlobal(origPoint[0]), 
                          pa_global[1]+ curNd.transformToGlobal(origPoint[1]), 
                          pa_global[2]+ curNd.transformToGlobal(origPoint[2]))
-        pa_global = (curNd.originalPnt[0] + curNd..transformToGlobal(origPoint[0]), 
+        pa_global = (curNd.originalPnt[0] + curNd.transformToGlobal(origPoint[0]), 
                      curNd.originalPnt[1]+ curNd.transformToGlobal(origPoint[1]), 
                      curNd.originalPnt[2]+ curNd.transformToGlobal(origPoint[2]))
         return pa_global

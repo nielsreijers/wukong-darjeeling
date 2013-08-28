@@ -719,7 +719,7 @@ class WuClassSource(tornado.web.RequestHandler):
   
   
 
-class tree(tornado.web.RequestHandler): 
+class loc_tree(tornado.web.RequestHandler): 
   def post(self):
     global node_infos
     
@@ -915,7 +915,7 @@ wukong = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
   (r"/loc_tree/nodes/([0-9]*)", loc_tree),
   (r"/loc_tree/nodes/([0-9]*)/(\w+)", sensor_info),
-  (r"/loc_tree", tree),
+  (r"/loc_tree", loc_tree),
   (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
   (r"/loc_tree/save", save_landmark),
   (r"/loc_tree/land_mark", add_landmark),
