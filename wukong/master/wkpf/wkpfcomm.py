@@ -197,9 +197,10 @@ class Communication:
           total_number_of_messages = reply.payload[3]
 
         reply = reply.payload[5:]
+        print "reply=", reply
         while len(reply) > 1:
           wuclass_id = (reply[0] <<8) + reply[1]
-          virtual_or_publish = reply[2] == 1
+          virtual_or_publish = reply[2]
 
           virtual = virtual_or_publish & 0x1
           publish = virtual_or_publish & 0x2
