@@ -292,10 +292,10 @@ static PyObject* pyzwave_getDeviceType(PyObject *self, PyObject *args) {
   PyZwave_getDeviceType((unsigned)node_id);
 
   device_type = PyList_New(0);
-  PyList_Append(device_type, PyInt_FromLong((long)basic));
-  PyList_Append(device_type, PyInt_FromLong((long)generic));
-  PyList_Append(device_type, PyInt_FromLong((long)specific));
-  return neighbor_list;
+  PyList_Append(device_type, PyInt_FromLong((long)pyzwave_basic));
+  PyList_Append(device_type, PyInt_FromLong((long)pyzwave_generic));
+  PyList_Append(device_type, PyInt_FromLong((long)pyzwave_specific));
+  return device_type;
 }
 
 PyMethodDef methods[] = {
