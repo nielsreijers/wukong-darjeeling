@@ -4415,6 +4415,18 @@ void PyZwave_routing(unsigned node_id) {
   }
 }
 
+void PyZwave_getDeviceType(unsigned node_id) {
+  printf("calling GetRoutingInformation!\n");
+  PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+  ZW_RequestNodeInfo(node_id);
+  while (1) {
+    if (!PyZwave_receiveByte(1000))
+      break; // No data received.
+    if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+      break; // Ack or error received.
+  }
+}
+
 int PyZwave_zwavefd() {
     return zwavefd;
 }
