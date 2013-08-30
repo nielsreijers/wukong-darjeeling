@@ -463,6 +463,7 @@ class WuObject(Definition):
 
   # Maintaining an ordered list for save function
   columns = ['identity', 'wuclassdef_identity', 'node_identity', 'port_number', 'virtual']
+  ZWAVE_SWITCH_PORT = 0x100
 
   @classmethod
   def new(cls, wuclassdef, node, port_number, virtual=False):
