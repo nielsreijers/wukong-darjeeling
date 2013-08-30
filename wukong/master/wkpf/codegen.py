@@ -549,8 +549,6 @@ class CodeGen:
           #include "native_wuclasses.h"
           #include "native_wuclasses_privatedatatypes.h"
 
-          #ifdef ENABLE_%s
-
           extern void %s(wuobject_t *wuobject);
           extern void %s(wuobject_t *wuobject);
 
