@@ -169,7 +169,7 @@ class ZwaveAgent(TransportAgent):
         # received ack from Agent
         return message
 
-    def getDeviceType(self):
+    def getDeviceType(self,node):
 
         result = AsyncResult()
 
@@ -180,7 +180,7 @@ class ZwaveAgent(TransportAgent):
                 callback,
                 None,
                 None,
-                new_message(1, "device_type", 0),
+                new_message(node, "device_type", 0),
                 0)
         tasks.put_nowait(defer)
 

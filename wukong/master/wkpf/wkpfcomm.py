@@ -120,8 +120,7 @@ class Communication:
       return node
 
     def getDeviceType(self, destination):
-      if self.device_type == None:
-        self.device_type = self.zwave.getDeviceType()
+      self.device_type = self.zwave.getDeviceType(destination)
       return self.device_type
 
     def getLocation(self, destination):
