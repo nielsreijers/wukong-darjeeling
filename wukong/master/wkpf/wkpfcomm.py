@@ -25,6 +25,7 @@ class Communication:
     def __init__(self):
       self.all_node_infos = []
       self.broker = getAgent()
+      self.device_type = None
       try:
         self.zwave = getZwaveAgent()
       except:
@@ -80,6 +81,9 @@ class Communication:
       print '[wkpfcomm] getNodeInfo of node id', destination
 
       (basic,generic,specific) = self.getDeviceType(destination)
+      #print "basic=", basic
+      #print "generic=", generic
+      #print "specific=", specific
       if generic == 0xff:
         location = self.getLocation(destination)
         node = WuNode.create(destination, location)
