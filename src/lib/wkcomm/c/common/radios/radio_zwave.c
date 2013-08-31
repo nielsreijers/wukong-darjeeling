@@ -7,6 +7,10 @@
 #include "debug.h"
 #include "djtimer.h"
 #include "uart.h"
+#include <avr/io.h>
+#define output_low(port, pin) port &= ~(1<<pin)
+#define output_high(port, pin) port |= (1<<pin)
+
 
 // Here we have a circular dependency between radio_X and routing.
 // Bit of a code smell, but since the two are supposed to be used together I'm leaving it like this for now.
@@ -35,6 +39,7 @@
 #define ZWAVE_TYPE_REQ          0x00
 #define ZWAVE_TYPE_CMD          0x01
 
+#define ZWAVE_CMD_APPLICATIONNODEINFO 0x03
 #define ZWAVE_CMD_APPLICATIONCOMMANDHANDLER 0x04
 
 #define COMMAND_CLASS_PROPRIETARY   0x88
@@ -115,6 +120,7 @@ void radio_zwave_poll(void) {
 	    DEBUG_LOG(DBG_ZWAVETRACE,"start zwave learn !!!!!!!!!");
 	    radio_zwave_learn();//finish will set zwave mode=0
 	    zwave_mode=0;
+		
     }
     else if(zwave_mode==2)//reset mode
     {
@@ -173,6 +179,7 @@ void radio_zwave_init(void) {
     }
     DEBUG_LOG(DBG_WKCOMM, "My Zwave node_id: %d\n", radio_zwave_my_address);
     radio_zwave_platform_dependent_init();
+	radio_zwave_set_node_info(0,0xff, 0);
 }
 
 radio_zwave_address_t radio_zwave_get_node_id() {
@@ -337,6 +344,29 @@ void radio_zwave_reset() {
     }
     zwave_mode=0;
     DEBUG_LOG(DBG_ZWAVETRACE,"reset complete!!!!!!!!!!");
+
+}
+void radio_zwave_set_node_info(uint8_t devmask,uint8_t generic, uint8_t specific) {
+    unsigned char b[10];
+    int k;
+
+    b[0] = 1;
+    b[1] = 8;
+    b[2] = 0;
+    b[3] = 3;
+    b[4] = devmask;
+    b[5] = generic;
+    b[6] = specific;
+    b[7] = 0;
+    b[8] = seq;
+    b[9] = 0xff^7^0^0x3^devmask^generic^specific^0^seq;
+    seq++;
+    for(k=0;k<10;k++)
+    {
+        uart_write_byte(ZWAVE_UART, b[k]);
+    }
+    zwave_mode=0;
+    DEBUG_LOG(true,"set node info!!!!!!!!!!");
 
 }
 
