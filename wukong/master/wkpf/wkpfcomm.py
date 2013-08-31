@@ -99,7 +99,7 @@ class Communication:
       else:
         # Create a virtual wuclass for non wukong device. We support switch only now. 
         # We may support others in the future.
-        node = WuNode.create(destination, 'WuKong')
+        node = WuNode.create(destination, 'WuKong',type='native')
         wuclassdef = WuClassDef.find(id=4)    # Light_Actuator
 
         if not wuclassdef:
