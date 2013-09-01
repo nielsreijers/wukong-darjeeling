@@ -44,6 +44,9 @@ extern void wkcomm_poll(void *);
 // Send length bytes to dest
 extern int wkcomm_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length);
 
+// Send raw data length bytes to dest
+int wkcomm_send_raw(wkcomm_address_t dest, uint8_t *payload, uint8_t length);
+
 // Send length bytes to dest
 extern int wkcomm_send_reply(wkcomm_received_msg *received_msg, uint8_t command, uint8_t *payload, uint8_t length);
 

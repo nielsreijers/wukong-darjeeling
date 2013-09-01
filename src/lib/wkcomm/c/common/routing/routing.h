@@ -15,6 +15,7 @@ extern void routing_poll();
 
 // This will be called from wkcomm when it needs to send a message
 extern uint8_t routing_send(wkcomm_address_t dest, uint8_t *payload, uint8_t length);
+extern uint8_t routing_send_raw(wkcomm_address_t dest, uint8_t *payload, uint8_t length);
 
 // This will be called from wkcomm to determine this node's wukong id
 wkcomm_address_t routing_get_node_id();
