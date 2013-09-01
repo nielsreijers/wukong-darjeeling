@@ -15,7 +15,7 @@ extern bool zwave_btn_is_push;
 extern bool zwave_btn_is_release;
 
 void radio_zwave_platform_dependent_init(void) {
-    EICRA |= (0x02 & 0x03);//falling endge interrupt mode
+    EICRA |= (0x01 & 0x03);//falling endge interrupt mode
     EIMSK |=_BV(0);//enable INT0
 
     DDRD &= ~_BV(0); 
