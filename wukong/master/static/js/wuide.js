@@ -436,6 +436,8 @@ WuClass.prototype.updateClass=function() {
 			v.datatype = 'short';
 		else if (v.datatype == 'Boolean')
 			v.datatype = 'boolean';
+		else if (v.datatype == 'refresh_rate')
+			v.datatype = 'refresh_rate'
 
 		v.access = $('#property'+i+' ._access').val();
 		if (v.access == 'Write Only')
@@ -452,6 +454,7 @@ WuClass.prototype.render=function(id) {
 	var self = this;
 	var datatype='<option val=b>Boolean</option>';
 	datatype = datatype + '<option val=s>Short</option>';
+	datatype = datatype + '<option val=r>refresh_rate</option>';
 
 
 	if (WuClass.propertyTemplate == null) {
@@ -485,6 +488,9 @@ WuClass.prototype.render=function(id) {
 			$('#property'+i+' ._datatype').val('Boolean');
 		else if (val.datatype == 'short')
 			$('#property'+i+' ._datatype').val('Short');
+		else if (val.datatype == 'refresh_rate')
+			$('#property'+i+' ._datatype').val('refresh_rate');
+
 		if (val.access == 'writeonly') 
 			$('#property'+i+' ._access').val('Write Only');
 		else if (val.access == 'readwrite')
