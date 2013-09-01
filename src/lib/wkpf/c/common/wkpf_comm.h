@@ -31,5 +31,10 @@ extern void wkpf_comm_handle_message(void *msg); // Will be called with a pointe
 #define WKPF_COMM_CMD_SET_FEATURE_R               0xA1
 #define WKPF_COMM_CMD_ERROR_R                     0xAF
 
+#define DEVICE_NATIVE_ZWAVE_SWITCH 64
+#define DEVICE_NATIVE_ZWAVE_DIMMER 65
+#define DEVICE_NATIVE_ZWAVE_CURTAIN 66
+#define DEVICE_NATIVE_ZWAVE_SIMPLE_AV 67
+
 #endif // WKPF_COMM_H
 
