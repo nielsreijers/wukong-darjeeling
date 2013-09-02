@@ -91,16 +91,12 @@ class Generator:
 
     @staticmethod
     def generateTablesXML(name, changesets):
-        def generateProperties(wuclass_properties, component_properties):
-            properties = []
-            for property in wuclass_properties:
-                if property.value.strip() != "" and (not property.wupropertydef().name in [x.wupropertydef().name for x in properties]):
-                    properties.append(property)
+        def generateProperties(wuobject_properties, component_properties):
+            properties = wuobject_properties
 
             for property in properties:
                 if property.wupropertydef().name in component_properties:
-                    if component_properties[property.wupropertydef().name].strip() != "":
-                        property.value = component_properties[property.wupropertydef().name]
+                    property.value = component_properties[property.wupropertydef().name]
             return [p for p in properties if p.wupropertydef().access!='readonly']
 
         # TODO: this should be in a higher level place somewhere.
