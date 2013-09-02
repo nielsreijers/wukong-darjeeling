@@ -637,23 +637,16 @@ class WuClassSource(tornado.web.RequestHandler):
   def get(self):
     self.content_type = 'text/plain'
     try:
+      name = self.get_argument('src')
       type = self.get_argument('type')
-      try:
-        appid = self.get_argument('appid')
-      except:
-        appid = None
+      appid = self.get_argument('appid', None)
 
-      if type == 'C':
-        name = self.get_argument('src')+'.c'
-      else:
-        name = self.get_argument('src')+'.java'
+      name += '.c' if type == 'C' else '.java'
       try:
-          if appid != None:
-              print appid
+          app = None
+          if appid:
               app = wkpf.globals.applications[getAppIndex(appid)]
-              f = open(app.dir+'/'+name)
-          else:
-              f = open(self.findPath(name))
+          f = open(self.findPath(name, app))
           cont = f.read()
           f.close()
       except:
@@ -673,40 +666,32 @@ class WuClassSource(tornado.web.RequestHandler):
       print 'xxx'
       name = self.get_argument('name')
       type = self.get_argument('type')
-      try:
-        appid = self.get_argument('appid')
-      except:
-        appid = None
+      appid = self.get_argument('appid', None)
 
-      if type == 'C':
-        name = name + '.c'
-      else:
-        name = name + '.java'
-      print 'name=',name
-      if appid != None:
+      name += '.c' if type == 'C' else '.java'
+      app = None
+      if appid:
           app = wkpf.globals.applications[getAppIndex(appid)]
-          f = open(app.dir+'/'+name,'w')
-      else:
-          f = open(self.findPath(name),'w')
+      f = open(self.findPath(name, app), 'w')
       f.write(self.get_argument('content'))
       f.close()
       self.write('OK')
     except:
       self.write('Error')
       print traceback.format_exc()
-  
-  def findPath(self,p):
-    name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
-    if os.path.isfile(name):
-      return name
-    name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
-    if os.path.isfile(name):
-      return name
-    name = p
-    print 'yyyyy'
-    return name
-  
-  
+
+  def findPath(self, p, app=None):
+    # Precedence of path is All apps dir -> common native wuclasses, then arcuino native wuclasses
+    paths = [os.path.join(APP_DIR, dirname) for dirname in os.listdir(APP_DIR)] + ['../../src/lib/wkpf/c/common/native_wuclasses/', '../../src/lib/wkpf/c/arduino/native_wuclasses/']
+    # If an app is passed in, then its dir will be the first to search
+    if app:
+      paths = [app.dir] + paths
+    for path in paths:
+      if not os.path.isdir(path): continue
+      filename = path + p
+      if os.path.isfile(filename):
+        return filename
+    return None
 
 class tree(tornado.web.RequestHandler):	
   def post(self):
