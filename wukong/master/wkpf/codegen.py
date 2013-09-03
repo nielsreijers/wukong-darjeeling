@@ -544,6 +544,10 @@ class CodeGen:
                   "extern " + wuClass.getPrivateCDataGetFunction() + ";" if wuClass.hasPrivateCData() else ''
                 ))
 
+          print "wuClass"
+          print wuClass.getCDefineName(),
+          print wuClass.getCSetupName(),
+          print wuClass.getCUpdateName(),
           # Generate C implementation for each native component implementation
           wuclass_native_impl_lines.append('''
           #include "native_wuclasses.h"
@@ -553,9 +557,8 @@ class CodeGen:
           extern void %s(wuobject_t *wuobject);
 
           ''' % (
-                  wuClass.getCDefineName(),
                   wuClass.getCSetupName(),
-                  wuClass.getCUpdateName(),
+                  wuClass.getCUpdateName()
                 ))
 
           wuclass_native_impl_properties_lines = ''
@@ -602,9 +605,9 @@ class CodeGen:
             ''' %(wuClass.getPrivateCDataGetFunction(),
                   wuClass.getPrivateCData()))
 
-          wuclass_native_impl_lines.append('''
-          #endif
-          ''')
+          #wuclass_native_impl_lines.append('''
+          ##endif
+          #''')
 
           if c_dir:
             wuclass_native_header_path = os.path.join(c_dir, wuClass.getCFileName() + '.h')
