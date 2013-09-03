@@ -187,6 +187,26 @@ class new_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg':'Cannot create application'})
 
+class rename_application(tornado.web.RequestHandler):
+  def put(self, app_id):
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      try:
+        wkpf.globals.applications[app_ind].app_name = self.get_argument('value', '')
+        wkpf.globals.applications[app_ind].saveConfig()
+        self.content_type = 'application/json'
+        self.write({'status':0})
+      except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
+        self.set_status(400)
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot save application'})
+
 class application(tornado.web.RequestHandler):
   # topbar info
   def get(self, app_id):
@@ -213,7 +233,6 @@ class application(tornado.web.RequestHandler):
       # active application
       wkpf.globals.set_active_application_index(app_ind)
       app = wkpf.globals.applications[app_ind].config()
-      #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
       topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=wkpf.globals.applications[app_ind], title="Flow Based Programming")
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
@@ -226,7 +245,7 @@ class application(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       try:
-        wkpf.globals.applications[app_ind].name = self.get_argument('name', 'application name')
+        wkpf.globals.applications[app_ind].app_name = self.get_argument('name', '')
         wkpf.globals.applications[app_ind].desc = self.get_argument('desc', '')
         wkpf.globals.applications[app_ind].saveConfig()
         self.content_type = 'application/json'
@@ -812,6 +831,7 @@ wukong = tornado.web.Application([
   (r"/applications", list_applications),
   (r"/applications/new", new_application),
   (r"/applications/([a-fA-F\d]{32})", application),
+  (r"/applications/([a-fA-F\d]{32})/rename", rename_application),
   (r"/applications/([a-fA-F\d]{32})/reset", reset_application),
   (r"/applications/([a-fA-F\d]{32})/properties", properties_application),
   (r"/applications/([a-fA-F\d]{32})/poll", poll),
