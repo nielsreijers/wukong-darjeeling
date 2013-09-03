@@ -1,0 +1,14 @@
+<Nodes>
+<Node id="1">
+    <Location length="17" content="CS/1F/101#(0,1,0)"/>
+    <WuClassList length="2">
+        <WuClass id="0" public="true" virtual="true"/>
+        <WuClass id="5" public="true" virtual="false"/>
+    </WuClassList>
+    <WuObjectList>
+        <WuObject id="5" port="0"/>
+    </WuObjectList>
+</Node>
+</Nodes>
+    
+     

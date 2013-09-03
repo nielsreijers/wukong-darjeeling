@@ -19,7 +19,7 @@ NANOVMTOOL = %(ROOT)s/nanovmtool/
 #location tree root info
 LOCATION_ROOT = WuKong
 
-
+SIMULATION = false
 
 ###[makefile]
 #type of device

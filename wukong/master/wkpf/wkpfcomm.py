@@ -4,6 +4,7 @@ from locationTree import *
 from models import *
 from globals import *
 from configuration import *
+import simulator
 
 # MUST MATCH THE SIZE DEFINED IN wkcomm.h
 WKCOMM_MESSAGE_PAYLOAD_SIZE=40
@@ -29,6 +30,9 @@ class Communication:
       except:
         is_not_connected()
         self.zwave = getMockAgent()
+        if SIMULATION == "true":
+              self.simulator = simulator.MockDiscovery()
+              print '[wkpfcomm]running in simulation mode, discover result from mock_discovery.xml'
       self.routing = None
 
     def addActiveNodesToLocTree(self, locTree):
@@ -41,6 +45,8 @@ class Communication:
       return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
 
     def getNodeIds(self):
+      if SIMULATION == "true":
+        return self.simulator.discovery() 
       return self.zwave.discovery()
 
     def getActiveNodeInfos(self, force=False):
@@ -118,7 +124,9 @@ class Communication:
           location = ''.join([chr(byte) for byte in reply.payload[3:]])
         else:
           location += ''.join([chr(byte) for byte in reply.payload[2:]])
-
+      if SIMULATION == "true":
+          location = self.simulator.mockLocation(destination)
+          length = location.length
       return location[0:length] # The node currently send a bit too much, so we have to truncate the string to the length we need
 
     def setLocation(self, destination, location):
@@ -182,6 +190,8 @@ class Communication:
       wuclasses = []
       total_number_of_messages = None
       message_number = 0
+      if SIMULATION == "true":
+        return self.simulator.mockWuClassList(destination)
 
       while (message_number != total_number_of_messages):
         reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [message_number], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
@@ -241,7 +251,9 @@ class Communication:
       wuobjects = []
       total_number_of_messages = None
       message_number = 0
-
+      if SIMULATION == "true":
+        return self.simulator.mockWuObjectList(destination)
+        
       while (message_number != total_number_of_messages):
         reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [message_number], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
         message_number += 1
