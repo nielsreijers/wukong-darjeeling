@@ -220,7 +220,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
             node = locTree.getNodeInfoById(candidate)
             if wuclassdef.id in [wuobject.wuclassdef().id for wuobject in node.wuobjects()]:
               # use existing wuobject
-              for wuobject in node.wuobjects():
+              for wuobject in sorted(node.wuobjects(), key=lambda wuobject: wuobject.virtual):
                 if wuobject.wuclassdef().id == wuclassdef.id:
                   component.instances.append(wuobject)
                   break
@@ -229,7 +229,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
               sensorNode = locTree.sensor_dict[node.id]
               sensorNode.initPortList(forceInit = False)
               port_number = sensorNode.reserveNextPort()
-              for wuclass in node.wuclasses():
+              for wuclass in sorted(node.wuclasses(), key=lambda wuclass: wuclass.virtual):
                 if wuclass.wuclassdef().id == wuclassdef.id:
                   wuobject = WuObject.new(wuclass.wuclassdef(), node, port_number)
                   # don't save to db
