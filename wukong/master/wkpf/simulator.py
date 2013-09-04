@@ -16,9 +16,8 @@ class MockDiscovery:
     def mockLocation(self, nodeId):
         nodes = self.dom.getElementsByTagName("Node")
         location = ''
-        
         for node in nodes:
-            if node.getAttribute("id") == nodeId:
+            if int(node.getAttribute("id"),0) == nodeId:
                 if node.hasChildNodes():
                     for lsts in node.childNodes:
                         if lsts.nodeType != lsts.ELEMENT_NODE:    
@@ -43,7 +42,7 @@ class MockDiscovery:
                                 if wuclass.nodeType != wuclass.ELEMENT_NODE:    
                                     continue
                                 wuclass_id = int(wuclass.getAttribute("id"), 0)
-                                publish = wuclass.getAttribute("public")
+                                publish = wuclass.getAttribute("publish")
                                 virtual = True if wuclass.getAttribute("virtual")=="true" else False
                                 if publish == "true":
                                     node = WuNode.find(id=nodeId)

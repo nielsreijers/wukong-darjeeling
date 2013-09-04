@@ -103,7 +103,10 @@ class Communication:
 
       length = 0
       location = ''
-
+      if SIMULATION == "true":
+          print "inside simulation"
+          location = self.simulator.mockLocation(destination)
+          return location
       while (length == 0 or len(location) < length): # There's more to the location string, so send more messages to get the rest
         # +1 because the first byte in the data stored on the node is the location string length
         offset = len(location) + 1 if length > 0 else 0
@@ -124,9 +127,7 @@ class Communication:
           location = ''.join([chr(byte) for byte in reply.payload[3:]])
         else:
           location += ''.join([chr(byte) for byte in reply.payload[2:]])
-      if SIMULATION == "true":
-          location = self.simulator.mockLocation(destination)
-          length = location.length
+      
       return location[0:length] # The node currently send a bit too much, so we have to truncate the string to the length we need
 
     def setLocation(self, destination, location):
