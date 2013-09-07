@@ -662,7 +662,10 @@ class WuClassSource(tornado.web.RequestHandler):
       type = self.get_argument('type')
       appid = self.get_argument('appid', None)
 
-      name_ext = name + '.c' if type == 'C' else name + '.java'
+      if type == 'C':
+        name_ext = 'wuclass_'+name.lower()+'_update.c'
+      else:
+        name_ext = 'Virtual'+name+'WuObject.java'
       try:
           app = None
           if appid:
@@ -673,10 +676,14 @@ class WuClassSource(tornado.web.RequestHandler):
       except:
         traceback.print_exc()
         # We may use jinja2 here
-        f = open('templates/wuclass.tmpl')
+        if type == "C":
+          f = open('templates/wuclass.tmpl.c')
+        else:
+          f = open('templates/wuclass.tmpl.java')
+
         template = Template(f.read())
         f.close()
-        cont = template.render(classname='Virtual' + Convert.to_java(name) + 'WuObject')
+        cont = template.render(classname= Convert.to_java(name))
     except:
       self.write(traceback.format_exc())
       return
@@ -688,11 +695,20 @@ class WuClassSource(tornado.web.RequestHandler):
       type = self.get_argument('type')
       appid = self.get_argument('appid', None)
 
-      name += '.c' if type == 'C' else '.java'
+      if type == 'C':
+        name_ext = 'wuclass_'+name.lower()+'_update.c'
+      else:
+        name_ext = 'Virtual'+name+'WuObject.java'
       app = None
       if appid:
           app = wkpf.globals.applications[getAppIndex(appid)]
-      f = open(self.findPath(name, app), 'w')
+      try:
+          f = open(self.findPath(name_ext, app), 'w')
+      except:
+          if type == "C":
+            f = open("../../src/lib/wkpf/c/common/native_wuclasses/"+name_ext,'w')
+          else:
+            f = open("../javax/wukong/virtualwuclasses/"+name_ext,'w')
       f.write(self.get_argument('content'))
       f.close()
       self.write('OK')
@@ -702,16 +718,17 @@ class WuClassSource(tornado.web.RequestHandler):
 
   def findPath(self, p, app=None):
     # Precedence of path is All apps dir -> common native wuclasses, then arcuino native wuclasses
-    paths = [os.path.join(APP_DIR, dirname) for dirname in os.listdir(APP_DIR)] + ['../../src/lib/wkpf/c/common/native_wuclasses/', '../../src/lib/wkpf/c/arduino/native_wuclasses/']
+    paths = [os.path.join(APP_DIR, dirname) for dirname in os.listdir(APP_DIR)] + ['../../src/lib/wkpf/c/common/native_wuclasses/', '../../src/lib/wkpf/c/arduino/native_wuclasses/','../javax/wukong/virtualwuclasses/']
     # If an app is passed in, then its dir will be the first to search
     if app:
-      paths = [app.dir] + paths
+      paths = [app.dir] 
     for path in paths:
       if not os.path.isdir(path): continue
-      filename = path + p
+      filename = path +'/'+ p
+      print filename
       if os.path.isfile(filename):
         return filename
-    return None
+    return "../../src/lib/wkpf/c/common/native_wuclasses/"+p
 
 class tree(tornado.web.RequestHandler):	
   def post(self):

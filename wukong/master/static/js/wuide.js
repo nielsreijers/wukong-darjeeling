@@ -539,7 +539,7 @@ WuClass.prototype.render=function(id) {
 	});
 
 	$('#class_editor_edit').click(function() {
-		var name = 'wuclass_'+self.val.name.toLowerCase()+'_update'
+		var name = $('#class_editor_name').val();
         if (ide.is_user) {
             $.get('/wuclasssource?appid='+appid+'&src='+name+'&type='+$('#class_editor_lang').val(),function(r) {
                 var code = {lang:$('#class_editor_lang').val(), code:r, name:name};
@@ -571,9 +571,17 @@ TextEditor.load=function(self) {
 		$('#texteditor').hide();
 		$('#editor').remove();
 		$('#class_editor').show();
-		var arg={name:TextEditor.source.name, appid:appid,type:TextEditor.source.lang,content: TextEditor.editor.getValue()};
+		if (ide.is_user)
+			var arg={name:TextEditor.source.name, appid:appid,type:TextEditor.source.lang,content: TextEditor.editor.getValue()};
+		else
+			var arg={name:TextEditor.source.name, type:TextEditor.source.lang,content: TextEditor.editor.getValue()};
 		$.post('/wuclasssource', arg,function () {
 		});
+	});
+	$('#texteditor_cancel').unbind().click(function() {
+		$('#texteditor').hide();
+		$('#editor').remove();
+		$('#class_editor').show();
 	});
 	$('#editor').remove();
 	$('#texteditor').append('<div id=editor style="width:800px;height:800px"></div>');
