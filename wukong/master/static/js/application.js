@@ -412,7 +412,7 @@ function poll(url, version, options, callback)
             callback(data);
         }
 
-        if (data.ops.indexOf('c') != -1) {
+        if (data && data.ops && data.ops.indexOf('c') != -1) {
             stop_polling();
         } else if (forceRepeat) {
             setTimeout(function() {
