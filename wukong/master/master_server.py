@@ -10,6 +10,7 @@ import os, sys, zipfile, re, time
 import tornado.ioloop, tornado.web
 import tornado.template as template
 import simplejson as json
+from jinja2 import Template
 import logging
 import hashlib
 from threading import Thread
@@ -24,6 +25,7 @@ import wkpf.wusignal
 from wkpf.wuapplication import WuApplication
 from wkpf.parser import *
 from wkpf.wkpfcomm import *
+from wkpf.util import *
 
 import wkpf.globals
 from configuration import *
@@ -660,22 +662,21 @@ class WuClassSource(tornado.web.RequestHandler):
       type = self.get_argument('type')
       appid = self.get_argument('appid', None)
 
-      name += '.c' if type == 'C' else '.java'
+      name_ext = name + '.c' if type == 'C' else name + '.java'
       try:
           app = None
           if appid:
               app = wkpf.globals.applications[getAppIndex(appid)]
-          f = open(self.findPath(name, app))
+          f = open(self.findPath(name_ext, app))
           cont = f.read()
           f.close()
       except:
         traceback.print_exc()
         # We may use jinja2 here
         f = open('templates/wuclass.tmpl')
-        cont = f.read()
+        template = Template(f.read())
         f.close()
-        cont = cont.replace('{{class}}',name)
-
+        cont = template.render(classname='Virtual' + Convert.to_java(name) + 'WuObject')
     except:
       self.write(traceback.format_exc())
       return
