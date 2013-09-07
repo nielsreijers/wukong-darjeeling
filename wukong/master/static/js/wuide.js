@@ -157,6 +157,26 @@ WuIDE.prototype.initUI = function() {
 }
 
 
+WuIDE.prototype.generateNewID = function() {
+	var max = 0;
+
+	$.each(this.classes, function(i,v) {
+		var id = parseInt(v.id);
+		if (id > max)
+			max = id;
+	});
+	return max+1;
+}
+WuIDE.prototype.isIDUsed = function(id) {
+	var i;
+
+	for(i=0;i<this.classes.length;i++) {
+		if (this.classes[i].id == id)
+			return true;
+	}
+	return false;
+}
+
 WuIDE.prototype.load = function() {
 	var self = this;
 	var cont = $('#types');
@@ -234,18 +254,18 @@ WuIDE.prototype.load = function() {
 	}
 	$('#classes').render(data,this.classListTemplate);
 	$('#addclass').unbind().click(function() {
-		self.classes.push({enabled:false, name:'New Class', type:'soft', virtual:true, properties:[]});
+		self.classes.push({id:self.generateNewID(),enabled:false, name:'New Class', type:'soft', virtual:true, properties:[]});
 		self.load();
 		$('#classes').show();
 	});
 	$.each(self.classes,function(i,val) {
-		self.installClassEditor(val);
+		self.installClassEditor(i,val);
 	});
 	$('#class_list').show();
 	$('#class_editor').hide();
 }
 
-WuIDE.prototype.installClassEditor=function(val) {
+WuIDE.prototype.installClassEditor=function(i,val) {
 	var self = this;
 	$('#class'+val.id).click(function() {
 		var cls = new WuClass(val);
@@ -501,6 +521,14 @@ WuClass.prototype.render=function(id) {
 	});
 	$('#class_editor_name').val(this.val.name);
 	$('#class_editor_id').val(this.val.id);
+	$('#class_editor_id').focusout(function() {
+		var newid = $('#class_editor_id').val();
+		if (self.val.id == newid) return
+		if (ide.isIDUsed(newid)) {
+			alert("This ID has been used");
+			$('#class_editor_id').val(self.val.id);
+		}
+	});
 	if (this.val.virtual == true)
 		$('#class_editor_virtual').val('y');
 	else 
