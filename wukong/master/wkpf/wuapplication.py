@@ -13,6 +13,7 @@ from xml2java.generator import Generator
 from threading import Thread
 from subprocess import Popen, PIPE, STDOUT
 from collections import namedtuple
+import distutils.dir_util
 
 from configuration import *
 from globals import *
@@ -270,6 +271,9 @@ class WuApplication:
               self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
           '''
 
+  def cleanJava(self):
+    distutils.dir_util.remove_tree(JAVA_OUTPUT_DIR, verbose=1, dry_run=1)
+
   def generateJava(self):
       Generator.generate(self.name, self.changesets)
 
@@ -304,6 +308,16 @@ class WuApplication:
       self.logDeployStatus("Preparing java library code...")
       self.logDeployStatus("Generating java application...")
       gevent.sleep(0)
+
+      try:
+        self.cleanJava()
+      except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
+        self.errorDeployStatus("An error has encountered while cleaning java dir in wkdeploy! Backtrace is shown below:")
+        self.errorDeployStatus(exc_traceback)
+        return False
 
       try:
         self.generateJava()
