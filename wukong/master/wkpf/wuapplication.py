@@ -273,11 +273,7 @@ class WuApplication:
 
   def cleanJava(self):
     distutils.dir_util.remove_tree(JAVA_OUTPUT_DIR)
-    try:
-      os.makedirs(JAVA_OUTPUT_DIR)
-    except Exception as e:
-      pass
-
+    os.mkdir(JAVA_OUTPUT_DIR)
 
   def generateJava(self):
       Generator.generate(self.name, self.changesets)
