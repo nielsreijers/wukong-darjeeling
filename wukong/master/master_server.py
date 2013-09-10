@@ -728,7 +728,8 @@ class WuClassSource(tornado.web.RequestHandler):
       print filename
       if os.path.isfile(filename):
         return filename
-    return "../../src/lib/wkpf/c/common/native_wuclasses/"+p
+    # returns None if not found
+    return None
 
 class tree(tornado.web.RequestHandler):	
   def post(self):
