@@ -204,7 +204,7 @@ WuIDE.prototype.load = function() {
 		self.installTypeEditor(i);
 	});
 	$('#addtype').unbind().click(function() {
-		self.types.push({type:'enum',name:'New Type',enums:[]});
+		self.types.push({type:'enum',name:'New_Type',enums:[]});
 		self.load();
 	});
 	$('#saveall').unbind().click(function() {
@@ -254,7 +254,7 @@ WuIDE.prototype.load = function() {
 	}
 	$('#classes').render(data,this.classListTemplate);
 	$('#addclass').unbind().click(function() {
-		self.classes.push({id:self.generateNewID(),enabled:false, name:'New Class', type:'soft', virtual:true, properties:[]});
+		self.classes.push({id:self.generateNewID(),enabled:false, name:'New_Class', type:'soft', virtual:true, properties:[]});
 		self.load();
 		$('#classes').show();
 	});
