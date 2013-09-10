@@ -521,7 +521,7 @@ class nodes(tornado.web.RequestHandler):
     location = self.get_argument('location')
     if SIMULATION !=0:
       for info in node_infos:
-        if info.nodeId == int(nodeId):
+        if info.id == int(nodeId):
           info.location = location
           senNd = SensorNode(info)
 #          senNd = SensorNode(info, 0, 0, 0)
