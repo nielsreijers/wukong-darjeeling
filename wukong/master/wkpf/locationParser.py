@@ -104,7 +104,7 @@ class LocationParser:
                 dist = self.calcDistance(sensorNd, obj)
             if dist <= dist**2:
                 #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
-                ret_val.add(sensorNd.nodeInfo.nodeId)
+                ret_val.add(sensorNd.nodeInfo.id)
         return ret_val
 
     #return the closest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
@@ -143,13 +143,13 @@ class LocationParser:
             if dist >= largest_dist:
                 if len(node_lst)<count:
                     #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
-                    node_lst.append(sensorNd.nodeInfo.nodeId)
+                    node_lst.append(sensorNd.nodeInfo.id)
                     dist_lst.append(dist)
                     largest_dist = dist
             else:
                 for i in range(len(node_lst)):
                     if dist_lst[i] > dist:
-                        node_lst.insert(i, sensorNd.nodeInfo.nodeId)
+                        node_lst.insert(i, sensorNd.nodeInfo.id)
                         dist_lst.insert(i, dist)
                         break
         return node_lst

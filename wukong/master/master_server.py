@@ -36,7 +36,7 @@ IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 landId = 100
 node_infos = []
-
+loc_node_infos = []
 from make_js import make_main
 from make_fbp import fbp_main
 def import_wuXML():
@@ -721,7 +721,7 @@ class WuClassSource(tornado.web.RequestHandler):
 
 class loc_tree(tornado.web.RequestHandler): 
   def post(self):
-    global node_infos
+    global loc_node_infos
     
     load_xml = ""
     flag = os.path.exists("../ComponentDefinitions/landmark.xml")
