@@ -46,7 +46,7 @@ function init()
         $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         $.post('/loc_tree', function(data) {
-                make_tree(data);
+                display_tree(data);
                 $('#content').append(data.node);
                 load_landmark(data.xml);                
         });                    
