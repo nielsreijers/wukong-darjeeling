@@ -272,7 +272,7 @@ class WuApplication:
           '''
 
   def cleanJava(self):
-    distutils.dir_util.remove_tree(JAVA_OUTPUT_DIR, verbose=1, dry_run=1)
+    distutils.dir_util.remove_tree(JAVA_OUTPUT_DIR)
 
   def generateJava(self):
       Generator.generate(self.name, self.changesets)
