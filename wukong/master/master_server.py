@@ -484,7 +484,7 @@ class testrtt(tornado.web.RequestHandler):
 
     comm = getComm()
     node_infos = comm.getAllNodeInfos()
-
+    rebuildTree(node_infos)
     testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True, default_location = LOCATION_ROOT)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
