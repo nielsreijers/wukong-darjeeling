@@ -8,7 +8,8 @@ from xml.dom.minidom import parse, parseString
 from xml.parsers.expat import ExpatError
 import simplejson as json
 import logging, logging.handlers, wukonghandler
-import glob
+import fnmatch
+import shutil
 from wkpfcomm import *
 from xml2java.generator import Generator
 from threading import Thread
@@ -278,12 +279,16 @@ class WuApplication:
     os.mkdir(JAVA_OUTPUT_DIR)
 
     # copy WKDeployCustomComponents.xml to wkdeploy/java
-    shutil.copy(self.dir + '/WKDeployCustomComponents.xml', JAVA_OUTPUT_DIR)
+    componentFile = os.path.join(self.dir, 'WKDeployCustomComponents.xml')
+    if os.path.exists(componentFile):
+      shutil.copy(componentFile, JAVA_OUTPUT_DIR)
 
     # copy java implementation to wkdeploy/java
-    os.chdir(self.dir)
-    for javaFile in glob.glob("*.java"):
-      shutil.copy(javaFile, JAVA_OUTPUT_DIR)
+    # recursive scan
+    for root, dirnames, filenames in os.walk(self.dir):
+      for filename in fnmatch.filter(filenames, "*.java"):
+        javaFile = os.path.join(root, filename)
+        shutil.copy(javaFile, JAVA_OUTPUT_DIR)
 
   def generateJava(self):
       Generator.generate(self.name, self.changesets)
