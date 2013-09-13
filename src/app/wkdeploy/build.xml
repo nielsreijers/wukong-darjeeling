@@ -14,6 +14,7 @@
 	<import file="../wkpf-app.xml"/>
 
 	<!-- additional java path to include -->
-	<property name="app-sourcepath" value="${apppath}/../../wukong"/>
+	<!-- including global virtual wuclass java implementation -->
+  <property name="app-sourcepath" value="${apppath}/../../wukong/javax"/>
 
 </project>

@@ -8,6 +8,7 @@ from xml.dom.minidom import parse, parseString
 from xml.parsers.expat import ExpatError
 import simplejson as json
 import logging, logging.handlers, wukonghandler
+import glob
 from wkpfcomm import *
 from xml2java.generator import Generator
 from threading import Thread
@@ -271,9 +272,18 @@ class WuApplication:
               self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
           '''
 
-  def cleanJava(self):
+  def cleanAndCopyJava(self):
+    # clean up the directory
     distutils.dir_util.remove_tree(JAVA_OUTPUT_DIR)
     os.mkdir(JAVA_OUTPUT_DIR)
+
+    # copy WKDeployCustomComponents.xml to wkdeploy/java
+    shutil.copy(self.dir + '/WKDeployCustomComponents.xml', JAVA_OUTPUT_DIR)
+
+    # copy java implementation to wkdeploy/java
+    os.chdir(self.dir)
+    for javaFile in glob.glob("*.java"):
+      shutil.copy(javaFile, JAVA_OUTPUT_DIR)
 
   def generateJava(self):
       Generator.generate(self.name, self.changesets)
@@ -311,12 +321,12 @@ class WuApplication:
       gevent.sleep(0)
 
       try:
-        self.cleanJava()
+        self.cleanAndCopyJava()
       except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                       limit=2, file=sys.stdout)
-        self.errorDeployStatus("An error has encountered while cleaning java dir in wkdeploy! Backtrace is shown below:")
+        self.errorDeployStatus("An error has encountered while cleaning and copying java files to java dir in wkdeploy! Backtrace is shown below:")
         self.errorDeployStatus(exc_traceback)
         return False
 
