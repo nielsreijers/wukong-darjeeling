@@ -363,6 +363,7 @@ class LocationTree:
         #decrease all sensor lifes
         self.decreaseSensorLife()
         for info in newInfoList:
+            print info.id
             sensor = SensorNode(info)
             self.addSensor(sensor)
                 

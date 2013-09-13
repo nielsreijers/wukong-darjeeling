@@ -51,8 +51,10 @@ wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 # using cloned nodes
 def rebuildTree(nodes):
   nodes_clone = copy.deepcopy(nodes)
+  print "inside rebuild tree:",nodes_clone
   wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
   wkpf.globals.location_tree.buildTree(nodes_clone)
+  wkpf.globals.location_tree.printTree()
 
 # Helper functions
 def setup_signal_handler_greenlet():
@@ -484,7 +486,7 @@ class testrtt(tornado.web.RequestHandler):
 
     comm = getComm()
     node_infos = comm.getAllNodeInfos()
-
+    rebuildTree(node_infos)
     testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True, default_location = LOCATION_ROOT)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
@@ -519,6 +521,8 @@ class nodes(tornado.web.RequestHandler):
   def put(self, nodeId):
     global node_infos
     location = self.get_argument('location')
+    print node_infos
+    print 'in nodes: simulation:'+SIMULATION
     if SIMULATION !=0:
       for info in node_infos:
         if info.id == int(nodeId):
