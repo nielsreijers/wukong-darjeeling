@@ -1,12 +1,21 @@
 <Nodes>
 <Node id="1">
-    <Location length="17" content="WuKong/1F/101#(0,1,0)"/>
+    <Location length="21" content="WuKong/1F/101#(0,1,0)"/>
     <WuClassList length="2">
         <WuClass id="0" publish="true" virtual="true"/>
         <WuClass id="5" publish="true" virtual="false"/>
     </WuClassList>
     <WuObjectList>
         <WuObject id="5" port="0"/>
+    </WuObjectList>
+</Node>
+<Node id="2">
+    <Location length="21" content="WuKong/1F/101#(0,1,0)"/>
+    <WuClassList length="1">
+        <WuClass id="0" publish="true" virtual="true"/>
+    </WuClassList>
+    <WuObjectList>
+        <WuObject id="5" port="1"/>
     </WuObjectList>
 </Node>
 </Nodes>
