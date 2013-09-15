@@ -215,11 +215,12 @@ void wkpf_comm_handle_message(void *data) {
 			for (uint8_t i=0; i<number_of_wuobjects_in_message; i++) {
 				wuobject_t *wuobject;
 				wkpf_get_wuobject_by_index(start_at_wuobject_index+i, &wuobject);
-				payload[3*i + 3] = (uint8_t)(wuobject->port_number);
-				payload[3*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
-				payload[3*i + 5] = (uint8_t)(wuobject->wuclass->wuclass_id);
+				payload[4*i + 3] = (uint8_t)(wuobject->port_number);
+				payload[4*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
+				payload[4*i + 5] = (uint8_t)(wuobject->wuclass->wuclass_id);
+        payload[4*i + 6] = WKPF_IS_VIRTUAL_WUCLASS(wuobject->wuclass);
 			}
-			response_size = 3*number_of_wuobjects_in_message + 3; // 3*wuobjects + 3 bytes for message nr, number of messages, number of wuobjects
+			response_size = 4*number_of_wuobjects_in_message + 3; // 4*wuobjects + 3 bytes for message nr, number of messages, number of wuobjects (max 39 bytes, barely over 40 bytes)
 			response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
 		}
 		break;

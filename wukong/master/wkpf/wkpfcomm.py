@@ -257,8 +257,9 @@ class Communication:
 
         reply = reply.payload[5:]
         while len(reply) > 1:
-          wuclass_id = (reply[1] <<8) + reply[2]
           port_number = reply[0]
+          wuclass_id = (reply[1] <<8) + reply[2]
+          virtual = reply[3]
           node = WuNode.find(id=destination)
 
           if not node:
@@ -274,9 +275,10 @@ class Communication:
           wuobject = WuObject.find(node_identity=node.identity,
               wuclassdef_identity=wuclassdef.identity)
 
-          # Create one
+          # Create wuobject from the wuclassdef
+          # Ignore virtual flag from wuclassdef
           if not wuobject:
-            wuobject = WuObject.create(wuclassdef, node, port_number)
+            wuobject = WuObject.create(wuclassdef, node, port_number, virtual)
 
           wuobjects.append(wuobject)
           reply = reply[3:]
