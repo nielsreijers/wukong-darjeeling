@@ -283,12 +283,18 @@ class WuApplication:
     if os.path.exists(componentFile):
       shutil.copy(componentFile, JAVA_OUTPUT_DIR)
 
+      if not os.path.exists(os.path.join(JAVA_OUTPUT_DIR, 'WKDeployCustomComponents.xml')):
+        self.errorDeployStatus("An error has encountered while copying WKDeployCustomComponents.xml to java dir in wkdeploy!")
+
     # copy java implementation to wkdeploy/java
     # recursive scan
     for root, dirnames, filenames in os.walk(self.dir):
       for filename in fnmatch.filter(filenames, "*.java"):
         javaFile = os.path.join(root, filename)
         shutil.copy(javaFile, JAVA_OUTPUT_DIR)
+
+        if not os.path.exists(os.path.join(JAVA_OUTPUT_DIR, filename)):
+          self.errorDeployStatus("An error has encountered while copying %s to java dir in wkdeploy!" % (filename))
 
   def generateJava(self):
       Generator.generate(self.name, self.changesets)
@@ -322,7 +328,6 @@ class WuApplication:
       platform_dir = os.path.join(app_path, platform)
 
       self.logDeployStatus("Preparing java library code...")
-      self.logDeployStatus("Generating java application...")
       gevent.sleep(0)
 
       try:
@@ -334,6 +339,8 @@ class WuApplication:
         self.errorDeployStatus("An error has encountered while cleaning and copying java files to java dir in wkdeploy! Backtrace is shown below:")
         self.errorDeployStatus(exc_traceback)
         return False
+
+      self.logDeployStatus("Generating java application...")
 
       try:
         self.generateJava()
