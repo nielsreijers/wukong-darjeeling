@@ -28,9 +28,11 @@ Block.prototype.init=function() {
 	this.reaction_time = 1;
 	this.signals=[];
 	this.actions=[];
+	this.slots=[];
 	this.sigProper=[];
 	this.actProper=[];
 	this.monitorProper=[];
+	this.numSlot = 0;
 	Block_count++;
 	Block.widgets.push(this);
 }
@@ -64,7 +66,6 @@ Block.prototype.serialize=function(obj) {
 	obj.location = this.location;
 	obj.group_size = this.group_size;
 	obj.reaction_time = this.reaction_time;
-	obj.actions = this.actProper;
 	obj.signals = this.sigProper;
 	obj.monitor = this.monitorProper;
 	/*
@@ -95,7 +96,6 @@ Block.restore=function(a) {
 	n.location = a.location;
 	n.group_size = a.group_size;
 	n.reaction_time = a.reaction_time;
-    n.actProper = a.actProper;
     n.sigProper = a.sigProper;
     n.monitorProper = a.monitorProper;
 
@@ -108,32 +108,47 @@ Block.prototype.draw=function() {
 	var size = this.getSize();
 	this.div.empty();
     this.div.append('<span style="font-family:"Trebuchet MS", Helvetica, sans-serif; font-size: 20pt; word-wrap: break-word;">' + this.type.replace('_', ' ') + '</span>');
-	for(i=0;i<this.signals.length;i++) {
-//	for(var key in this.signals){
+	for(i=0;i<this.slots.length;i++) {
 		this.div.append('<div class=signal id=signal_'+this.id+'_'+i+'>');
-		$('#signal_'+this.id+'_'+i).css('position','absolute').css('width',60).css('height',30).css('left',size[0]).css('top',i*30);
-		$('#signal_'+this.id+'_'+i).html(this.signals[i].name.replace('_', ' '));
-//		$('#signal_'+this.id+'_'+i).html(key.replace('_', ' '));
-//		i= i+1;
-	}
-	for(i=0;i<this.actions.length;i++) {
-//	i=0;
-//	for(var key in this.actions){
-		this.div.append('<div class=signal id=action_'+this.id+'_'+i+'>');
-		$('#action_'+this.id+'_'+i).css('position','absolute').css('width',60).css('height',30).css('left',-60).css('top',i*30);
-		$('#action_'+this.id+'_'+i).html(this.actions[i].name.replace('_', ' '));
-//		$('#action_'+this.id+'_'+i).html(key.replace('_', ' '));
-//		i= i+1;
+		$('#signal_'+this.id+'_'+i).css('position','absolute').css('width',100).css('height',15).css('left',0).css('top',i*15+20);
+		$('#signal_'+this.id+'_'+i).html(this.slots[i].name.replace('_', ' '));
 	}
 }
 Block.prototype.addSignal=function(con) {
+	var i;
+
+	for(i=0;i<this.slots.length;i++) {
+		if (this.slots[i].name == con.name) {
+			con.index = this.slots[i].index;
+			break;
+		}
+	}
+	if (i == this.slots.length) {
+		this.slots.push(con);
+		con.index = this.slots.length-1;
+	}
 	this.signals.push(con);
 //	this.signals[con]=type;
 }
 Block.prototype.getSignals=function() {
 	return this.signals;
 }
+Block.prototype.getActions=function() {
+	return this.actions;
+}
 Block.prototype.addAction=function(con) {
+	var i;
+
+	for(i=0;i<this.slots.length;i++) {
+		if (this.slots[i].name == con.name) {
+			con.index = this.slots[i].index;
+			break;
+		}
+	}
+	if (i == this.slots.length) {
+		this.slots.push(con);
+		con.index = this.slots.length-1;
+	}
 	this.actions.push(con);
 //	this.actions[con]=type;
 }
@@ -144,7 +159,7 @@ Block.prototype.findSignalPos=function(s) {
 
 	for(i=0;i<this.signals.length;i++) {
 		if (this.signals[i].name == s)
-			return i;
+			return this.signals[i].index;
 	}
 	return -1;
 }
@@ -153,12 +168,26 @@ Block.prototype.findActionPos=function(s) {
 
 	for(i=0;i<this.actions.length;i++) {
 		if (this.actions[i].name == s)
-			return i;
+			return this.signals[i].index;
 	}
 	return -1;
 }
-Block.prototype.getActions=function() {
-	return this.actions;
+
+Block.prototype.loadSourceCode=function(parent) {
+	var obj = $('#propertyeditor_editor_area');
+	var source = '';
+	source = 'package javax.wukong.virtualwuclasses;\n';
+	source = source + 'import javax.wukong.wkpf.WKPF;\n';
+	source = source + 'import javax.wukong.wkpf.VirtualWuObject;\n';
+	source = source + 'public class Virtual'+this.type+'WuObject extends GENERATEDVirtualThresholdWuObject {\n';
+	source = source + '    public Virtual'+this.type+'WuObject() {\n';
+	source = source + '        // Initialize the wuobject here\n';
+	source = source + '    }\n';
+	source = source + '    public void update() {\n';
+	source = source + '        // CHeck the update of the properties here\n';
+	source = source + '    }\n';
+	source = source + '}\n';
+	obj.text(source);
 }
 
 Block.prototype.attach=function(parent) {
@@ -180,7 +209,8 @@ Block.prototype.attach=function(parent) {
 	this.div.dblclick(function() {
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div id=propertyeditor_tab>');
-		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_default>Default</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
+
 
 		$('#propertyeditor_tab').append('<div id=propertyeditor_loc><input type=text id=propertyeditor_location></input></div>');
 
@@ -198,41 +228,17 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor_reactiontime').spinner("value",self.reaction_time);
 
  
-		$("#propertyeditor_tab").append('<div id=propertyeditor_action></div>');
-		$("#propertyeditor_tab").append('<div id=propertyeditor_signal></div></div>');
+		$("#propertyeditor_tab").append('<div id=propertyeditor_default></div></div>');
 		$("#propertyeditor_tab").append('<div id=propertyeditor_monitor></div></div>');
-		$("#propertyeditor_action").empty();
-		$("#propertyeditor_signal").empty();
+		$("#propertyeditor_default").empty();
 		$("#propertyeditor_monitor").empty();
 		$("#propertyeditor_tab").tabs();
 		
-		var _actlist = Block.current.getActions();
-		for(i=0;i<_actlist.length;i++) {
-    		var act = _actlist[i];
-    		$('#propertyeditor_action').append(act.name);
-//    		if(act.type=="boolean"){
-	    		$('#propertyeditor_action').append('<input type=text id=a'+act.name+'></input><br>');
-	    		$('#a'+act.name).val(self.actProper[act.name]);
-//	    	}else{
-//	    		$('#propertyeditor_action').append('<select id=a'+act.name+'></select><br>');
-//    			for(j=0;j++;j<2){
-//	    			$('#propertyeditor_action').append('<option value='+j+'>'+j+'</option>');
-//	    		}
-//	    		$('#a'+act.name).val(self.actProper[i]);
-//	    	}
-			$('#propertyeditor_monitor').append(act.name+'<input type=checkbox id=m'+act.name+'></input><br>');
-			try {
-				$('#m'+act.name).val(self.monitorProper[act.name]);
-			} catch (e){
-
-			}
-
-		}
 		var _siglist = Block.current.getSignals();
 		for(i=0;i<_siglist.length;i++) {
     		var sig = _siglist[i];
-    		$('#propertyeditor_signal').append(sig.name);
-    		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input><br>');
+    		$('#propertyeditor_default').append(sig.name);
+    		$('#propertyeditor_default').append('<input type=text id=s'+sig.name+'></input><br>');
     		try {
     			$('#s'+sig.name).val(self.sigProper[sig.name]);
     		} catch (e) {
@@ -251,18 +257,13 @@ Block.prototype.attach=function(parent) {
 						sig = _siglist[i];
 						self.sigProper[sig.name]=$('#s'+sig.name).val();
 					}
-					for(i=0;i<_actlist.length;i++){
-						act = _actlist[i];
-						self.actProper[act.name]=$('#a'+act.name).val();
-						self.monitorProper[act.name]=$('#m'+act.name).val();
-					}
 					$('#propertyeditor').dialog("close");
 				},
 				'Cancel': function() {
 					$('#propertyeditor').dialog("close");
 				}
 			},
-			width:700, height:400,
+			width:'90%', height:400,
 			title:"Property Editor"
 
 		}).dialog("open");

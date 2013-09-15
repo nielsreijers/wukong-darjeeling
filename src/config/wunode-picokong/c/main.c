@@ -30,11 +30,15 @@
 
 #include "avr.h"
 
+extern const unsigned char di_app_infusion_archive_data[];
 
 unsigned char mem[HEAPSIZE];
 
 int main()
 {
+	// Declared in djarchive.c so that the reprogramming code can find it.
+	di_app_archive = (dj_di_pointer)di_app_infusion_archive_data;
+
 	// initialise serial port
 	avr_serialInit(115200);
 

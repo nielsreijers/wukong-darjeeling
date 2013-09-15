@@ -24,7 +24,8 @@ def addHead():
 			'\t\t'+'<script type="text/javascript" src="/static/js/block.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/line.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/fbp.js"></script>'+'\n'+
-			'\t\t'+'<script type="text/javascript" src="/static/js/flowlist.js"></script>'+'\n'
+			'\t\t'+'<script type="text/javascript" src="/static/js/flowlist.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/ace/ace.js"></script>'+'\n'
             )
 	g.close()
 
@@ -40,10 +41,10 @@ def addEnd():
     g = open(end_path, "a")
     g.write(
                 '\t'+'</head>'+'\n'+
-                '\t'+'<body scrolling="no">'+'\n'+
-                '\t\t'+'<canvas id=canvas style="position:absolute; left:205; top:50;" height=600 width=800></canvas>'+'\n'+
+                '\t'+'<body style="overflow:hidden">'+'\n'+
+                '\t\t'+'<canvas id=canvas style="position:absolute; left:205; top:50;" height=600 width=2000></canvas>'+'\n'+
                 '\t\t'+'<div id=client></div>'+'\n'+
-                '\t\t'+'<canvas id=canvastop style="position:absolute; left:0; top:50;" height=600 width=800></canvas>'+'\n'+
+                '\t\t'+'<canvas id=canvastop style="position:absolute; left:0; top:50;" height=600 width=2000></canvas>'+'\n'+
                 '\t\t'+'<div id=connection>'+'\n'+
                 '\t\t'+'<table>'+'\n'+
 				'\t\t'+'<tr><td>From</td></tr>'+'\n'+

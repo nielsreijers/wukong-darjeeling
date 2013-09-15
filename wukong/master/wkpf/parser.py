@@ -28,6 +28,7 @@ class Parser:
     for wuClass in dom.getElementsByTagName('WuClass'):
       name = wuClass.getAttribute('name')
       id = int(wuClass.getAttribute('id'))
+      #TODO: we should remove virtual from xml
       virtual = wuClass.getAttribute('virtual').lower() == 'true'
       type = wuClass.getAttribute('type')
       wuclassdef = WuClassDef.create(id, name, virtual, type)

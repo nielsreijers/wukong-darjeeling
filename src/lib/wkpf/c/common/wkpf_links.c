@@ -114,7 +114,7 @@ uint8_t wkpf_propagate_property(wuobject_t *wuobject, uint8_t property_number, v
 		return WKPF_OK; // WuObject isn't used in the application.
 
 	wuobject_t *src_wuobject;
-	uint8_t wkpf_error_code;
+	uint8_t wkpf_error_code = 0;
 
 	DEBUG_LOG(DBG_WKPF, "WKPF: propagate property number %x of component %x on port %x (value %x)\n", property_number, component_id, port_number, *((uint16_t *)value)); // TODONR: values other than 16 bit values
 
@@ -130,31 +130,32 @@ uint8_t wkpf_propagate_property(wuobject_t *wuobject, uint8_t property_number, v
 			if (dest_node_id == wkcomm_get_node_id()) {
 				// Local
 				wuobject_t *dest_wuobject;
-				wkpf_error_code = wkpf_get_wuobject_by_port(dest_port_number, &dest_wuobject);
-				if (wkpf_error_code == WKPF_OK) {
+        uint8_t wkpf_wuobject_error_code = 0;
+				wkpf_wuobject_error_code = wkpf_get_wuobject_by_port(dest_port_number, &dest_wuobject);
+				if (wkpf_wuobject_error_code == WKPF_OK) {
 					DEBUG_LOG(DBG_WKPF, "WKPF: propagate_property (local). (%x, %x)->(%x, %x), value %x\n", port_number, property_number, dest_port_number, dest_property_number, *((uint16_t *)value)); // TODONR: values other than 16 bit values
 					if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
-						wkpf_error_code = wkpf_external_write_property_boolean(dest_wuobject, dest_property_number, *((bool *)value));
+						wkpf_error_code |= wkpf_external_write_property_boolean(dest_wuobject, dest_property_number, *((bool *)value));
 					else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
-						wkpf_error_code = wkpf_external_write_property_int16(dest_wuobject, dest_property_number, *((uint16_t *)value));
+						wkpf_error_code |= wkpf_external_write_property_int16(dest_wuobject, dest_property_number, *((uint16_t *)value));
 					else
-						wkpf_error_code = wkpf_external_write_property_refresh_rate(dest_wuobject, dest_property_number, *((uint16_t *)value));
+						wkpf_error_code |= wkpf_external_write_property_refresh_rate(dest_wuobject, dest_property_number, *((uint16_t *)value));
 				}
 			} else {
 				// Remote
 				DEBUG_LOG(DBG_WKPF, "WKPF: propagate_property (remote). (%x, %x)->(%x, %x, %x), value %x\n", port_number, property_number, dest_node_id, dest_port_number, dest_property_number, *((uint16_t *)value)); // TODONR: values other than 16 bit values
 				if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
-					wkpf_error_code = wkpf_send_set_property_boolean(dest_node_id, dest_port_number, dest_property_number, dest_wuclass_id, *((bool *)value));
+					wkpf_error_code |= wkpf_send_set_property_boolean(dest_node_id, dest_port_number, dest_property_number, dest_wuclass_id, *((bool *)value));
 				else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
-					wkpf_error_code = wkpf_send_set_property_int16(dest_node_id, dest_port_number, dest_property_number, dest_wuclass_id, *((uint16_t *)value));
+					wkpf_error_code |= wkpf_send_set_property_int16(dest_node_id, dest_port_number, dest_property_number, dest_wuclass_id, *((uint16_t *)value));
 				else
-					wkpf_error_code = wkpf_send_set_property_refresh_rate(dest_node_id, dest_port_number, dest_property_number, dest_wuclass_id, *((uint16_t *)value));
+					wkpf_error_code |= wkpf_send_set_property_refresh_rate(dest_node_id, dest_port_number, dest_property_number, dest_wuclass_id, *((uint16_t *)value));
 			}
-			if (wkpf_error_code != WKPF_OK)
-				return wkpf_error_code;
+			/*if (wkpf_error_code != WKPF_OK)*/
+				/*return wkpf_error_code;*/
 		}
 	}
-	return WKPF_OK;
+	return wkpf_error_code;
 }
 
 uint8_t wkpf_propagate_dirty_properties() {
@@ -278,7 +279,7 @@ uint8_t wkpf_create_local_wuobjects_from_app_tables() {
 					else
 						return WKPF_ERR_PORT_IN_USE; // This is bad: the port is already in use by an object of different type
 				}
-				wkpf_error_code = wkpf_create_wuobject(wuclass->wuclass_id, WKPF_COMPONENT_ENDPOINT_PORT(i, j), NULL);
+				wkpf_error_code = wkpf_create_wuobject(wuclass->wuclass_id, WKPF_COMPONENT_ENDPOINT_PORT(i, j), NULL, false);
 				if (wkpf_error_code != WKPF_OK)
 					return wkpf_error_code;
 			}

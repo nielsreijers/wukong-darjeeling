@@ -1,6 +1,10 @@
 // vim: ts=4 sw=4
 
-window.polling = null;
+global_polling_status = false;
+
+function polling_is_stopped() {
+    return !global_polling_status
+}
 
 $(document).ready(function() {
     init();
@@ -14,6 +18,7 @@ function init()
         $('#node-editor').parent().removeClass('active');
         $('#application').parent().addClass('active');
         $('#locationTree').parent().removeClass('active');
+        $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         application_fill();
     });
@@ -22,6 +27,7 @@ function init()
         $('#node-editor').parent().addClass('active');
         $('#application').parent().removeClass('active');
         $('#locationTree').parent().removeClass('active');
+        $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         $.get('/testrtt', function(data) {
             if (data.status == '1') {
@@ -37,12 +43,21 @@ function init()
         $('#node-editor').parent().removeClass('active');
         $('#application').parent().removeClass('active');
         $('#locationTree').parent().addClass('active');
+        $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         $.post('/loc_tree', function(data) {
 	    		make_tree(data);
 	    		$('#content').append(data.node);
 	    		load_landmark(data.xml);	    		
 		});                    
+    });
+    $('#designer').click(function() {
+        $('#node-editor').parent().removeClass('active');
+        $('#application').parent().removeClass('active');
+        $('#locationTree').parent().removeClass('active');
+        $('#designer').parent().addClass('active');
+        window.options.repeat = false;
+		$('#content').html('<iframe width=100% height=100% src=/ide></iframe>');
     });
     
     application_fill();
@@ -66,7 +81,8 @@ function application_fill()
     });
 
     $('#appadd').click(function() {
-        $.post('/applications/new', function(data) {
+        app_name = prompt('Please enter the application name:', 'Application name')
+        $.post('/applications/new', {app_name: app_name}, function(data) {
             if (data.status == '1') {
                 alert(data.mesg);
             }
@@ -88,7 +104,7 @@ function application_fillList(r)
     for(i=0; i<len; i++) {
         // Html elements
         var appentry = $('<tr class=listitem></tr>');
-        var name = $('<td class=appname data-app_id="' + r[i].id + '" id=appname'+i+'><b><i>' + r[i].name + '</i></b></td>');
+        var name = $('<td class=appname data-app_id="' + r[i].id + '" id=appname'+i+'><b><i>' + r[i].app_name + '</i></b></td>');
         var act = $('<td class=appact id=appact'+i+'></td>');
 
         // Acts
@@ -129,22 +145,7 @@ function application_fillList(r)
                             content_scaffolding(topbar, page);
                             $('#content').unblock();
 
-                            // start polling
-                            window.options = {repeat: true};
-
-                            poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
-                                //console.log(data)
-                                data.wukong_status = data.wukong_status.trim();
-                                data.application_status = data.application_status.trim();
-                                if (data.wukong_status === "clear" || data.application_status === "clear") {
-                                    $('#deploy_results').dialog('close');
-                                } else if (!(data.wukong_status === "" && data.application_status === "")) {
-                                    $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
-                                    $('#deploy_results #wukong_status').text(data.wukong_status);
-                                    $('#deploy_results #application_status').text(data.application_status);
-                                }
-
-                            });
+                            // Application polling will be optional
                         }
                     });
                 }
@@ -241,24 +242,54 @@ function application_fillList(r)
     m.append(applist);
 }
 
-function application_polling(app_id)
+function start_polling()
 {
     // start polling
     window.options = {repeat: true};
+}
+
+function stop_polling()
+{
+    // stop polling
+    window.options = {repeat: false};
+}
+
+function application_polling(app_id, destination, property)
+{
+    // stops previous polling
+    stop_polling();
+
+    while (!polling_is_stopped()) {};
+
+    // starts a new one
+    start_polling();
+
+    // sets default destination
+    if (typeof destination == 'undefined') {
+        destination = '#mapping-progress';
+    }
+
+    // sets default property
+    if (typeof property == 'undefined') {
+        property = 'all_wukong_status';
+    }
 
     poll('/applications/' + app_id + '/poll', 0, window.options, function(data) {
-        console.log(data)
-        data.wukong_status = data.wukong_status.trim();
-        data.application_status = data.application_status.trim();
-        if (data.wukong_status === "clear" || data.application_status === "clear") {
-            $('#deploy_results').dialog('close');
-        } else if (!(data.wukong_status === "" && data.application_status === "")) {
-            $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
-            $('#deploy_results #wukong_status').text(data.wukong_status);
-            $('#deploy_results #application_status').text(data.application_status);
+        //data.wukong_status = data.wukong_status.trim();
+        //data.application_status = data.application_status.trim();
+        console.log(data);
+        $(destination).empty();
+        for (var i=0; i<data[property].length; i++) {
+            $(destination).append("<pre>[" + data[property][i].level + "] " + data[property][i].msg + "</pre>");
         }
-
-
+        
+        //if (data.wukong_status === "close" || data.application_status === "close") {
+            //$('#deploy_results').dialog('close');
+        //} else if (!(data.wukong_status === "" && data.application_status === "")) {
+            //$('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+            //$('#deploy_results #wukong_status').text(data.wukong_status);
+            //$('#deploy_results #application_status').text(data.application_status);
+        //}
     });
 }
 
@@ -374,42 +405,22 @@ function poll(url, version, options, callback)
         forceRepeat = options.repeat;
     }
 
+    global_polling_status = true;
     console.log('polling');
     $.post(url, {version: version}, function(data) {
         if (typeof callback != 'undefined') {
-            callback(data)
+            callback(data);
         }
 
-        _.each(data.logs, function(line) {
-            if (line != '') {
-                $('#log').append('<pre>' + line + '</pre>');
-            }
-        });
-
-        // TODO:mapping_results too
-        // TODO:node infos too
-
-        //if (forceRepeat) {
-            //console.log('repeat');
-        //} else {
-            //console.log('no repeat');
-        //}
-        if (forceRepeat || data.returnCode < 0) {
-            //console.log("repeating");
+        if (data && data.ops && data.ops.indexOf('c') != -1) {
+            stop_polling();
+        } else if (forceRepeat) {
             setTimeout(function() {
                 poll(url, data.version, options, callback);
             }, 1000);
         }
-        if (typeof callback != 'undefined') {
-            callback(data)
-        }
 
-        _.each(data.logs, function(line) {
-            if (line != '') {
-                $('#log').append('<pre>' + line + '</pre>');
-            }
-        });
-        window.polling = null;
+        global_polling_status = false;
     });
 }
 

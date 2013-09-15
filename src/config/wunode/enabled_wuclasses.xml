@@ -1,7 +1,6 @@
 <WuKong>
-    <WuClass name="Threshold" />
-    <WuClass name="Light_Sensor" />
-    <WuClass name="Light_Actuator" />
-    <WuClass name="Numeric_Controller" />
-    <WuClass name="Gh_Sensor" />
+    <WuClass name="Threshold" appCanCreateInstances="true"/>
+    <WuClass name="Light_Sensor" appCanCreateInstances="false" createInstancesAtStartup="1" />
+    <WuClass name="Light_Actuator" appCanCreateInstances="false" createInstancesAtStartup="1" />
+    <WuClass name="Numeric_Controller" appCanCreateInstances="false" createInstancesAtStartup="1" />
 </WuKong>

@@ -11,4 +11,7 @@ $(function() {
       }
     });
   });
+
+  $.fn.editable.defaults.ajaxOptions = {type: "PUT"};
+  $('#app_name').editable({send: 'always'});
 });

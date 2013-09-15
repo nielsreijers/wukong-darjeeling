@@ -25,7 +25,7 @@ typedef struct wuobject_property_t {
 } wuobject_property_t;
 
 
-extern uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference /* TODO: find out what datatype to use */ );
+extern uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, dj_object *java_instance_reference, bool called_from_wkpf_native_wuclasses_init);
 extern uint8_t wkpf_remove_wuobject(uint8_t port_number);
 extern uint8_t wkpf_get_wuobject_by_port(uint8_t port_number, wuobject_t **wuobject);
 extern uint8_t wkpf_get_wuobject_by_index(uint8_t index, wuobject_t **wuobject);

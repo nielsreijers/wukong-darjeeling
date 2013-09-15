@@ -26,6 +26,10 @@ $(document).ready(function() {
         FBP_addBlock();
     });
 */
+    toolbar.append('<td valign="top"><button id=toolbar_editComponent>Edit Component</button></td>');
+    $('#toolbar_editComponent').click(function() {
+        FBP_editComponent();
+    });
     toolbar.append('<td valign="top"><button id=toolbar_importBlock>Import</button></td>');
     $('#toolbar_importBlock').click(function() {
         FBP_importBlock();
@@ -72,6 +76,12 @@ $(document).ready(function() {
         setTimeout(function() {
             $('#msg').hide();
         },2000);
+		tmp = g_selected_line;
+		g_selected_line = l;
+		if (tmp)
+			tmp.draw(FBP_canvas);
+		if (g_selected_line)
+			g_selected_line.draw(FBP_canvas);
     });
     $('#fileloader').dialog({autoOpen:false});
     $('#fileloader_file').val('fbp.sce');
@@ -79,6 +89,23 @@ $(document).ready(function() {
     window.progress = $('#progress');
     $('#progress').dialog({autoOpen:false, modal:true, width:'50%', height:'300'});
 });
+
+
+function FBP_editComponent()
+{
+	$('body').append('<div id=edit_component></div>');
+	$('#edit_component').append('<iframe width=100% height=90% src=/static/editcomponent.html?appid='+id+'></iframe>');
+	$('#edit_component').dialog({
+		width:'80%',
+		height:800,
+		buttons:{
+			'OK': function() {
+				$('#edit_component').dialog('close');
+				$('#edit_component').remove();
+			}
+		}
+	});
+}
 
 function FBP_fillBlockType(div)
 {
@@ -102,6 +129,18 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
+	if (g_selected_line) {
+		var lines=[];
+		for(i=0;i<g_lines.length;i++) {
+			if (g_lines[i] != g_selected_line) {
+				lines.push(g_lines[i]);
+			}
+		}
+		g_lines = lines;
+		FBP_refreshLines();
+		g_selected_line = null;
+		return;
+	}
 	if (Block.current == null) return;
     for(i=0;i<g_nodes.length;i++) {
         if (g_nodes[i].id == Block.current.id) {
@@ -320,17 +359,6 @@ function FBP_parseXMLPage(comps)
         meta.id = c.attr("instanceId");
         meta.type = c.attr("type");
         
-        meta.actProper = {};
-        var properties = c.find("actionProperty");
-        if(properties.length > 0) {
-            var attrs = properties[0].attributes;
-            if(attrs) {
-                for(j=0;j<attrs.length;j++) {
-                    var attr = attrs[j];
-                    meta.actProper[attr.name] = attr.value;
-                }
-            }
-        }
 
         meta.sigProper = {};
         var properties = c.find("signalProperty");
@@ -585,14 +613,6 @@ function FBP_toXML(gnodes,glines)
             xml = xml + '        <reaction_time requirement="'+source.reaction_time+'" />\n';
         }
 //sato add start            
-        if(source.actions){
-			xml = xml + '        <actionProperty ';
-			var l;	var act;
-			$.each(source.actions, function(name, val) {
-				xml = xml + name + '="'+val+'" ';
-			});
-			xml = xml + ' />\n';
-		}
 		if(source.signals) {
 			xml = xml + '        <signalProperty ';
 			var l;	var sig;
@@ -619,14 +639,6 @@ function FBP_toXML(gnodes,glines)
 	        }
            
 //sato add start            
-            if(gnodes[k].actions){
-				xml = xml + '        <actionProperty ';
-				var l;	var act;
-				$.each(gnodes[k].actions, function(name, val) {
-					xml = xml + name + '="'+val+'" ';
-				});
-				xml = xml + ' />\n';
-			}
 			if(gnodes[k].signals) {
 				xml = xml + '        <signalProperty ';
 				var l;	var sig;
@@ -646,11 +658,13 @@ function FBP_toXML(gnodes,glines)
 function Signal(name)
 {
     this.name = name;
+	this.index = 0;
 }
 
 function Action(name)
 {
     this.name = name;
+	this.index = 0;
 }
 
 
