@@ -176,6 +176,7 @@ class WuLink(Definition):
 ########### in db #####################
 
 
+# TODO: should remove virtual from this class
 class WuClassDef(Definition):
   '''
   WuClass Definition
