@@ -14,7 +14,9 @@
 	<import file="../wkpf-app.xml"/>
 
 	<!-- additional java path to include -->
-	<!-- including global virtual wuclass java implementation -->
-  <property name="app-sourcepath" value="${apppath}/../../wukong/javax"/>
+  <!-- including global virtual wuclass java implementation -->
+  <!-- seems like java uses path as namespace, so since WKDeploy is using
+    namespace from javax, we can only include path at the first wukong level -->
+  <property name="app-sourcepath" value="${apppath}/../../wukong"/>
 
 </project>
