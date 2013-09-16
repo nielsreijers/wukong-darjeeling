@@ -62,15 +62,17 @@
     </WuClass>
 
     <WuClass name="Loop_delay_boolean" id="31" virtual="true" type="soft">
-        <property name="input" datatype="boolean" access="writeonly" />
         <property name="delay" datatype="short" access="readwrite" />
+        <property name="input" datatype="boolean" access="writeonly" />
         <property name="output" datatype="boolean" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" />
     </WuClass>
 
     <WuClass name="Loop_delay_short" id="32" virtual="true" type="soft">
-        <property name="input" datatype="short" access="writeonly" />
         <property name="delay" datatype="short" access="readwrite" />
+        <property name="input" datatype="short" access="writeonly" />
         <property name="output" datatype="short" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" />
     </WuClass>
 
     <WuClass name="MathOp" id="41" virtual="true" type="soft">
@@ -161,10 +163,6 @@
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="2000" />
     </WuClass>
 
-    <WuClass name="Gh_Test" id="17" virtual="false" type="soft">
-        <property name="enable" datatype="boolean" access="readwrite" default="true" />
-        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="2000" />
-    </WuClass>
     <!-- Just for testing -->
     <!--WuClass name="Null" id="45" virtual="true" type="soft">
         <property name="null" datatype="short" access="readwrite" />
