@@ -770,10 +770,9 @@ class loc_tree(tornado.web.RequestHandler):
     self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})
   
   def get(self, node_id):
-    global location_tree
     global node_infos
     node_id = int(node_id)
-    curNode = location_tree.findLocationById(node_id)
+    curNode = wkpf.globals.location_tree.findLocationById(node_id)
     if curNode == None:
         self.write({'status':1,'message':'cannot find node id '+str(node_id)})
         return

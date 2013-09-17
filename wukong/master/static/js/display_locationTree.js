@@ -1,33 +1,8 @@
-var landmark={}
-$(function () {
-    $('#dispObj').hide();
-});
+var landmark = {};
 
-function object_show() {
-	$('#dispObj').show();
-}
-
-$('#dispObj .btn').click(function(e) {
-	$('#dispObj').hide();
-});
-
-function common(_temp1, _temp2) {
-	var temp1 = _temp1.split("/");
-	var temp2 = _temp2.split("/");
-	var common_loc = " ";
-	for (var i=1; i<temp1.length; i++) {
-		if(temp1[i]==temp2[i]) {
-			common_loc += "/" + temp1[i];
-		}else{
-			break;
-		}
-	}
-	return common_loc;
-}
-
-$("#addNode").click(function() {
-	var add_node = $('#node_addDel').val();
-	var add_loc = $('#locName').val();
+$("#addNode").click(function () {
+	var add_node = $('#node_addDel').val(),
+	    add_loc = $('#locName').val();
 	landmark[add_node] = add_loc;
 	console.log(landmark);
 	$.ajax('/loc_tree/land_mark', {
@@ -42,7 +17,7 @@ $("#addNode").click(function() {
 	    		$('#content').append(data.node);
 	    		load_landmark(data.xml);
 			});
-            if (data.status == 1) {
+            if (data.status === 1) {
                 alert(data.mesg);
             }
         }
@@ -131,19 +106,18 @@ $('.locTreeNode').dblclick(function(){
     $.get('/loc_tree/nodes/'+nodeId, function(data) {
         if (data.status == '1') {
             alert(data.message);
-        }else if (data.status=='0'){
+        }else if (data.status=='0') {
             $('#locName').val(data.location);
             $('#SensorId').val(nodeId);
             $('#size').val(data.size);
             $('#direction').val('');
             $('#nodeType').html("location");
             $('#distmod_list').html(data.distanceModifier);
-            $('#gloCoord').val(data.global_coord), 
-            $('#localCoord').val(data.local_coord),
-        }else{
+            $('#gloCoord').val(data.global_coord);
+            $('#localCoord').val(data.local_coord);
+        }else {
             alert("received JASON format is wrong!!!");
         }
-        
     });
 });
 $('.set_node').click(function() {
@@ -184,37 +158,7 @@ $('.set_node').click(function() {
         }
     });
 });
-/*
-{% for node_info in node_infos %}
 
-	$('#node{{ node_info.nodeId }}').click(function(e) {
-		e.preventDefault();
-		console.log('click');	
-		if(e.shiftKey){
-			var nowVal = $('#locName').val();
-			var clkVal = '{{ node_info.location }}';
-			var comLoc = common(clkVal, nowVal);
-			$('#locName').val(comLoc);
-			$('#SensorId').val('');
-			$('#nodeType').html("sensor or landmark")
-		}else{
-			nowSensorId = $(this).attr("id");
-			$('#locName').val(' {{ node_info.location }} ');
-			$('#SensorId').val(nowSensorId);	
-			$('#nodeType').html("sensor");
-		}
-	});
-	
-	$('#node{{ node_info.nodeId }}').dblclick(function(e) {
-		e.preventDefault();
-		console.log('dblclick');
-		$('#dispObj .modal-header').html('Node Info');
-		$('#dispObj .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
-		object_show();
-	})	
-
-{% end %}
-*/
 function load_landmark(r)
 {
 	var xml = $.parseXML(r);

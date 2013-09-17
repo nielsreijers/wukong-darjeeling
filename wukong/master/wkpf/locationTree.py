@@ -94,14 +94,15 @@ class LocationTreeNode:
     
     #transform a local vector (x,y,z) to global one
     def transformToGlobal(self, vect):
-        newVec = (0,0,0)
+        print "vect:", vect
+        newVec = [0,0,0]
         for i in range(3):
-            for j in range[3]:
+            for j in range(3):
                 newVec[i] = newVec[i]+ self.transMatrix[i][j]*vect[j]
-        return newVec
+        return tuple(newVec)
         
-    #origPoint is a tuple of 3, e.g.(0,1,2)
-    def setOriginalPnt (self, origPoint):
+    #originalPnt is a tuple of 3, e.g.(0,1,2)
+    def setOriginalPnt (self, originalPoint):
         self.originalPnt = originalPoint
         
     def getGlobalOrigPnt(self):    
@@ -109,12 +110,14 @@ class LocationTreeNode:
         curNd = self
         while curNd.parent !=None:
             curNd = curNd.parent
-            pa_global = (pa_global[0] + curNd.transformToGlobal(origPoint[0]), 
-                         pa_global[1]+ curNd.transformToGlobal(origPoint[1]), 
-                         pa_global[2]+ curNd.transformToGlobal(origPoint[2]))
-        pa_global = (curNd.originalPnt[0] + curNd.transformToGlobal(origPoint[0]), 
-                     curNd.originalPnt[1]+ curNd.transformToGlobal(origPoint[1]), 
-                     curNd.originalPnt[2]+ curNd.transformToGlobal(origPoint[2]))
+            transformedCoord = curNd.transformToGlobal(self.originalPnt)
+            pa_global = (pa_global[0] + transformedCoord[0], 
+                         pa_global[1] + transformedCoord[1], 
+                         pa_global[2] + transformedCoord[2])
+        transformedCoord = curNd.transformToGlobal(self.originalPnt)
+        pa_global = (curNd.originalPnt[0] + transformedCoord[0], 
+                     curNd.originalPnt[1] + transformedCoord[1], 
+                     curNd.originalPnt[2] + transformedCoord[2])
         return pa_global
     
     def getOriginalPnt (self):
