@@ -786,7 +786,7 @@ class sensor_info(tornado.web.RequestHandler):
     def get(self, node_id, sensor_id):
         global node_infos
         node_id = int(node_id)
-        curNode = wkpf.globals.location_tr.findLocationById(node_id)
+        curNode = wkpf.globals.location_tree.findLocationById(node_id)
         if curNode == None:
             self.write({'status':1,'message':'cannot find node id '+str(node_id)})
             return
