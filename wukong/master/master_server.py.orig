@@ -10,7 +10,6 @@ import os, sys, zipfile, re, time
 import tornado.ioloop, tornado.web
 import tornado.template as template
 import simplejson as json
-from jinja2 import Template
 import logging
 import hashlib
 from threading import Thread
@@ -25,14 +24,13 @@ import wkpf.wusignal
 from wkpf.wuapplication import WuApplication
 from wkpf.parser import *
 from wkpf.wkpfcomm import *
-from wkpf.util import *
 
 import wkpf.globals
 from configuration import *
 
 import tornado.options
 tornado.options.parse_command_line()
-#tornado.options.enable_pretty_logging()
+tornado.options.enable_pretty_logging()
 
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
@@ -42,21 +40,25 @@ node_infos = []
 from make_js import make_main
 from make_fbp import fbp_main
 def import_wuXML():
+<<<<<<< HEAD
+  test = make_main()
+  test.make()
+  
+=======
 	make_main()
 	
+>>>>>>> 99f274f8c78b8630a5b99c7003d410557bbbf3db
 def make_FBP():
-	test_1 = fbp_main()
-	test_1.make()	
+  test_1 = fbp_main()
+  test_1.make() 
 
 wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 
 # using cloned nodes
 def rebuildTree(nodes):
   nodes_clone = copy.deepcopy(nodes)
-  print "inside rebuild tree:",nodes_clone
   wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
   wkpf.globals.location_tree.buildTree(nodes_clone)
-  wkpf.globals.location_tree.printTree()
 
 # Helper functions
 def setup_signal_handler_greenlet():
@@ -191,26 +193,6 @@ class new_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg':'Cannot create application'})
 
-class rename_application(tornado.web.RequestHandler):
-  def put(self, app_id):
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot find the application'})
-    else:
-      try:
-        wkpf.globals.applications[app_ind].app_name = self.get_argument('value', '')
-        wkpf.globals.applications[app_ind].saveConfig()
-        self.content_type = 'application/json'
-        self.write({'status':0})
-      except Exception as e:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        print traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                      limit=2, file=sys.stdout)
-        self.set_status(400)
-        self.content_type = 'application/json'
-        self.write({'status':1, 'mesg': 'Cannot save application'})
-
 class application(tornado.web.RequestHandler):
   # topbar info
   def get(self, app_id):
@@ -237,6 +219,7 @@ class application(tornado.web.RequestHandler):
       # active application
       wkpf.globals.set_active_application_index(app_ind)
       app = wkpf.globals.applications[app_ind].config()
+      #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
       topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=wkpf.globals.applications[app_ind], title="Flow Based Programming")
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
@@ -249,7 +232,7 @@ class application(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       try:
-        wkpf.globals.applications[app_ind].app_name = self.get_argument('name', '')
+        wkpf.globals.applications[app_ind].name = self.get_argument('name', 'application name')
         wkpf.globals.applications[app_ind].desc = self.get_argument('desc', '')
         wkpf.globals.applications[app_ind].saveConfig()
         self.content_type = 'application/json'
@@ -507,7 +490,7 @@ class testrtt(tornado.web.RequestHandler):
 
     comm = getComm()
     node_infos = comm.getAllNodeInfos()
-    rebuildTree(node_infos)
+
     testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True, default_location = LOCATION_ROOT)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
@@ -515,7 +498,7 @@ class testrtt(tornado.web.RequestHandler):
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
     global node_infos
-    node_infos = getComm().getActiveNodeInfos(False)
+    node_infos = getComm().getActiveNodeInfos(True)
     rebuildTree(node_infos)
     #furniture data loaded from fake data for purpose of 
     #getComm().getRoutingInformation()
@@ -542,11 +525,9 @@ class nodes(tornado.web.RequestHandler):
   def put(self, nodeId):
     global node_infos
     location = self.get_argument('location')
-    print node_infos
-    print 'in nodes: simulation:'+SIMULATION
     if SIMULATION !=0:
       for info in node_infos:
-        if info.id == int(nodeId):
+        if info.nodeId == int(nodeId):
           info.location = location
           senNd = SensorNode(info)
 #          senNd = SensorNode(info, 0, 0, 0)
@@ -573,9 +554,28 @@ class nodes(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
 
-class WuLibrary(tornado.web.RequestHandler):	
+class WuLibrary(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'application/xml'
+<<<<<<< HEAD
+  try:
+    f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
+    xml = f.read()
+    f.close()
+  except:
+    self.write('<error>1</error>')
+  self.write(xml)
+  def post(self):
+  xml = self.get_argument('xml')
+  try:
+    f = open('../ComponentDefinitions/WuKongStandardLibrary.xml','w')
+    xml = f.write(xml)
+    f.close()
+  except:
+    self.write('<error>1</error>')
+  self.write('')
+class WuLibraryUser(tornado.web.RequestHandler):  
+=======
     try:
       f = open('../ComponentDefinitions/WuKongStandardLibrary.xml')
       xml = f.read()
@@ -593,6 +593,7 @@ class WuLibrary(tornado.web.RequestHandler):
       self.write('<error>1</error>')
     self.write('')
 class WuLibraryUser(tornado.web.RequestHandler):	
+>>>>>>> 99f274f8c78b8630a5b99c7003d410557bbbf3db
   def get(self):
     self.content_type = 'application/xml'
     appid = self.get_argument('appid')
@@ -622,6 +623,16 @@ class WuLibraryUser(tornado.web.RequestHandler):
 
 class SerialPort(tornado.web.RequestHandler):
   def get(self):
+<<<<<<< HEAD
+  self.content_type = 'application/json'
+  system_name = platform.system()
+  if system_name == "Windows":
+    available = []
+    for i in range(256):
+      try:
+        s = serial.Serial(i)
+        available.append(i)
+=======
     self.content_type = 'application/json'
     system_name = platform.system()
     if system_name == "Windows":
@@ -645,10 +656,121 @@ class SerialPort(tornado.web.RequestHandler):
       try:
         s = serial.Serial(l)
         available.append(l)
+>>>>>>> 99f274f8c78b8630a5b99c7003d410557bbbf3db
         s.close()
       except:
         pass
     self.write(json.dumps(available))
+<<<<<<< HEAD
+    return
+  if system_name == "Darwin":
+    list = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
+  else:
+    print 'xxxxx'
+    list = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
+  available=[]
+  for l in list:
+    try:
+      s = serial.Serial(l)
+      available.append(l)
+      s.close()
+    except:
+      pass
+  self.write(json.dumps(available))
+
+class EnabledWuClass(tornado.web.RequestHandler): 
+  def get(self):
+    self.content_type = 'application/xml'
+  try:
+    f = open('../../src/config/wunode/enabled_wuclasses.xml')
+    xml = f.read()
+    f.close()
+  except:
+    self.write('<error>1</error>')
+  self.write(xml)
+  def post(self):
+  try:
+    f = open('../../src/config/wunode/enabled_wuclasses.xml','w')
+    xml = self.get_argument('xml')
+    f.write(xml)
+    f.close()
+  except:
+    pass
+
+class WuClassSource(tornado.web.RequestHandler):  
+  def get(self):
+    self.content_type = 'text/plain'
+  try:
+    type = self.get_argument('type')
+    try:
+        appid = self.get_argument('appid')
+    except:
+      appid = None
+
+    if type == 'C':
+      name = self.get_argument('src')+'.c'
+    else:
+      name = self.get_argument('src')+'.java'
+    try:
+        if appid != None:
+            app = wkpf.globals.applications[getAppIndex(appid)]
+            f = open(app.dir+'/'+name)
+        else:
+            f = open(self.findPath(name))
+        cont = f.read()
+        f.close()
+    except:
+        # We may use jinja2 here
+      f = open('templates/wuclass.tmpl')
+      cont = f.read()
+      f.close()
+      cont = cont.replace('{{class}}',name)
+
+  except:
+    self.write(traceback.format_exc())
+    return
+  self.write(cont)
+  def post(self):
+  try:
+    print 'xxx'
+    name = self.get_argument('name')
+    type = self.get_argument('type')
+    try:
+        appid = self.get_argument('appid')
+    except:
+      appid = None
+    if type == 'C':
+      name = name + '.c'
+    else:
+      name = name + '.java'
+    print 'name=',name
+    if appid != None:
+        app = wkpf.globals.applications[getAppIndex(appid)]
+        f = open(app.dir+'/'+name,'w')
+    else:
+        f = open(self.findPath(name),'w')
+    f.write(self.get_argument('content'))
+    f.close()
+    self.write('OK')
+  except:
+    self.write('Error')
+    print traceback.format_exc()
+  
+  def findPath(self,p):
+  name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
+  if os.path.isfile(name):
+    return name
+  name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
+  if os.path.isfile(name):
+    return name
+  name = p
+  print 'yyyyy'
+  return name
+  
+  
+
+class tree(tornado.web.RequestHandler): 
+=======
 
 class EnabledWuClass(tornado.web.RequestHandler):	
   def get(self):
@@ -673,32 +795,33 @@ class WuClassSource(tornado.web.RequestHandler):
   def get(self):
     self.content_type = 'text/plain'
     try:
-      name = self.get_argument('src')
       type = self.get_argument('type')
-      appid = self.get_argument('appid', None)
-      app = None
-      if appid:
-          app = wkpf.globals.applications[getAppIndex(appid)]
+      try:
+        appid = self.get_argument('appid')
+      except:
+        appid = None
 
       if type == 'C':
-        name_ext = 'wuclass_'+Convert.to_c(name)+'_update.c'
+        name = self.get_argument('src')+'.c'
       else:
-        name_ext = 'Virtual'+Convert.to_java(name)+'WuObject.java'
+        name = self.get_argument('src')+'.java'
       try:
-          f = open(self.findPath(name_ext, app))
+          if appid != None:
+              print appid
+              app = wkpf.globals.applications[getAppIndex(appid)]
+              f = open(app.dir+'/'+name)
+          else:
+              f = open(self.findPath(name))
           cont = f.read()
           f.close()
       except:
         traceback.print_exc()
         # We may use jinja2 here
-        if type == "C":
-          f = open('templates/wuclass.tmpl.c')
-        else:
-          f = open('templates/wuclass.tmpl.java')
-
-        template = Template(f.read())
+        f = open('templates/wuclass.tmpl')
+        cont = f.read()
         f.close()
-        cont = template.render(classname=Convert.to_java(name))
+        cont = cont.replace('{{class}}',name)
+
     except:
       self.write(traceback.format_exc())
       return
@@ -708,46 +831,43 @@ class WuClassSource(tornado.web.RequestHandler):
       print 'xxx'
       name = self.get_argument('name')
       type = self.get_argument('type')
-      appid = self.get_argument('appid', None)
-      app = None
-      if appid:
-          app = wkpf.globals.applications[getAppIndex(appid)]
+      try:
+        appid = self.get_argument('appid')
+      except:
+        appid = None
 
       if type == 'C':
-        name_ext = 'wuclass_'+Convert.to_c(name)+'_update.c'
+        name = name + '.c'
       else:
-        name_ext = 'Virtual'+Convert.to_java(name)+'WuObject.java'
-      try:
-        f = open(self.findPath(name_ext, app), 'w')
-      except:
-        traceback.print_exc()
-        if type == 'C':
-          f = open("../../src/lib/wkpf/c/common/native_wuclasses/"+name_ext,'w')
-        else:
-          f = open("../javax/wukong/virtualwuclasses/"+name_ext,'w')
+        name = name + '.java'
+      print 'name=',name
+      if appid != None:
+          app = wkpf.globals.applications[getAppIndex(appid)]
+          f = open(app.dir+'/'+name,'w')
+      else:
+          f = open(self.findPath(name),'w')
       f.write(self.get_argument('content'))
       f.close()
       self.write('OK')
     except:
       self.write('Error')
       print traceback.format_exc()
+  
+  def findPath(self,p):
+    name = '../../src/lib/wkpf/c/arduino/native_wuclasses/'+p
+    if os.path.isfile(name):
+      return name
+    name = '../../src/lib/wkpf/c/common/native_wuclasses/'+p
+    if os.path.isfile(name):
+      return name
+    name = p
+    print 'yyyyy'
+    return name
+  
+  
 
-  def findPath(self, p, app=None):
-    # Precedence of path is All apps dir -> common native wuclasses, then arcuino native wuclasses
-    paths = [os.path.join(APP_DIR, dirname) for dirname in os.listdir(APP_DIR)] + ['../../src/lib/wkpf/c/common/native_wuclasses/', '../../src/lib/wkpf/c/arduino/native_wuclasses/','../javax/wukong/virtualwuclasses/']
-    # If an app is passed in, then its dir will be the first to search
-    if app:
-      paths = [app.dir] 
-    for path in paths:
-      if not os.path.isdir(path): continue
-      filename = path +'/'+ p
-      print filename
-      if os.path.isfile(filename):
-        return filename
-    # returns None if not found
-    return None
-
-class loc_tree(tornado.web.RequestHandler): 
+class tree(tornado.web.RequestHandler):	
+>>>>>>> 99f274f8c78b8630a5b99c7003d410557bbbf3db
   def post(self):
     global node_infos
     
@@ -933,7 +1053,6 @@ wukong = tornado.web.Application([
   (r"/applications", list_applications),
   (r"/applications/new", new_application),
   (r"/applications/([a-fA-F\d]{32})", application),
-  (r"/applications/([a-fA-F\d]{32})/rename", rename_application),
   (r"/applications/([a-fA-F\d]{32})/reset", reset_application),
   (r"/applications/([a-fA-F\d]{32})/properties", properties_application),
   (r"/applications/([a-fA-F\d]{32})/poll", poll),
@@ -944,7 +1063,7 @@ wukong = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
   (r"/loc_tree/nodes/([0-9]*)", loc_tree),
   (r"/loc_tree/nodes/([0-9]*)/(\w+)", sensor_info),
-  (r"/loc_tree", loc_tree),
+  (r"/loc_tree", tree),
   (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
   (r"/loc_tree/save", save_landmark),
   (r"/loc_tree/land_mark", add_landmark),

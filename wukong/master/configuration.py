@@ -12,6 +12,8 @@ LOCATION_ROOT = config.get('LOCATION_ROOT', 'universal')
 
 DEPLOY_PLATFORMS = ['avr_mega2560']
 
+SIMULATION = config.get('SIMULATION', 'false')
+
 #XML_PATH = os.path.join(ROOT_PATH, 'wukong', 'Applications')
 COMPONENTXML_PATH = os.path.join(ROOT_PATH, 'wukong', 'ComponentDefinitions', 'WuKongStandardLibrary.xml')
 TEMPLATE_DIR = os.path.join(ROOT_PATH, 'wukong', 'tools', 'xml2java')
@@ -19,3 +21,4 @@ JAVA_OUTPUT_DIR = os.path.join(ROOT_PATH, 'src', 'app', 'wkdeploy', 'java')
 TESTRTT_PATH = os.path.join(ROOT_PATH, 'wukong', 'tools', 'python', 'pyzwave')
 APP_DIR = os.path.join(ROOT_PATH, 'wukong', 'apps')
 BASE_DIR = os.path.join(ROOT_PATH, 'wukong', 'master', 'baseapp')
+MOCK_XML = os.path.join(ROOT_PATH, 'wukong', 'master', 'mock_discovery.xml')
