@@ -26,6 +26,8 @@ class Communication:
       self.all_node_infos = []
       self.broker = getAgent()
       try:
+        if SIMULATION == "true":
+          raise KeyboardInterrupt
         self.zwave = getZwaveAgent()
       except:
         is_not_connected()
