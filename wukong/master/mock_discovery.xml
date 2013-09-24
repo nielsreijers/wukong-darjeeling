@@ -1,6 +1,6 @@
 <Nodes>
 <Node id="1">
-    <Location length="21" content="WuKong/1F/101#(0,1,0)"/>
+    <Location length="21" content="WuKong/1F/102@(0,1,0)"/>
     <WuClassList length="2">
         <WuClass id="0" publish="true" virtual="true"/>
         <WuClass id="5" publish="true" virtual="false"/>
@@ -10,7 +10,7 @@
     </WuObjectList>
 </Node>
 <Node id="2">
-    <Location length="21" content="WuKong/1F/101#(0,1,0)"/>
+    <Location length="21" content="WuKong/1F/101@(0,4,1)"/>
     <WuClassList length="1">
         <WuClass id="0" publish="true" virtual="true"/>
     </WuClassList>

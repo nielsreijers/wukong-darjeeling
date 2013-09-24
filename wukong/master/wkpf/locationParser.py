@@ -15,7 +15,7 @@ from pyparsing import *
 <Number> ::= [0-9] | [0-9] <Number>
 <real> ::= <number> |<number> ',' <number>  
 <coordinate> ::= ',' <number> ',' <number> ',' <number> ','
-<word> ::= '[a-zA-Z_]' | <word> '[a-zA-Z0-9_]'
+<word> ::= <word> '[a-zA-Z0-9_]'
 <function_name> ::=<word>
 <parameter> ::= <word> | <real>
 <parameter_list> ::= <parameter> | <parameter_list> ',' <parameter>
@@ -296,7 +296,7 @@ class LocationParser:
 
     def parse(self, str):
         real = Combine( Word(nums) +(u'.' + Word(nums))*(0,1) )
-        word = Word( srange(u"[a-zA-Z_]"), srange(u"[a-zA-Z0-9_]") )
+        word = Word(srange(u"[a-zA-Z0-9_]"))
         function_name = word
         EQUAL = Literal(u'=').suppress()
         LPAR = Literal(u'(').suppress()
@@ -308,26 +308,27 @@ class LocationParser:
         SLASH = Literal(u'/').suppress()
         POND = Literal(u'#').suppress()
         AT = Literal(u'@').suppress()
-        parameter = word | real
+        parameter = word ^ real
         parameter_list = parameter + ( COMMA+ parameter )*(None, None)
         function = Group(function_name + LPAR + (parameter_list)*(0,1)+RPAR).setResultsName(u"function")
         coordinate = LPAR + real + (COMMA + real)*2 + RPAR
         opNegate = Forward()        #declaration for recursive definition
-        opNegate << (Group(NOT + opNegate).setResultsName(u"not") | function)
+        opNegate << (Group(NOT + opNegate).setResultsName(u"not") ^ function)
         opAnd = Forward()
-        opAnd << (Group(opNegate + AND + opAnd).setResultsName(u"and") | Group(opNegate).setResultsName(u"and"))
+        opAnd << (Group(opNegate + AND + opAnd).setResultsName(u"and") ^ Group(opNegate).setResultsName(u"and"))
         opOr = Forward()
-        opOr << (Group(opAnd + OR + opOr).setResultsName(u"or") | Group(opAnd).setResultsName(u"or"))
+        opOr << (Group(opAnd + OR + opOr).setResultsName(u"or") ^ Group(opAnd).setResultsName(u"or"))
         path = (Group((SLASH + word)*(1, None))).setParseAction(self.parsePath())
-        specification = (Group(path + POND + opOr *(0,1))).setResultsName(u"specification") | Group(path).setResultsName(u"specification")
+        specification = (Group(path + POND + opOr *(0,1))).setResultsName(u"specification") ^ Group(path).setResultsName(u"specification")
         location_def = path + AT +coordinate   #not used, because this file is for specificaiton parser
         try:
+            print "location string to evaluate:" + str
             if str == "" or str == "/":
                 str = "/"+ LOCATION_ROOT
             if len(str)>1 and str[0]!='/':
                 str = '/'+str
             result =  specification.parseString(str, True)
-#            print "parse result: ", result
+            #print "parse result: ", result
             return self.evaluate(None, result[0])
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
