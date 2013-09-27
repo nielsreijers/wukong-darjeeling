@@ -296,7 +296,7 @@ class Communication:
             wuobject = WuObject.create(wuclassdef, node, port_number, virtual)
 
           wuobjects.append(wuobject)
-          reply = reply[3:]
+          reply = reply[4:]
 
       return wuobjects
 
