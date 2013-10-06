@@ -2,6 +2,8 @@
 
 import logging
 import json
+import ast
+import numpy
 
 MAX_LIFE = 1
 class LandmarkNode:
@@ -44,7 +46,7 @@ class SensorNode:
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
             return
-        for wuObj in self.nodeInfo.wuObjects:
+        for wuObj in self.nodeInfo.wuobjects():
             self.port_list.append(wuObj._portNumber)
         self.port_list.sort()
     def reserveNextPort(self):      #reserve a port from 0 ~ 127
@@ -76,9 +78,10 @@ class LocationTreeNode:
         self.sensorLst = []
         self.sensorCnt = 0
         self.landmarkLst = []
-        self.size = (0,0)
+        self.size = (0,0,0)
         self.originalPnt = (0,0,0)     #in coord system of parent
         self.centerPnt = (0,0,0)      #in coord system of parent
+        self.direction = None
         #represent [[cosx1x2, cosx2y1, cosx2z1],[cosy1x2, cosy1y2,cosy1z2],[cosz1x2,cosz1y2,cosz1z2]]
         #globalCoord = transMatrix * localCoord 
         self.transMatrix = [[1,0,0],[0,1,0],[0,0,1]]   #default no transformation between coordinate system
@@ -88,6 +91,15 @@ class LocationTreeNode:
         self.distanceModifier = {} #stores a list of distance between children, default 0, used for distance between sensors in different children.
         self.idSet = set([]) #all sensor ids contained in this Node and its children nodes
 
+    #set local Global Size Direction from strings
+    def setLGSDFromString(local_str, global_str, size_str, direction_str):
+        self.originalPnt = ast.literal_eval(local_str)
+        self.size = ast.literal_eval(size_str)
+        if direction_str != "None":
+            self.direction = ast.literal_eval(direction_str)
+        else:
+            self.direction = None
+        
     #transMatrix is a 3*3 nested list
     def setLocalTransMatrix (self, transMatrix):
         self.localTransMatrix = transMatrix
@@ -100,6 +112,11 @@ class LocationTreeNode:
             for j in range(3):
                 newVec[i] = newVec[i]+ self.transMatrix[i][j]*vect[j]
         return tuple(newVec)
+    
+    def transformToLocal(self, vect):
+        A = numpy.matrix(self.transMatrix)
+        inverseA = A.I
+        return tuple((vect*inverseA).tolist()[0])
         
     #originalPnt is a tuple of 3, e.g.(0,1,2)
     def setOriginalPnt (self, originalPoint):
@@ -452,6 +469,7 @@ class LocationTree:
     def addSensor(self, sensorNd, startPos = None ):
         if startPos == None:
             startPos = self.root
+         
         if sensorNd.nodeInfo.id in self.sensor_dict:
             if sensorNd.nodeInfo.location == self.sensor_dict[sensorNd.nodeInfo.id].location:
                 self.sensor_dict[sensorNd.nodeInfo.id].life = MAX_LIFE
@@ -464,9 +482,14 @@ class LocationTree:
         if sensorNd.locationLst == None or len(sensorNd.locationLst) == 0:
             logging.error("error! location for node "+ str(sensorNd.nodeInfo.id)+ " is not set")
             return False
+        
         if startPos.name != sensorNd.locationLst[0]:
-            logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " does not match " + startPos.name)
-            return False
+            if startPos == self.root:
+                sensorNd.locationLst = [self.root.name] + sensorNd.locationLst
+            else:
+                logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " of node does not match expected" + startPos.name)
+                print ("error! location: "+ str(sensorNd.locationLst[0])+ " of node does not match expected" + startPos.name)
+                return False
         curPos = startPos
         for i in range(1, len(sensorNd.locationLst)):
             
