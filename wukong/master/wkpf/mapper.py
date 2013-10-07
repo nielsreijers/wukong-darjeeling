@@ -69,6 +69,16 @@ def sortCandidates(wuObjects):
     for candidates in wuObjects:
       sorted(candidates, key=lambda node: nodeScores[node[0]], reverse=True)
 
+##########changeset example #######
+#ChangeSets(components=[
+#    WuComponent(
+#      {'index': 0, 'reaction_time': 1.0, 'group_size': 1, 'application_hashed_name': u'f92ea1839dc16d7396db358365da7066', 'heartbeatgroups': [], 'instances': [
+#    WuObject(
+#      {'node_identity': 1, 'wuproperty_cache': [], 'wuclassdef_identity': 11, 'virtual': 0, 'port_number': 0, 'identity': 1}
+#    )], 'location': 'WuKong', 'properties_with_default_values': {}, 'type': u'Light_Sensor'}
+#    )], links=[], heartbeatgroups=[])
+#############################
+
 def firstCandidate(logger, changesets, routingTable, locTree):
     set_wukong_status('Mapping')
     logger.clearMappingStatus() # clear previous mapping status
@@ -81,11 +91,16 @@ def firstCandidate(logger, changesets, routingTable, locTree):
     for component in changesets.components:
         # filter by location
         locParser = LocationParser(locTree)
+        print component
         try:
-            candidates = locParser.parse(component.location)
+            candidates, rating = locParser.parse(component.location)
+            print "candidates", candidates
         except:
+            #no mapping result
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            logger.errorMappingStatus('Cannot find match for location query "%s" for component wuclass id "%s", so we will invalid the query and pick all by default', component.location, wuObject[0].getWuClass().getId())
+            msg = 'Cannot find match for location query "%s" for component wuclass id "%s", so we will invalid the query and pick all by default', component.location, component.instances[0].wuclassdef_identity
+            logger.errorMappingStatus(msg)
+            set_wukong_status(msg)
             candidates = locTree.getAllAliveNodeIds()
 
 

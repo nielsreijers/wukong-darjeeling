@@ -105,7 +105,7 @@ class LocationParser:
             if dist <= dist**2:
                 #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
                 ret_val.add(sensorNd.nodeInfo.id)
-        return ret_val
+        return ret_val,[1]*len(ret_val)
 
     #return the closest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
     def closest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
@@ -120,7 +120,7 @@ class LocationParser:
             landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
-                return ret_val
+                return node_lst
             x = landMarks[0].coord[0]
             y = landMarks[0].coord[1]
             z = landMarks[0].coord[2]
@@ -147,15 +147,20 @@ class LocationParser:
                     dist_lst.append(dist)
                     largest_dist = dist
             else:
+                #linear search because number of nodes are limited. However binary search would be faster
                 for i in range(len(node_lst)):
                     if dist_lst[i] > dist:
                         node_lst.insert(i, sensorNd.nodeInfo.id)
                         dist_lst.insert(i, dist)
                         break
-        return node_lst
+        if len(node_lst) >count:
+            node_lst = node_lst[:count]
+            dist_lst = dist_lst[:count]
+        return node_lst, dist_lst
 
     def farthest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
-        return LocationParser.__dict__["closest"](locationTreeNode, x, y,z, count, idLst).reverse()
+        node_lst, dist_lst = LocationParser.__dict__["closest"](locationTreeNode, x, y,z, count, idLst)        
+        return node_lst.reverse(), dist_lst.reverse()
     
     #sort nodes according to their distance to center
     def findCenter(locationTreeNode, count=-1, idLst=None):
@@ -168,7 +173,8 @@ class LocationParser:
                    sum[1] + sensorNd.coord[1],
                    sum[2] + sensorNd.coord[2])
         return LocationParser.__dict__["closest"] (locationTreeNode, sum[0]/len(idLst), sum[1]/len(idLst), sum[2]/len(idLst), count, idLst)
-        
+    
+    #not using
     def inside(locationTreeNode, landMarkName):
         landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
         retLst = []
@@ -183,9 +189,11 @@ class LocationParser:
                     break
         return set(retLst)
     
+    #notusing
     def outside(locationTreeNode, landMarkName):
         return locationTreeNode.idSet - inside(locationTreeNode, landMarkName)
     
+    #not using
     def tangent(locationTreeNode, landMarkName):
         landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
         retLst = []
@@ -212,6 +220,7 @@ class LocationParser:
                     break
         return set(retLst)
     
+    #not using
     #dimension --0 for x, 1 for y, 2 for z, 
     #set dimention to 2 is equivalent to above()
     def front(locationTreeNode, landMarkName, dimension):
@@ -238,6 +247,8 @@ class LocationParser:
                     retLst.append(sensorId)
                     break
         return set(retLst)
+        
+    #not using
     def back(locationTreeNode, landMarkName, dimension):
         landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
         retLst = []
@@ -261,6 +272,8 @@ class LocationParser:
                     retLst.append(sensorId)
                     break
         return set(retLst)
+    
+    #not using
     def above(locationTreeNode, landMarkName):
         return LocationParser.__dict__["front"](locationTreeNode, landMarkName, 2)
     def below(locationTreeNode, landMarkName):
@@ -327,12 +340,14 @@ class LocationParser:
                 str = "/"+ LOCATION_ROOT
             if len(str)>1 and str[0]!='/':
                 str = '/'+str
+            if str.index(LOCATION_ROOT) != 1:
+                str = '/' + LOCATION_ROOT + str
             result =  specification.parseString(str, True)
-            #print "parse result: ", result
+            print "parse result: ", result
             return self.evaluate(None, result[0])
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            print str
+            print "location string" + str + "doesn't match anything"
             print traceback.print_exception(exc_type, exc_value, exc_traceback,
                                           limit=2, file=sys.stdout)
             raise

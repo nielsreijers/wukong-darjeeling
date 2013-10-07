@@ -1,17 +1,51 @@
 <!doctype html>
 <script type="text/javascript" src="/static/js/testrtt.js"></script>
 <script type="text/javascript" src="/static/js/display_locationTree.js"></script>
-<div class="modal" id="dispObj" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal ui-widget-content" id="dispTreeNodeInfo" role="dialog" style="display:none">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">Modal header</h3>
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Location Tree Node Information</h3>
     </div>
-    <div class="modal-body">
-        <p>One fine body…</p>
+    <div id="dispTreeNodeInfoBody">
     </div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+        <button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+</div>
+<div class="modal ui-widget-content" id="modifier_dialog"  role="dialog" style="display:none">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Choose start and end node</h3>
+    </div>
+    <div class="modal-body">
+      Start Treenode ID<input id = "distmod_start_id" type=text size="20" disabled/>
+      <button class="chooseLocNode" for="distmod_start_id">Choose Tree Node</button>
+      <br>
+      End Treenode ID<input id = "distmod_end_id" type=text size="20" disabled/><br>
+      <button class="chooseLocNode" for="distmod_end_id">Choose Tree Node</button>
+      <br>
+      Distance<input id = "distmod_distance" type=text size="20"><br>
+    </div>
+    <div class="modal-footer">
+        <button id="addModifier" class="dialogCloseButton" data-dismiss="modal" >Add</button>
+        <button id="delModifier" class="dialogCloseButton" data-dismiss="modal" >Delete</button>
+        <button class="dialogCloseButton" data-dismiss="modal">Close</button>
     </div>
 </div>
 
+<div class="modal ui-widget-content" id="tree_dialog" role="dialog" style="display:none">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Choose a node</h3>
+    </div>
+    <div class="modal-body">
+      <ul id="treeInDialog" class="treeview">
+      </ul>
+      <input id = "selectedTreeNode" type=text size="20"/>
+    </div>
+    <div class="modal-footer">
+        <button id="confirm_tree_dialog" data-dismiss="modal" class="dialogCloseButton">Select</button>
+        <button data-dismiss="modal" class="dialogCloseButton">Close</button>
+    </div>
+</div>
 
