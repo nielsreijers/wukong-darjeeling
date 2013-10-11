@@ -544,14 +544,14 @@ class nodes(tornado.web.RequestHandler):
     location = self.get_argument('location')
     print node_infos
     print 'in nodes: simulation:'+SIMULATION
-    if SIMULATION !=0:
+    if SIMULATION != "false":
       for info in node_infos:
         if info.id == int(nodeId):
           info.location = location
           senNd = SensorNode(info)
 #          senNd = SensorNode(info, 0, 0, 0)
           wkpf.globals.location_tree.addSensor(senNd)
-      wkpf.globals.location_tr.printTree()
+      wkpf.globals.location_tree.printTree()
       self.content_type = 'application/json'
       self.write({'status':0})
       return
@@ -773,6 +773,7 @@ class loc_tree(tornado.web.RequestHandler):
     global node_infos
     node_id = int(node_id)
     curNode = wkpf.globals.location_tree.findLocationById(node_id)
+    print node_id, curNode
     if curNode == None:
         self.write({'status':1,'message':'cannot find node id '+str(node_id)})
         return
@@ -781,6 +782,21 @@ class loc_tree(tornado.web.RequestHandler):
                     'distanceModifier':str(curNode.distanceModifier), 'centerPnt':curNode.centerPnt, 
                     'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
                     'global_coord':curNode.getGlobalOrigPnt()}) 
+    
+  def put(self, node_id):
+    global node_infos
+    node_id = int(node_id)
+    curNode = wkpf.globals.location_tree.findLocationById(node_id)
+    if curNode == None:
+        self.write({'status':1,'message':'cannot find node id '+str(node_id)})
+        return
+    else:
+        global_coord = self.get_argument("global_coord")
+        local_coord = self.get_argument("local_coord")
+        size = self.get_argument("size")
+        direction = self.get_argument("direction")
+        curNode.setLGSDFromStr(local_coord, global_coord, size, direction)
+        self.write({'status':0,'message':'find node id '+str(node_id)})
 
 class sensor_info(tornado.web.RequestHandler):  
     def get(self, node_id, sensor_id):
@@ -807,7 +823,8 @@ class tree_modifier(tornado.web.RequestHandler):
     start_id = self.get_argument("start")
     end_id = self.get_argument("end")
     distance = self.get_argument("distance")
-    paNode = wkpf.globals.location_tr.findLocationById(int(start_id)//100)      #find parent node
+    print (int(start_id)//100);
+    paNode = wkpf.globals.location_tree.findLocationById(int(start_id)//100)      #find parent node
     if paNode !=None:
         if int(mode) == 0:        #adding modifier between siblings
             if paNode.addDistanceModifier(int(start_id), int(end_id), int(distance)):
@@ -853,7 +870,7 @@ class add_landmark(tornado.web.RequestHandler):
     if(operation=="1"):
       landId += 1
       landmark = LandmarkNode(name, location, size, direct) 
-      rt_val = wkpf.globals.location_tr.addLandmark(landmark)
+      rt_val = wkpf.globals.location_tree.addLandmark(landmark)
       msg = 'add fails'
       wkpf.globals.location_tree.printTree()
     elif(operation=="0"):

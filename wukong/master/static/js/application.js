@@ -477,24 +477,16 @@ function display_tree(rt) {
           }
         }
     html_tree += '</td><td valign="top">';
-    html_tree += '<button id="saveTree">SAVE Landmarks</button>' +
-                 '<button id="addNode">ADD Landmark</button>'+
-                 '<button id="delNode">DEL Landmark</button>'+
-                 '<button type="button" class="set_node">Save Node Configuration</button><br>'+
-                 'type <div id="nodeType"></div><br>'+
-                 'ID <input id="SensorId" type=text size="10"><br>'+
-                 'Location <input id="locName" type=text size="100"><br>'+
-                 'Local Coordinate <input id="localCoord" type=text size="100"><br>'+
-                 'Global Coordinate <input id="gloCoord" type=text size="100"><br>'+
-                 'Size <input id = "size" type=text size="100"><br>'+
-                 'Direction <input id = "direction" type=text size="100"><br>'+
-                 'Distance Modifier <button id="addModifier">Add Modifier</button> '+ 
-                 '<button id="delModifier">Delete Modifier</button><br>' +
-                 'start treenode ID<input id = "distmod_start_id" type=text size="20"><br>'+
-                 'end treenode ID<input id = "distmod_end_id" type=text size="20"><br>'+
-                 'distance<input id = "distmod_distance" type=text size="20"><br>'+
-                 'Existing Modifiers <div id="distmod_list"></div><br>';
-    html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>';
+    
+       
+    html_tree += '<button id="saveTree">SAVE Landmarks</button>';
+                 //'type <div id="nodeType"></div><br>'+
+                 //'ID <input id="SensorId" type=text size="10"><br>'+
+                 //'Location <input id="locName" type=text size="100"><br>'+
+                 //'Local Coordinate <input id="localCoord" type=text size="100"><br>'+
+                 
+                 
+  //  html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>';
 //  html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
     html_tree += '</td></tr></table>';
     $('#content').append(html_tree);
