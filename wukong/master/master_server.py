@@ -750,16 +750,7 @@ class WuClassSource(tornado.web.RequestHandler):
 class loc_tree(tornado.web.RequestHandler): 
   def post(self):
     global node_infos
-    
-    load_xml = ""
-    flag = os.path.exists("../ComponentDefinitions/landmark.xml")
-#    if(flag):
-    if(False):
-      f = open("../ComponentDefinitions/landmark.xml","r")
-      for row in f:
-        load_xml += row 
-    else:
-      pass
+ 
     print node_infos      
     addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
 
@@ -767,7 +758,7 @@ class loc_tree(tornado.web.RequestHandler):
     disploc = wkpf.globals.location_tree.getJson()
 
     self.content_type = 'application/json'
-    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})
+    self.write({'loc':json.dumps(disploc),'node':addloc})
   
   def get(self, node_id):
     global node_infos
@@ -779,7 +770,7 @@ class loc_tree(tornado.web.RequestHandler):
         return
     else:
         self.write({'status':0, 'message':'succeed in finding node id'+str(node_id), 
-                    'distanceModifier':str(curNode.distanceModifier), 'centerPnt':curNode.centerPnt, 
+                    'distanceModifier':curNode.distanceModifierToString(), 'centerPnt':curNode.centerPnt, 
                     'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
                     'global_coord':curNode.getGlobalOrigPnt()}) 
     
@@ -823,7 +814,6 @@ class tree_modifier(tornado.web.RequestHandler):
     start_id = self.get_argument("start")
     end_id = self.get_argument("end")
     distance = self.get_argument("distance")
-    print (int(start_id)//100);
     paNode = wkpf.globals.location_tree.findLocationById(int(start_id)//100)      #find parent node
     if paNode !=None:
         if int(mode) == 0:        #adding modifier between siblings
@@ -849,10 +839,17 @@ class save_landmark(tornado.web.RequestHandler):
         self.write({'tree':wkpf.globals.location_tree})
 
   def post(self):
-        landmark_info = self.get_argument('xml')
-        f = open("../ComponentDefinitions/landmark.xml","w")
-        f.write(landmark_info)
-        f.close()
+        wkpf.globals.location_tree.saveTree()
+        self.write({'message':'Save Successfully!'})
+        
+class load_landmark(tornado.web.RequestHandler):
+    def post(self):
+        flag = os.path.exists("../ComponentDefinitions/landmarks.txt")
+        if(flag):
+            wkpf.globals.location_tree.loadTree()
+            self.write({'message':'Load Successfully!'})
+        else:
+            self.write({'message':'"../ComponentDefinitions/landmarks.txt" does not exist '})
         
 class add_landmark(tornado.web.RequestHandler):
   def put(self):
@@ -864,12 +861,13 @@ class add_landmark(tornado.web.RequestHandler):
     operation = self.get_argument("ope")
     size  = self.get_argument("size")
     direct = self.get_argument("direction")
+    coordinate = self.get_argument("coordinate")
     landmark = None
     rt_val = 0
     msg = ''
     if(operation=="1"):
       landId += 1
-      landmark = LandmarkNode(name, location, size, direct) 
+      landmark = LandmarkNode(name, location+"@"+coordinate, size, direct) 
       rt_val = wkpf.globals.location_tree.addLandmark(landmark)
       msg = 'add fails'
       wkpf.globals.location_tree.printTree()
@@ -877,9 +875,9 @@ class add_landmark(tornado.web.RequestHandler):
       wkpf.globals.location_tree.delLandmark()
       msg = 'deletion fails'
     self.content_type = 'application/json'
-    if rt_val ==0:
+    if rt_val == True:
         self.write({'status':0, 'id':landmark.getId()})
-    if rt_val ==1:
+    if rt_val == False:
         self.write({'status':1, 'id':landmark.getId(), 'msg':msg})
 
 class Build(tornado.web.RequestHandler):  
@@ -963,6 +961,7 @@ wukong = tornado.web.Application([
   (r"/loc_tree", loc_tree),
   (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
   (r"/loc_tree/save", save_landmark),
+  (r"/loc_tree/load", load_landmark),
   (r"/loc_tree/land_mark", add_landmark),
   (r"/componentxml",WuLibrary),
   (r"/componentxmluser",WuLibraryUser),

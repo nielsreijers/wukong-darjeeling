@@ -48,8 +48,17 @@ $(function() {
     $('#myModal').hide();
     $('#dispObj').hide();
 
-    $('#nodes a').click(function(e) {
+//    $('#nodes a').click(function(e) {
+  //      e.preventDefault();
+    //    $(this).tab('show');
+    //});
+    $('#location_editor_tab').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
+        $.post('/loc_tree', function(data) {
+            display_tree('#location_editor',data);
+            $('#location_editor').append(data.node);
+            document.body.dataset.installer_mode = "true";               
+        });                    
     });
 });

@@ -7,6 +7,7 @@
                 <ul class="nav nav-pills">
                     <li class="active"><a href="#testrtt" data-toggle="tab">Adding/Removing Nodes</a></li>
                     <li><a href="#nodes" data-toggle="tab">Node location</a></li>
+                    <li><a id="location_editor_tab" href="#location_editor" data-toggle="tab">Location Editor</a></li>
                 </ul>
                 <div class=tab-content>
                     <div class="tab-pane" id="nodes">
@@ -22,6 +23,9 @@
                         {{ l }}
                         {% end %}
                         </pre>
+                    </div>
+                    <div class="tab-pane" id="location_editor">
+                      {% include "display_locationTree.html" %}
                     </div>
                 </div>
             </div>
