@@ -88,7 +88,6 @@ $('.sensor_node_btn').click(function(){
        'end treenode ID<input id = "distmod_end_id" type=text size="20"><br>'+
        'distance<input id = "distmod_distance" type=text size="20"><br>';
     var nodeId = $(this).attr("id");
-    var nodeName = $(this).val();
     var nodeName = $(this).text();
     var locTreeNodeId = $(this).parent().parent().children('.locTreeNode').attr("id")
                         ||$(this).parent().parent().children('.landmarkTreeNode').attr("id");
@@ -101,7 +100,7 @@ $('.sensor_node_btn').click(function(){
             if (nodeId[0]=='l'){
                 $('#node_info_dialog_title').html("Landmark Information");
                 $('#node_info_dialog_body').html("Location: "+ data.location +"<br>" +
-                                                 "Landmark Name: " + nodeName);
+                                                 "Landmark Name: " + nodeName.substring(0,nodeName.indexOf('(')));
             }else{
                 $('#node_info_dialog_title').html("WuNode Information");
                 $('#node_info_dialog_body').html("Location: "+ data.location +"<br>" +
@@ -372,12 +371,12 @@ function display_tree(container_id,rt) {
     html_tree += '</td><td valign="top">';
     if (container_id == "#content"){    //#content means in user mode, generating for landmark edit
         html_tree += generate_tree(rt, "landmarkTreeNode");
-        html_tree += '<button id="saveTree">Save Landmarks</button><br>'+
-                     '<button id="loadTree">Load Saved Distance Barriers Landmarks</button>';
+        html_tree += '<button id="saveTree">Save Landmarks</button><br>';
+        //+'<button id="loadTree">Load Saved Distance Barriers Landmarks</button>';
     } else {                            //otherwise installer mode, generating for modifier edit
         html_tree += generate_tree(rt, "locTreeNode");
-        html_tree += '<button id="saveTree">Save Distance Barriers</button><br>'+
-                     '<button id="loadTree">Load Saved Distance Barriers and Landmarks</button>';
+        html_tree += '<button id="saveTree">Save Distance Barriers</button><br>';
+        //+'<button id="loadTree">Load Saved Distance Barriers Landmarks</button>';
     }  
     html_tree += '</td></tr></table>';
     $(container_id).append(html_tree);

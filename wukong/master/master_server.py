@@ -55,6 +55,9 @@ def rebuildTree(nodes):
   nodes_clone = copy.deepcopy(nodes)
   wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
   wkpf.globals.location_tree.buildTree(nodes_clone)
+  flag = os.path.exists("../ComponentDefinitions/landmarks.txt")
+  if(flag):
+      wkpf.globals.location_tree.loadTree()
   wkpf.globals.location_tree.printTree()
 
 # Helper functions

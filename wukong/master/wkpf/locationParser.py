@@ -66,7 +66,7 @@ class LocationParser:
         return self.evaluate(locTreeNode, argument[1])
         
     def evaluate(self, locTreeNode, argument):
-       # print 'name: '+argument.getName()+" "+str(argument)
+        print 'name: '+argument.getName()+" "+str(argument)
         return self._funct_dict[argument.getName()](self, locTreeNode, argument)
         
     #different functions
@@ -74,8 +74,8 @@ class LocationParser:
     def use(locationTreeNode, id):
         id = int(id)
         if id in locationTreeNode.getAllNodes():
-            return set([id])
-        return set([])
+            return [id],[1]
+        return [], []
         
     def getAll(locationTreeNode):
         return locationTreeNode.getAllAliveNodeIds()
@@ -84,6 +84,7 @@ class LocationParser:
         ret_val = set([])
         dist = float(dist)
         obj = None
+        
         try:            #case one, coordinates are given
             x = float(x)
             y = float(y)
@@ -102,16 +103,17 @@ class LocationParser:
             sensorNd = locationTreeNode.getSensorById(sensorId)
             distance = 0
             if obj!=None:
-                distance = self.calcDistance(sensorNd, obj)
+                distance = locationTreeNode.calcDistance(sensorNd, obj)
             else:
                 distance = math.sqrt((sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2)
             if distance <= dist:
-                #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
+                print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
                 ret_val.add(sensorNd.nodeInfo.id)
         return ret_val,[1]*len(ret_val)
 
     #return the closest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
     def closest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
+        #print "inside closest"
         node_lst = []       #list of nodes to be returned
         dist_lst = []       #list of nodes' distances in the node_list
         obj = None
@@ -145,7 +147,7 @@ class LocationParser:
             dist = math.sqrt((sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2) #inside one room
             if obj!=None:
                 if sensorNd.locationTreeNode.id != obj.locationTreeNode.id: 
-                    dist = self.calcDistance(sensorNd, obj) #inside different rooms
+                    dist = locationTreeNode.calcDistance(sensorNd, obj) #inside different rooms
             if dist >= largest_dist:
                 if len(node_lst)<count:
                     #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
@@ -166,8 +168,11 @@ class LocationParser:
 
     def farthest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
         node_lst, dist_lst = LocationParser.__dict__["closest"](locationTreeNode, x, y,z, -1, idLst)
-        node_lst = node_lst.reverse()
-        dist_lst = dist_lst.reverse()
+        node_lst.reverse()
+        dist_lst.reverse()
+        print "node_lst:", node_lst
+        if count == -1:
+            count = 65535
         if len(node_lst) >count:
             node_lst = node_lst[:count]
             dist_lst = dist_lst[:count]
@@ -354,13 +359,15 @@ class LocationParser:
             if str.index(LOCATION_ROOT) != 1:
                 str = '/' + LOCATION_ROOT + str
             result =  specification.parseString(str, True)
-            print "parse result: ", result
-            return self.evaluate(None, result[0])
+            ret =  self.evaluate(None, result[0])
+            print "return",ret
+            return ret
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print "location string" + str + "doesn't match anything"
             print traceback.print_exception(exc_type, exc_value, exc_traceback,
                                           limit=2, file=sys.stdout)
+            log.info (  traceback.print_exception(exc_type, exc_value, exc_traceback, limit=2, file=sys.stdout))
             raise
 
 if __name__ == "__main__":
