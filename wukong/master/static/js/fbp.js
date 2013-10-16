@@ -387,7 +387,6 @@ function FBP_parseXMLPage(comps)
         loc = c.find("location");
         if (loc.length > 0) {
             meta.location = loc.attr("requirement").replace('&amp;','&').replace('&tilde;','~');
-            alert(meta.location);
         }
         //console.log(c.find("group_size").attr("requirement"));
         console.log('location ' + meta.location);
