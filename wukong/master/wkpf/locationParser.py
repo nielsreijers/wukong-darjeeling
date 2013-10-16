@@ -37,15 +37,36 @@ class LocationParser:
         #print "argument in evalAnd:"+str(argument)
         if len(argument)==1:
             return self.evaluate(locTreeNode, argument[0])
-        return self.evaluate(locTreeNode, argument[0]).intersection(self.evaluate(locTreeNode, argument[1]))
+        nd_lst1,score_lst1 = self.evaluate(locTreeNode, argument[0])
+        nd_lst2, score_lst2 = self.evaluate(locTreeNode, argument[1])
+        if score_lst1[0] == score_lst1[-1]: #scores are the same, we assume score_lst1 to be express the order, so switch with score_lst2
+            nd_lst1, nd_lst2 = nd_lst2, nd_lst1
+            score_lst1, score_lst2 = score_lst2, score_lst1
+        new_nd_lst, new_score_lst = [],[]
+        count = 0;
+        for nd_id in nd_lst1:
+            if nd_id in nd_lst2:
+                new_nd_lst.append(nd_id)
+                new_score_lst.append(score_lst1[count])
+            count = count + 1
+        return new_nd_lst, new_score_lst
 
     def evaluateOr(self, locTreeNode, argument):
         if len(argument)==1:
             return self.evaluate(locTreeNode, argument[0])
-        return self.evaluate(argument[0]).union(self.evaluate(locTreeNode, argument[1]))
+        nd_lst1,score_lst1 = self.evaluate(locTreeNode, argument[0])
+        nd_lst2, score_lst2 = self.evaluate(locTreeNode, argument[1])
+        return nd_lst1+nd_lst2, score_lst1+score_lst2           #not correct, TODO: fix the logic here.....
 
     def evaluateNegate(self, locTreeNode, argument):
-        return locTreeNode.idSet - self.evaluate(locTreeNode, argument[0])
+        nd_lst,score_lst = self.evaluate(locTreeNode, argument[0])
+        if score_lst1[0] == score_lst1[-1]: #scores are the same,no closest, farthest like functions
+            ret_lst = list(locTreeNode.idSet-set(nd_lst))
+            return ret_lst, [0]*len(ret_lst)
+        #different scores, do reverse
+        nd_lst.reverse()
+        score_lst.reverse()
+        return nd_lst, score_lst
         
     def evaluateFunction(self, locTreeNode, argument):
         arglst = argument[1:]
@@ -74,7 +95,7 @@ class LocationParser:
     def use(locationTreeNode, id):
         id = int(id)
         if id in locationTreeNode.getAllNodes():
-            return [id],[1]
+            return [id],[0]
         return [], []
         
     def getAll(locationTreeNode):
@@ -93,7 +114,9 @@ class LocationParser:
             landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
-                return ret_val
+                landMarks = locationTreeNode.getSensorById(x) #try WuNode ID
+                if landMarks ==None or len(landMarks)==0:
+                    return node_lst
             x = landMarks[0].coord[0]
             y = landMarks[0].coord[1]
             z = landMarks[0].coord[2]
@@ -109,7 +132,7 @@ class LocationParser:
             if distance <= dist:
                 print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
                 ret_val.add(sensorNd.nodeInfo.id)
-        return ret_val,[1]*len(ret_val)
+        return ret_val,[0]*len(ret_val)
 
     #return the closest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
     def closest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
@@ -127,7 +150,9 @@ class LocationParser:
             landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
-                return node_lst
+                landMarks = locationTreeNode.getSensorById(x) #try WuNode ID
+                if landMarks ==None or len(landMarks)==0:
+                    return node_lst
             x = landMarks[0].coord[0]
             y = landMarks[0].coord[1]
             z = landMarks[0].coord[2]
