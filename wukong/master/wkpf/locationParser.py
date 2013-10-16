@@ -51,16 +51,17 @@ class LocationParser:
             count = count + 1
         return new_nd_lst, new_score_lst
 
-    def evaluateOr(self, locTreeNode, argument):
+        #TODO: fix this. the correctness is to be doubted
+    def evaluateOr(self, locTreeNode, argument): 
         if len(argument)==1:
             return self.evaluate(locTreeNode, argument[0])
         nd_lst1,score_lst1 = self.evaluate(locTreeNode, argument[0])
         nd_lst2, score_lst2 = self.evaluate(locTreeNode, argument[1])
-        return nd_lst1+nd_lst2, score_lst1+score_lst2           #not correct, TODO: fix the logic here.....
+        return list(nd_lst1)+list(nd_lst2), list(score_lst1)+list(score_lst2)           #not correct, TODO: fix the logic here.....
 
     def evaluateNegate(self, locTreeNode, argument):
         nd_lst,score_lst = self.evaluate(locTreeNode, argument[0])
-        if score_lst1[0] == score_lst1[-1]: #scores are the same,no closest, farthest like functions
+        if score_lst[0] == score_lst[-1]: #scores are the same,no closest, farthest like functions
             ret_lst = list(locTreeNode.idSet-set(nd_lst))
             return ret_lst, [0]*len(ret_lst)
         #different scores, do reverse

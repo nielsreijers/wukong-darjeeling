@@ -604,7 +604,7 @@ function FBP_toXML(gnodes,glines)
             xml = xml + '        <link fromProperty="'+line.signal+'" toInstanceId="'+line.dest+'" toProperty="'+line.action+'"/>\n';
         }
         if (source.location && source.location != '') {
-            xml = xml + '        <location requirement="'+source.location.replace('&','&amp;').replace('~','&tilde;')+'" />\n';
+            xml = xml + '        <location requirement="'+source.location.replace('&','&amp;')+'" />\n';
         }
         if (source.group_size && source.group_size != '') {
             xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
@@ -629,7 +629,7 @@ function FBP_toXML(gnodes,glines)
         if (linehash[source.id] == undefined) {
             xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
             if (gnodes[k].location && gnodes[k].location != '') {
-                xml = xml + '        <location requirement="'+source.location.replace('&','&amp;').replace('~','&tilde;')+'" />\n';
+                xml = xml + '        <location requirement="'+source.location.replace('&','&amp;')+'" />\n';
             }
         	if (source.group_size && source.group_size != '') {
             	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
