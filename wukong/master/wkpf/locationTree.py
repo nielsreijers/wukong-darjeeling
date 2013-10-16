@@ -4,6 +4,7 @@ import logging
 import json
 import ast
 import numpy
+import math
 
 MAX_LIFE = 1
 class LandmarkNode:
@@ -157,29 +158,46 @@ class LocationTreeNode:
            
     #obj could be sensor or landmark 
     def calcDistance(self, sensor, obj):
-        sensorGlobalCoord = (0,0,0)
-        objGlobalCoord = (0,0,0)
-        for i in range(3):
-            for j in range(3):
-                sensorGlobalCoord[i] += self.transMatrix[i][j]*sensor.coord[j]
-                objGlobalCoord[i] += self.transMatrix[i][j]*obj.coord[j]
-        modifier = (sensorGlobalCoord[0]-objGlobalCoord[0])**2+(sensorGlobalCoord[1]-objGlobalCoord[1])**2+(sensorGlobalCoord[2]-objGlobalCoord[2])**2
+#        sensorGlobalCoord = (0,0,0)
+#        objGlobalCoord = (0,0,0)
+#        for i in range(3):
+#            for j in range(3):
+#                sensorGlobalCoord[i] += self.transMatrix[i][j]*sensor.coord[j]
+#                objGlobalCoord[i] += self.transMatrix[i][j]*obj.coord[j]
+ #       modifier = (sensorGlobalCoord[0]-objGlobalCoord[0])**2+(sensorGlobalCoord[1]-objGlobalCoord[1])**2+(sensorGlobalCoord[2]-objGlobalCoord[2])**2
+        #if in same room, Euclid distance
         pos2 = sensor.locationTreeNode
         snrId = sensor.nodeInfo.id
         pos1 = obj.locationTreeNode
+        distance = 0
+        if pos1.id == pos2.id:
+            for i in range(3):
+                distance = distance + (sensor.coord[i] - obj.coord[i])**2
+            distance = math.sqrt(distance)
+            return distance
+        
+        #if in different rooms
+        distance1, distance2 = 0, 0
+        for i in range(3):
+            distance1 = distance1 + sensor.coord[i]**2
+            distance2 = distance2 + obj.coord[i]**2
+        distance1 = math.sqrt(distance1)
+        distance2 = math.sqrt(distance2)
+        distance = distance1 + distance2
+       
         curPos = pos1
         while snrId not in curPos.idSet:
             try:
-                modifier = modifier +self.distanceModifier[(pos1.id,curPos.id)]
-            except KeyError:
-                modifier = modifier
+                distance = distance +self.distanceModifier[(pos1.id,curPos.id)]
+            except KeyError:    #default barrier between different nodes is 1000
+                distance = distance+1000
             pos1 = curPos
             curPos = curPos.parent
         try:
-            modifier = modifier +curPos.distanceModifier[(pos1.id,pos2.id)]
+            distance = distance +curPos.distanceModifier[(pos1.id,pos2.id)]
         except KeyError:
-            modifier = modifier
-        return modifier
+            distance = distance+1000
+        return distance
         
     def addDistanceModifier(self, id1, id2, distance):
         found = 0

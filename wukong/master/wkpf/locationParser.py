@@ -10,6 +10,7 @@ from configuration import *
 from models import *
 from locationTree import *
 from pyparsing import *
+import math
 '''
 #BNF Rules:
 <Number> ::= [0-9] | [0-9] <Number>
@@ -70,7 +71,7 @@ class LocationParser:
         
     #different functions
     
-    def isID(locationTreeNode, id):
+    def use(locationTreeNode, id):
         id = int(id)
         if id in locationTreeNode.getAllNodes():
             return set([id])
@@ -79,7 +80,7 @@ class LocationParser:
     def getAll(locationTreeNode):
         return locationTreeNode.getAllAliveNodeIds()
         
-    def range(locationTreeNode, dist, x, y=None,z=None):
+    def range1(locationTreeNode, dist, x, y=None,z=None):
         ret_val = set([])
         dist = float(dist)
         obj = None
@@ -99,10 +100,12 @@ class LocationParser:
         idLst = list(locationTreeNode.idSet)
         for sensorId in idLst:
             sensorNd = locationTreeNode.getSensorById(sensorId)
-            dist = (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2
+            distance = 0
             if obj!=None:
-                dist = self.calcDistance(sensorNd, obj)
-            if dist <= dist**2:
+                distance = self.calcDistance(sensorNd, obj)
+            else:
+                distance = math.sqrt((sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2)
+            if distance <= dist:
                 #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
                 ret_val.add(sensorNd.nodeInfo.id)
         return ret_val,[1]*len(ret_val)
@@ -112,10 +115,12 @@ class LocationParser:
         node_lst = []       #list of nodes to be returned
         dist_lst = []       #list of nodes' distances in the node_list
         obj = None
-        try:            #case one, coordinates are given
+        targetLocationNode = None
+        try:            #case one, coordinates are given. works only if locationTreeNode is direct father of sensors
             x = float(x)
             y = float(y)
             z = float(z)
+            targetLocationNode = locationTreeNode
         except ValueError:  #case 2, the name of a landmark is given, x would be the landmarkName
             landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
@@ -124,6 +129,7 @@ class LocationParser:
             x = landMarks[0].coord[0]
             y = landMarks[0].coord[1]
             z = landMarks[0].coord[2]
+            targetLocationNode = landMarks[0].locationTreeNode
             obj = landMarks[0]
 
         if count ==-1:
@@ -136,10 +142,10 @@ class LocationParser:
             sensorNd = locationTreeNode.getSensorById(sensorId)
             if sensorNd == None:
                 continue
-            
-            dist = (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2
+            dist = math.sqrt((sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2) #inside one room
             if obj!=None:
-                dist = self.calcDistance(sensorNd, obj)
+                if sensorNd.locationTreeNode.id != obj.locationTreeNode.id: 
+                    dist = self.calcDistance(sensorNd, obj) #inside different rooms
             if dist >= largest_dist:
                 if len(node_lst)<count:
                     #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
@@ -159,8 +165,13 @@ class LocationParser:
         return node_lst, dist_lst
 
     def farthest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
-        node_lst, dist_lst = LocationParser.__dict__["closest"](locationTreeNode, x, y,z, count, idLst)        
-        return node_lst.reverse(), dist_lst.reverse()
+        node_lst, dist_lst = LocationParser.__dict__["closest"](locationTreeNode, x, y,z, -1, idLst)
+        node_lst = node_lst.reverse()
+        dist_lst = dist_lst.reverse()
+        if len(node_lst) >count:
+            node_lst = node_lst[:count]
+            dist_lst = dist_lst[:count]
+        return node_lst, dist_lst
     
     #sort nodes according to their distance to center
     def findCenter(locationTreeNode, count=-1, idLst=None):
@@ -189,7 +200,7 @@ class LocationParser:
                     break
         return set(retLst)
     
-    #notusing
+    #not using
     def outside(locationTreeNode, landMarkName):
         return locationTreeNode.idSet - inside(locationTreeNode, landMarkName)
     
@@ -289,7 +300,7 @@ class LocationParser:
     _funct_dict = {
             u"specification":evaluateSpec,u"function":evaluateFunction,
             u"not":evaluateNegate, u"and":evaluateAnd, u"or": evaluateOr, 
-            u"range":range, u"isID":isID, u"getAll":getAll, u"hasClass":hasClass,
+            u"range":range1, u"use":use, u"getAll":getAll, u"hasClass":hasClass,
             u"inside":inside, u"outside":outside, u"tangent":tangent, 
             u"above":above, u"below":below,u"front":front, u"back":back,
             u"closest": closest, u"farthest":farthest, u"findCenter":findCenter}
