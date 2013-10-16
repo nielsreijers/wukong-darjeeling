@@ -32,7 +32,7 @@ from configuration import *
 
 import tornado.options
 tornado.options.parse_command_line()
-#tornado.options.enable_pretty_logging()
+tornado.options.enable_pretty_logging()
 
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
@@ -53,10 +53,8 @@ wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 # using cloned nodes
 def rebuildTree(nodes):
   nodes_clone = copy.deepcopy(nodes)
-  print "inside rebuild tree:",nodes_clone
   wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
   wkpf.globals.location_tree.buildTree(nodes_clone)
-  wkpf.globals.location_tree.printTree()
 
 # Helper functions
 def setup_signal_handler_greenlet():
@@ -507,7 +505,7 @@ class testrtt(tornado.web.RequestHandler):
 
     comm = getComm()
     node_infos = comm.getAllNodeInfos()
-    rebuildTree(node_infos)
+
     testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True, default_location = LOCATION_ROOT)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
@@ -542,19 +540,6 @@ class nodes(tornado.web.RequestHandler):
   def put(self, nodeId):
     global node_infos
     location = self.get_argument('location')
-    print node_infos
-    print 'in nodes: simulation:'+SIMULATION
-    if SIMULATION != "false":
-      for info in node_infos:
-        if info.id == int(nodeId):
-          info.location = location
-          senNd = SensorNode(info)
-#          senNd = SensorNode(info, 0, 0, 0)
-          wkpf.globals.location_tree.addSensor(senNd)
-      wkpf.globals.location_tree.printTree()
-      self.content_type = 'application/json'
-      self.write({'status':0})
-      return
     if location:
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
@@ -747,10 +732,19 @@ class WuClassSource(tornado.web.RequestHandler):
     # returns None if not found
     return None
 
-class loc_tree(tornado.web.RequestHandler): 
+class tree(tornado.web.RequestHandler):	
   def post(self):
     global node_infos
- 
+    
+    load_xml = ""
+    flag = os.path.exists("../ComponentDefinitions/landmark.xml")
+#    if(flag):
+    if(False):
+      f = open("../ComponentDefinitions/landmark.xml","r")
+      for row in f:
+        load_xml += row	
+    else:
+      pass
     print node_infos      
     addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
 
@@ -758,139 +752,52 @@ class loc_tree(tornado.web.RequestHandler):
     disploc = wkpf.globals.location_tree.getJson()
 
     self.content_type = 'application/json'
-    self.write({'loc':json.dumps(disploc),'node':addloc})
-  
-  def get(self, node_id):
-    global node_infos
-    node_id = int(node_id)
-    curNode = wkpf.globals.location_tree.findLocationById(node_id)
-    print node_id, curNode
-    if curNode == None:
-        self.write({'status':1,'message':'cannot find node id '+str(node_id)})
-        return
-    else:
-        self.write({'status':0, 'message':'succeed in finding node id'+str(node_id), 
-                    'distanceModifier':curNode.distanceModifierToString(), 'centerPnt':curNode.centerPnt, 
-                    'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
-                    'global_coord':curNode.getGlobalOrigPnt()}) 
-    
-  def put(self, node_id):
-    global node_infos
-    node_id = int(node_id)
-    curNode = wkpf.globals.location_tree.findLocationById(node_id)
-    if curNode == None:
-        self.write({'status':1,'message':'cannot find node id '+str(node_id)})
-        return
-    else:
-        global_coord = self.get_argument("global_coord")
-        local_coord = self.get_argument("local_coord")
-        size = self.get_argument("size")
-        direction = self.get_argument("direction")
-        curNode.setLGSDFromStr(local_coord, global_coord, size, direction)
-        self.write({'status':0,'message':'find node id '+str(node_id)})
+    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})
 
-class sensor_info(tornado.web.RequestHandler):  
-    def get(self, node_id, sensor_id):
-        global node_infos
-        node_id = int(node_id)
-        curNode = wkpf.globals.location_tree.findLocationById(node_id)
-        if curNode == None:
-            self.write({'status':1,'message':'cannot find node id '+str(node_id)})
-            return
-        if sensor_id[0:2] =='se':   #sensor case
-            se_id = int(sensor_id[2:])
-            sensr = curNode.getSensorById(se_id)
-            self.write({'status':0,'message':'find sensor id '+str(se_id), 'location':sensr.location})
-        elif sensor_id[0:2] =='lm': #landmark case
-            lm_id = int(sensor_id[2:])
-            landmk = curNode.findLandmarkById(lm_id)
-            self.write({'status':0,'message':'find landmark id '+str(lm_id), 'location':landmk.location,'size':landmk.size, 'direction':landmk.direction})
-        else:
-            self.write({'status':1, 'message':'failed in finding '+sensor_id+" in node"+ str(node_id)})
-    
-    
-class tree_modifier(tornado.web.RequestHandler):
-  def put(self, mode):
-    start_id = self.get_argument("start")
-    end_id = self.get_argument("end")
-    distance = self.get_argument("distance")
-    paNode = wkpf.globals.location_tree.findLocationById(int(start_id)//100)      #find parent node
-    if paNode !=None:
-        if int(mode) == 0:        #adding modifier between siblings
-            if paNode.addDistanceModifier(int(start_id), int(end_id), int(distance)):
-                self.write({'status':0,'message':'adding distance modifier between '+str(start_id) +'and'+str(end_id)+'to node'+str(int(start_id)//100)})
-                return
-            else:
-                self.write({'status':1,'message':'adding faild due to not able to find common direct father of the two nodes'})
-                return
-        elif int(mode) == 1:        #deleting modifier between siblings
-            if paNode.delDistanceModifier(int(start_id), int(end_id), int(distance)):
-                self.write({'status':0,'message':'deletinging distance modifier between '+str(start_id) +'and'+str(end_id)+'to node'+str(int(start_id)//100)})
-                return
-            else:
-                self.write({'status':1,'message':'deleting faild due to not able to find common direct father of the two nodes'})
-                return
-    self.write({'status':1,'message':'operation faild due to not able to find common direct father of the two nodes'})
-    
- 
-class save_landmark(tornado.web.RequestHandler):
-  def put(self):
+class save_tree(tornado.web.RequestHandler):
+    def put(self):
         
         self.write({'tree':wkpf.globals.location_tree})
 
-  def post(self):
-        wkpf.globals.location_tree.saveTree()
-        self.write({'message':'Save Successfully!'})
-        
-class load_landmark(tornado.web.RequestHandler):
     def post(self):
-        flag = os.path.exists("../ComponentDefinitions/landmarks.txt")
-        if(flag):
-            wkpf.globals.location_tree.loadTree()
-            self.write({'message':'Load Successfully!'})
-        else:
-            self.write({'message':'"../ComponentDefinitions/landmarks.txt" does not exist '})
+        landmark_info = self.get_argument('xml')
+        f = open("../ComponentDefinitions/landmark.xml","w")
+        f.write(landmark_info)
+        f.close()
         
 class add_landmark(tornado.web.RequestHandler):
   def put(self):
     global landId
 
     name = self.get_argument("name")
-    id = 0;
     location = self.get_argument("location")
     operation = self.get_argument("ope")
-    size  = self.get_argument("size")
-    direct = self.get_argument("direction")
-    coordinate = self.get_argument("coordinate")
-    landmark = None
-    rt_val = 0
-    msg = ''
+    
     if(operation=="1"):
       landId += 1
-      landmark = LandmarkNode(name, location+"@"+coordinate, size, direct) 
-      rt_val = wkpf.globals.location_tree.addLandmark(landmark)
-      msg = 'add fails'
+      landmark = LandmarkNode(landId, name, location, 0) 
+      wkpf.globals.location_tree.addLandmark(landmark)
       wkpf.globals.location_tree.printTree()
-    elif(operation=="0"):
-      wkpf.globals.location_tree.delLandmark()
-      msg = 'deletion fails'
+#    elif(operation=="0")
+#      wkpf.globals.location_tree.delLandmark()
+    
     self.content_type = 'application/json'
-    if rt_val == True:
-        self.write({'status':0, 'id':landmark.getId()})
-    if rt_val == False:
-        self.write({'status':1, 'id':landmark.getId(), 'msg':msg})
+    self.write({'status':0})
 
 class Build(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-
-    os.system('cd ../../src/config/wunode; ant > tmp')
-    f = open("../../src/config/wunode/tmp", "r")
-    log = f.readlines()
-    log = "<br>".join(log)
-    f.close()
-    command = 'cd ../../src/config/wunode; rm -f tmp'
-    os.system(command)
+    cmd = self.get_argument('cmd')
+    if cmd == 'start':
+      command = 'cd ../../src/config/wunode; rm -f tmp'
+      os.system(command)
+      os.system('(cd ../../src/config/wunode; ant 2>&1 | cat > tmp)&')
+      log = 'start'
+    elif cmd == 'poll':
+      f = open("../../src/config/wunode/tmp", "r")
+      log = f.readlines()
+      log = "".join(log)
+      f.close()
 
     self.write(log)
 
@@ -898,23 +805,26 @@ class Build(tornado.web.RequestHandler):
 class Upload(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-    port = self.get_argument("port")
-
-    f = open("../../src/settings.xml","w")
-    s = '<project name="settings">' + '\n' + \
-      '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
-      '</project>'
-    f.write(s)
-    f.close()
-    
-    command = 'cd ../../src/config/wunode; ant avrdude > tmp'
-    os.system(command)
-    f = open("../../src/config/wunode/tmp", "r")
-    log = f.readlines()
-    log = "<br>".join(log)
-    f.close()
-    command = 'cd ../../src/config/wunode; rm -f tmp'
-    os.system(command)
+    cmd = self.get_argument('cmd')
+    if cmd == 'start':
+      port = self.get_argument("port")
+      command = 'cd ../../src/config/wunode; rm -f tmp'
+      os.system(command)
+      f = open("../../src/settings.xml","w")
+      s = '<project name="settings">' + '\n' + \
+        '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
+        '</project>'
+      f.write(s)
+      f.close()
+      
+      command = '(cd ../../src/config/wunode; ant avrdude 2>&1 | cat> tmp)&'
+      os.system(command)
+      log='start'
+    elif cmd == 'poll':
+      f = open("../../src/config/wunode/tmp", "r")
+      log = f.readlines()
+      log = "".join(log)
+      f.close()
 
 
     #p = sub.Popen(command, stdout=sub.PIPE, stderr=sub.PIPE)
@@ -956,12 +866,8 @@ wukong = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/monitor", monitor_application),
   (r"/applications/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
-  (r"/loc_tree/nodes/([0-9]*)", loc_tree),
-  (r"/loc_tree/nodes/([0-9]*)/(\w+)", sensor_info),
-  (r"/loc_tree", loc_tree),
-  (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
-  (r"/loc_tree/save", save_landmark),
-  (r"/loc_tree/load", load_landmark),
+  (r"/loc_tree", tree),
+  (r"/loc_tree/save", save_tree),
   (r"/loc_tree/land_mark", add_landmark),
   (r"/componentxml",WuLibrary),
   (r"/componentxmluser",WuLibraryUser),

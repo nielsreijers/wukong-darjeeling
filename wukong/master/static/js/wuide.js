@@ -6,6 +6,21 @@ $(document).ready(function() {
 	} catch(e) {
 		ide = new WuIDE(false);
 	}
+	$.fn.selectRange = function(start, end) {
+		if(!end) end = start; 
+		return this.each(function() {
+			if (this.setSelectionRange) {
+				this.focus();
+				this.setSelectionRange(start, end);
+			} else if (this.createTextRange) {
+				var range = this.createTextRange();
+				range.collapse(true);
+				range.moveEnd('character', end);
+				range.moveStart('character', start);
+				range.select();
+			}
+		});
+	};
 });
 
 function getURLParameter(name) 
@@ -136,10 +151,14 @@ WuIDE.prototype.initUI = function() {
 		});
 	});
 
+	var self = this;
 	$('#build').click(function() {
 		$('#log').html("building...");
-		$.get('/build', function(data) {
-			$('#log').html(data);
+		$.get('/build', {cmd:'start'}, function(data) {
+			$('#log').val(data).animate({scrollTop:$("#log")[0].scrollHeight - $("#log").height()});
+			if (self.timer)
+				clearTimeout(self.timer);
+			self.refreshBuild();
 		})
 	});
 
@@ -150,12 +169,45 @@ WuIDE.prototype.initUI = function() {
 			return;
 		}
 		$('#log').html("uploading...");
-		$.get('/upload', {port: port}, function(data) {
-			$('#log').html(data);
+		$.get('/upload', {port: port,cmd:'start'}, function(data) {
+			$('#log').val(data).animate({scrollTop:$("#log")[0].scrollHeight - $("#log").height()});
+			if (self.timer)
+				clearTimeout(self.timer)
+			self.refreshUpload();
 		})
 	});	
 }
 
+
+
+WuIDE.prototype.refreshBuild = function() {
+	var self=this;
+	self.timer = setTimeout(function () {
+		self.refreshBuild();
+	},1000);
+	$.get('/build', {cmd:'start'}, function(data) {
+		if (data != '') {
+			if (self.data != data)
+				$('#log').val(data).animate({scrollTop:$("#log")[0].scrollHeight - $("#log").height()});
+			self.data = data;
+		}
+	});
+}
+
+
+WuIDE.prototype.refreshUpload = function() {
+	var self=this;
+	self.timer = setTimeout(function () {
+	    self.refreshUpload();
+	},1000);
+	$.get('/upload', {cmd:'poll'}, function(data) {
+		if (data != '') {
+			if (self.data != data)
+				$('#log').val(data).animate({scrollTop:$("#log")[0].scrollHeight - $("#log").height()});
+			self.data = data;
+		}
+	});
+}
 
 WuIDE.prototype.generateNewID = function() {
 	var max = 0;
