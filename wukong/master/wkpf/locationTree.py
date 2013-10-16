@@ -189,13 +189,13 @@ class LocationTreeNode:
         while snrId not in curPos.idSet:
             try:
                 distance = distance +self.distanceModifier[(pos1.id,curPos.id)]
-            except KeyError:    #default barrier between different nodes is 1000
-                distance = distance+1000
+            except KeyError:    #default barrier between different nodes of different layer is 1000
+                distance = distance+0
             pos1 = curPos
             curPos = curPos.parent
         try:
             distance = distance +curPos.distanceModifier[(pos1.id,pos2.id)]
-        except KeyError:
+        except KeyError:     #default barrier between different nodes of the same layer is 0
             distance = distance+1000
         return distance
         
@@ -293,15 +293,19 @@ class LocationTreeNode:
         
     def addLandmark(self, landmarkNode):
         if landmarkNode not in self.landmarkLst:
-            if landmarkNode.name not in [landmark.name for landmark in self.landmarkLst]:
-                self.landmarkLst.append(landmarkNode)
-                landmarkNode.locationTreeNode = self
-                return True
+            for existingLandmarkNd in self.landmarkLst:
+                if existingLandmarkNd.name == landmarkNode.name:
+                    self.landmarkLst.remove(existingLandmarkNd)
+                    del existingLandmarkNd
+                    break
+            self.landmarkLst.append(landmarkNode)
+            landmarkNode.locationTreeNode = self
+            return True
         return False
     
     def delLandmark (self, landmarkId):
         for landmarkNd in self.landmarkLst:
-            if landmarkId == landmarkNd.id:
+            if landmarkId == landmarkNd.name:
                 self.landmarkLst.remove(landmarkNd)
                 del landmarkNd
                 return True
@@ -483,16 +487,19 @@ class LocationTree:
       
         logging.info("Node",landmarkId," not in location tree, deletion ignored")
         locTreeNode = self.findLocation(self.root, locationStr)
-        locTreeNode.delLandmark(landmarkId)
+        rt_val = False
+        if locTreeNode:
+            rt_val = locTreeNode.delLandmark(landmarkId)
+        return rt_val
         #delete unnecessary branches in the tree (del branches with no sensor node)
-        while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
-            pa = locTreeNode.parent
-            if pa != None:
-                pa.delChild(locTreeNode)
-            else: #root of the tree
-                break
-            del locTreeNode
-            locTreeNode = pa
+  #      while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
+  #          pa = locTreeNode.parent
+  #          if pa != None:
+  #              pa.delChild(locTreeNode)
+  #          else: #root of the tree
+  #              break
+  #          del locTreeNode
+  #          locTreeNode = pa
     
     #save tree structure and landmarks
     def saveTree(self, filename="../ComponentDefinitions/landmarks.txt"):

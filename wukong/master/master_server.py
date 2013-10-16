@@ -874,13 +874,14 @@ class add_landmark(tornado.web.RequestHandler):
       msg = 'add fails'
       wkpf.globals.location_tree.printTree()
     elif(operation=="0"):
-      wkpf.globals.location_tree.delLandmark()
-      msg = 'deletion fails'
+      rt_val = wkpf.globals.location_tree.delLandmark(name, location)
+      msg = 'deletion of '+ name + ' fails at '+ location
+      print msg, rt_val
     self.content_type = 'application/json'
     if rt_val == True:
-        self.write({'status':0, 'id':landmark.getId()})
+        self.write({'status':0, 'id':name})
     if rt_val == False:
-        self.write({'status':1, 'id':landmark.getId(), 'msg':msg})
+        self.write({'status':1, 'id':name, 'msg':msg})
 
 class Build(tornado.web.RequestHandler):  
   def get(self):

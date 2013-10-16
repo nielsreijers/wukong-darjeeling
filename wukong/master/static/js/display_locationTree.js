@@ -29,13 +29,13 @@ $("#delLandmark").click(function(){
 	$.ajax('/loc_tree/land_mark', {
         type: 'PUT',
         dataType: 'json',
-        data: {ope: 0, name: name},
+        data: {ope: 0, name: name, location: document.body.dataset.currentLocation,
+            coordinate: '(0,0,0)', size:0, direction:0},
         success: function(data) {
             //data = JSON.parse(data);
             //display update
              $.post('/loc_tree', function(data) {
 	    		display_tree("#content", data);
-	    		delete landmark[name];
             	$("li").remove("#"+name);
 			});
             if (data.status == 1) {
