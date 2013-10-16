@@ -207,21 +207,29 @@ Block.prototype.attach=function(parent) {
 		FBP_refreshLines();
 	});
 	this.div.dblclick(function() {
+	    var locationReqLst = undefined;
+	    if (self.location && self.location.length > 0) {
+	        locationReqLst = self.location.split('#');
+        } else {
+            locationReqLst = ['',''];
+        }
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div id=propertyeditor_tab>');
-		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_default>Default</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li style="display:none"><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_default>Default Value</a></li><li style="display:none"><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
 
-
-		$('#propertyeditor_tab').append('<div id=propertyeditor_loc><input type=text id=propertyeditor_location></input></div>');
-
-		$('#propertyeditor_tab').append('<div id=propertyeditor_ft><label for="propertyeditor_groupsize">Group Size</label>');
+		$('#propertyeditor_tab').append('<div id=propertyeditor_loc>Hierarchical Location: <input type=text id=propertyeditor_location_hierarchy></input>'+
+                                        '<button class="chooseLocNode" for="propertyeditor_location_hierarchy">Choose Tree Node</button><br>'+
+                                        'Function: <input type=text id=propertyeditor_location_function></input></div>');
+                                        
+		$('#propertyeditor_tab').append('<div id=propertyeditor_ft style="dislay:none"><label for="propertyeditor_groupsize">Group Size</label>');
 		$('#propertyeditor_ft').append('<br><input id=propertyeditor_groupsize name=value></input>');
 		$('#propertyeditor_ft').append('<br>');
 		$('#propertyeditor_ft').append('<label for="propertyeditor_reactiontime">Reaction Time</label>');
 		$('#propertyeditor_ft').append('<br><input id=propertyeditor_reactiontime name=value></input></div>');
 		$('#propertyeditor_ft').append('');
-
-		$('#propertyeditor_location').val(self.location);
+		
+		$('#propertyeditor_location_hierarchy').val(locationReqLst[0]);
+		$('#propertyeditor_location_function').val(locationReqLst[1]);
 		$('#propertyeditor_groupsize').spinner();
 		$('#propertyeditor_groupsize').spinner("value",self.group_size);
 		$('#propertyeditor_reactiontime').spinner();
@@ -244,13 +252,47 @@ Block.prototype.attach=function(parent) {
     		} catch (e) {
 
     		}
-    		
 		}
+		
+		$('.chooseLocNode').click(function (){
+            var inputId = $(this).attr('for');
+            $.post('/loc_tree', function(data) {
+            	tree_html = top.generate_tree(data,"locTreeNodeInDialog");
+            	
+            	$('#treeInDialogDiv').empty();
+            	$('#treeInDialogDiv').html(tree_html);
+            	$('.locTreeNodeInDialog').click(function () {
+                    var location_str='';
+                    var clickedNodeId = parseInt($(this).attr("id"), 10);
+                    while (clickedNodeId != 0) {
+                        location_str = '/' + $("#"+clickedNodeId).text() + location_str;
+                        clickedNodeId = Math.floor(clickedNodeId/100);
+                    }
+                    $('#selectedTreeNode').val(location_str);
+                    $('#'+$('#tree_dialog').get(0).dataset.setFor).val(location_str);
+                });	
+                $('#confirm_tree_dialog').click(function(){
+                    $('#'+$('#tree_dialog').get(0).dataset.setFor).val($('#selectedTreeNode').val());
+                });
+                $('.dialogCloseButton').click(function() {
+                    $('#tree_dialog').dialog("close");
+                });
+        	});
+            $('#display').treeview({
+                collapsed: true,
+                animated: "fast",
+            });
+            $('#tree_dialog').get(0).dataset.setFor = inputId;
+            
+            $('#tree_dialog').dialog();
+            $('#tree_dialog').draggable();
+            $('#tree_dialog').show();  
+        });
 
 		$('#propertyeditor').dialog({
 			buttons: {
 				'OK': function () {
-					self.location = $('#propertyeditor_location').val();
+					self.location = $('#propertyeditor_location_hierarchy').val()+'#'+$('#propertyeditor_location_function').val();
 					self.group_size = $('#propertyeditor_groupsize').spinner("value");
 					self.reaction_time = $('#propertyeditor_reactiontime').spinner("value");
 					for(i=0;i<_siglist.length;i++){
@@ -269,6 +311,7 @@ Block.prototype.attach=function(parent) {
 		}).dialog("open");
 	});
 	this.draw();
+	
 }
 
 Block.prototype.enableContextMenu=function(b) {

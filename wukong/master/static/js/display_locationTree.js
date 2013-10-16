@@ -1,8 +1,6 @@
 var landmark = {};
 $(document).ready(function() {
 
-
-
 $("#addLandmark").click(function () {
 	var name = $('#landmarkNameInput').val(),
 	    coord = $('#landmarkCoordInput').val();
@@ -83,8 +81,8 @@ $('.sensor_node_btn').click(function(){
    //dialog_content not using now
     dialog_content = '<button id="openLandmarkEditor">Add/Del Landmark</button>'+
      //'<button id="delNode">DEL Landmark</button>'+'<button id="addNode">ADD Landmark</button>'+'<button type="button" class="set_node">Save Node Configuration</button><br>'+
-     'Distance Modifier <button id="addModifier">Add Modifier</button> '+ 
-      '<button id="delModifier">Delete Modifier</button><br>' +
+     'Distance Barrier <button id="addModifier">Add Distance Barrier</button> '+ 
+      '<button id="delModifier">Delete Distance Barrier</button><br>' +
       'Existing Modifiers <div id="distmod_list"></div><br>' +
       'start treenode ID<input id = "distmod_start_id" type=text size="20"><br>'+
        'end treenode ID<input id = "distmod_end_id" type=text size="20"><br>'+
@@ -107,7 +105,7 @@ $('.sensor_node_btn').click(function(){
             }else{
                 $('#node_info_dialog_title').html("WuNode Information");
                 $('#node_info_dialog_body').html("Location: "+ data.location +"<br>" +
-                                                 "WuNode ID: " + nodeId);
+                                                 "WuNode ID: " + nodeId.substring(2));
             }
             $('#node_info_dialog').draggable();
             $('#node_info_dialog').show();
@@ -120,12 +118,15 @@ $('.sensor_node_btn').click(function(){
 $('#confirm_tree_dialog').click(function(){
     $('#'+$('#tree_dialog').get(0).dataset.setFor).val($('#selectedTreeNode').val());
 });
-$('.chooseLocNode').click(function(){
+
+
+$('.chooseLocNode').click(function promptChooseLocation(){
     var inputId = $(this).attr('for'),
         subTreeRoot = $('#'+document.body.dataset.locTreeNodeId).parent(),
         subTreeRootDomCopy = subTreeRoot.get(0).cloneNode(true);
     $(subTreeRootDomCopy).find('.locTreeNode').removeClass().addClass('locTreeNodeInDialog');
     $('#treeInDialog').empty();
+
     $(subTreeRootDomCopy).appendTo('#treeInDialog');
     $('#treeInDialog').treeview({
         collapsed: true,
@@ -136,15 +137,16 @@ $('.chooseLocNode').click(function(){
         var clickedNodeId = parseInt($(this).attr("id"), 10);
 
         if (clickedNodeId - parseInt(document.body.dataset.locTreeNodeId,10)*100 <100){
-            $('#selectedTreeNode').val(clickedNodeId);
+            $('#selectedTreeNode').val($(this).text());
+            $('#'+$('#tree_dialog').get(0).dataset.setFor).attr("loc_node_id", clickedNodeId);
         } else {
             alert("Please choose a direct child of clicked node.");
         }
     });
     $('#tree_dialog').draggable();
-    $('#tree_dialog').show();
-    
+    $('#tree_dialog').show();  
 });
+
 $('.dialogCloseButton').click(function(){
     $(this).parent().parent().hide();
 })
@@ -153,8 +155,6 @@ $('.locTreeNode').dblclick(function locTreeNodeHandler(){
     document.body.dataset.locTreeNodeId = $(this).attr("id");
     dialog_content = 'Type： LocationTreeNode<br>'+
                      'ID: '+ $(this).attr("id") +'<br>' ;
-     
-     
      
     var nodeId = $(this).attr("id");
     var nodeName = $(this).text();
@@ -165,8 +165,8 @@ $('.locTreeNode').dblclick(function locTreeNodeHandler(){
             document.body.dataset.currentLocation = data.location;
             content = 'Location: ' + data.location + '<br>' +
            //            '<button type="button" class="set_node">Save Node Configuration</button><br>'+
-                       'Distance Modifiers: '+ data.distanceModifier + '<br>' +
-                       'Distance Modifier <button id="changeModifier">Change Modifier</button> ';
+                       'Existing Distance Barriers: '+ data.distanceModifier + '<br>' +
+                       '<button id="changeModifier">Change Distance Barrier</button> ';
 
             $('#dispTreeNodeInfoBody').html(content);
             $('#changeModifier').click(function(){
@@ -195,8 +195,7 @@ $('.landmarkTreeNode').dblclick(function landmarkTreeNodeHandler() {
         }else if (data.status=='0') {
             document.body.dataset.currentLocation = data.location;
             content = 'Location: ' + data.location + '<br>' +
-                       '<button id="openLandmarkEditor">Change a Landmark</button>' +
-      //                 '<button type="button" class="set_node">Save Node Configuration</button><br>';
+                       '<button id="openLandmarkEditor">Edit a Landmark</button>';
 
             $('#dispTreeNodeInfoBody').html(content);
             $("#openLandmarkEditor").click( function openLandmarkEditorHandler() {
@@ -255,8 +254,8 @@ $('.set_node').click(function set_nodeHandler() {
 
 
 function add_modifier(){
-    var start_id = $('#distmod_start_id').val();
-    var end_id = $('#distmod_end_id').val();
+    var start_id = $('#distmod_start_id').attr("loc_node_id");
+    var end_id = $('#distmod_end_id').attr("loc_node_id");
     var distance = $('#distmod_distance').val();
     $.ajax({
         url:'/loc_tree/modifier/0',
@@ -268,8 +267,8 @@ function add_modifier(){
     });
 }
 function del_modifier(){
-    var start_id = $('#distmod_start_id').val();
-    var end_id = $('#distmod_end_id').val();
+    var start_id = $('#distmod_start_id').attr("loc_node_id");
+    var end_id = $('#distmod_end_id').attr("loc_node_id");
     var distance = $('#distmod_distance').val();
     $.ajax({
         url:'/loc_tree/modifier/1',
@@ -311,14 +310,12 @@ function save_tree()
 }
 
 //generate the tree for landmark or for location tree editor
-function generate_tree(rt, for_landmark) {
-    var node_data = JSON.parse(rt.loc),
+//node class could be locTreeNode, landmarkTreeNode, locTreeNodeInDialog
+//corresponding to different click actions
+function generate_tree(rt, node_class) {
+    var node_data = JSON.parse(rt.loc), //refer to _getJson in class LocationTreeNode of locationTree.py
         tree_level = 0,
-        node_class = "locTreeNode",
         html_tree = '';
-    if (for_landmark == true ) {
-        node_class = "landmarkTreeNode";
-    }
     
     html_tree += '<ul id="display" class="treeview">';
     for(var i=0; i<node_data.length;i++){
@@ -352,10 +349,10 @@ function generate_tree(rt, for_landmark) {
                     }
                 }
             }
-          }else if (node_data[i][0] == 1){            //this is a sensor 
+          }else if (node_data[i][0] == 1){            //this is a sensor
                 html_tree += '<li id=se'+node_data[i][2][0]+' data-toggle=modal  role=button class="sensor_node_btn btn" >'+node_data[i][2][0]+node_data[i][2][1]+'</li>';
           }else if(node_data[i][0]==2){               //this is a landmark
-                html_tree += '<li id=lm'+node_data[i][2][1]+' data-toggle=modal  role=button class="sensor_node_btn btn" >'+node_data[i][2][0]+'</li>';
+                html_tree += '<li id=lm'+node_data[i][2][1]+' data-toggle=modal  role=button class="sensor_node_btn btn" >'+node_data[i][2][0]+node_data[i][2][2]+'</li>';
           }
         }
     html_tree += '</td><td valign="top">';
@@ -366,8 +363,7 @@ function generate_tree(rt, for_landmark) {
 function display_tree(container_id,rt) {
     $(container_id).empty();
     $(container_id).append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
-        '<script type="text/javascript" src="/static/js/tree_expand.js"></script>'+
-        '<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>'
+        '<script type="text/javascript" src="/static/js/tree_expand.js"></script>'
         );
     html_tree = '';
     html_tree = '<table width="100%">';
@@ -375,13 +371,14 @@ function display_tree(container_id,rt) {
     html_tree += '<tr><td></td><td>';
     html_tree += '</td><td valign="top">';
     if (container_id == "#content"){    //#content means in user mode, generating for landmark edit
-        html_tree += generate_tree(rt, true);
+        html_tree += generate_tree(rt, "landmarkTreeNode");
+        html_tree += '<button id="saveTree">Save Landmarks</button><br>'+
+                     '<button id="loadTree">Load Saved Distance Barriers Landmarks</button>';
     } else {                            //otherwise installer mode, generating for modifier edit
-        html_tree += generate_tree(rt, false);
-    } 
-       
-    html_tree += '<button id="saveTree">Save Tree Structure and Landmarks</button><br>'+
-                 '<button id="loadTree">Load Saved Tree Structure and Landmarks</button>';
+        html_tree += generate_tree(rt, "locTreeNode");
+        html_tree += '<button id="saveTree">Save Distance Barriers</button><br>'+
+                     '<button id="loadTree">Load Saved Distance Barriers and Landmarks</button>';
+    }  
     html_tree += '</td></tr></table>';
     $(container_id).append(html_tree);
     $("#display").treeview({
