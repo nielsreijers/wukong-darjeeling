@@ -1,3 +1,4 @@
+# vim: sw=2 ts=2 expandtab
 import sys, os, traceback, copy
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from parser import *
@@ -138,7 +139,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                   # don't save to db
                   component.instances.append(wuobject)
                   break
-            else:
+            elif node.type != 'native' and node.type != 'picokong':
               # create a new virtual wuobject where the node 
               # doesn't have the wuclass for it
               sensorNode = locTree.sensor_dict[node.id]
@@ -150,6 +151,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
 
               # TODO: looks like this will always return true for mapping
               # regardless of whether java impl exist
+            else:
+              pass
 
 
         # limit to min candidate if possible

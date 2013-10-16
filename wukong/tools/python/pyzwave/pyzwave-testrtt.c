@@ -75,6 +75,9 @@ int main_ret = 0;
 int repeat_cmd;
 int repeat_nodeid;
 int repeat_value;
+int pyzwave_basic=0;
+int pyzwave_generic=0;
+int pyzwave_specific=0;
 char zwave_retransmit_buffer[64];
 int zwave_retransmit_ptr=0;
 
@@ -3025,6 +3028,9 @@ void dumpNodeProtocolInfo()
             printf("\toptional function support\n");
         dumpBasicType(zdata[3]);
         dumpGenericAndSpecificType(zdata[4],zdata[5]);
+		pyzwave_basic = zdata[3];
+		pyzwave_generic = zdata[4];
+		pyzwave_specific = zdata[5];
     }
 }
 
@@ -4407,6 +4413,18 @@ void PyZwave_routing(unsigned node_id) {
   printf("calling GetRoutingInformation!\n");
   PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
   ZW_GetRoutingInformation(node_id);
+  while (1) {
+    if (!PyZwave_receiveByte(1000))
+      break; // No data received.
+    if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+      break; // Ack or error received.
+  }
+}
+
+void PyZwave_getDeviceType(unsigned node_id) {
+  printf("calling GetRoutingInformation!\n");
+  PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+  ZW_GetNodeProtocolInfo(node_id);
   while (1) {
     if (!PyZwave_receiveByte(1000))
       break; // No data received.

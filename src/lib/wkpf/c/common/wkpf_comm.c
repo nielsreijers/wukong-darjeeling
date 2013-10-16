@@ -39,39 +39,67 @@ uint8_t send_message(wkcomm_address_t dest_node_id, uint8_t command, uint8_t *pa
 	}
 }
 
+uint8_t wkpf_call_adaptor(wkcomm_address_t dest_node_id, uint16_t wuclass_id, uint8_t property_number, uint16_t value)
+{
+	uint8_t buf[6];
+	uint8_t r;
+
+	DEBUG_LOG(true, "Send value %d to node %d\n", value, dest_node_id);
+	buf[0] = 0x20;		// COMMAND_CLASS_BASIC
+	buf[1] = 1;			// BASIC_SET
+	buf[2] = value;		// level
+	r =  wkcomm_send_raw(dest_node_id,buf,3);
+	DEBUG_LOG(true,"send raw done\n");
+	return r;
+
+}
+
 uint8_t wkpf_send_set_property_int16(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
 	uint8_t message_buffer[7];
-	message_buffer[0] = port_number;
-	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
-	message_buffer[2] = (uint8_t)(wuclass_id);
-	message_buffer[3] = property_number;
-	message_buffer[4] = WKPF_PROPERTY_TYPE_SHORT;
-	message_buffer[5] = (uint8_t)(value >> 8);
-	message_buffer[6] = (uint8_t)(value);
-	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	if (port_number >= DEVICE_NATIVE_ZWAVE_SWITCH) {
+		return wkpf_call_adaptor(dest_node_id, wuclass_id, property_number, value);
+	} else {
+		message_buffer[0] = port_number;
+		message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+		message_buffer[2] = (uint8_t)(wuclass_id);
+		message_buffer[3] = property_number;
+		message_buffer[4] = WKPF_PROPERTY_TYPE_SHORT;
+		message_buffer[5] = (uint8_t)(value >> 8);
+		message_buffer[6] = (uint8_t)(value);
+		return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	}
 }
+
 
 uint8_t wkpf_send_set_property_boolean(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value) {
 	uint8_t message_buffer[6];
-	message_buffer[0] = port_number;
-	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
-	message_buffer[2] = (uint8_t)(wuclass_id);
-	message_buffer[3] = property_number;
-	message_buffer[4] = WKPF_PROPERTY_TYPE_BOOLEAN;
-	message_buffer[5] = (uint8_t)(value);
-	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 6);
+	if (port_number >= DEVICE_NATIVE_ZWAVE_SWITCH) {
+		return wkpf_call_adaptor(dest_node_id, wuclass_id, property_number, value? 255:0);
+	} else {
+		message_buffer[0] = port_number;
+		message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+		message_buffer[2] = (uint8_t)(wuclass_id);
+		message_buffer[3] = property_number;
+		message_buffer[4] = WKPF_PROPERTY_TYPE_BOOLEAN;
+		message_buffer[5] = (uint8_t)(value);
+		return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 6);
+	}
 }
 
 uint8_t wkpf_send_set_property_refresh_rate(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
 	uint8_t message_buffer[7];
-	message_buffer[0] = port_number;
-	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
-	message_buffer[2] = (uint8_t)(wuclass_id);
-	message_buffer[3] = property_number;
-	message_buffer[4] = WKPF_PROPERTY_TYPE_REFRESH_RATE;
-	message_buffer[5] = (uint8_t)(value >> 8);
-	message_buffer[6] = (uint8_t)(value);
-	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	if (port_number >= DEVICE_NATIVE_ZWAVE_SWITCH) {
+		return WKPF_COMM_CMD_ERROR_R;
+	} else {
+		message_buffer[0] = port_number;
+		message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+		message_buffer[2] = (uint8_t)(wuclass_id);
+		message_buffer[3] = property_number;
+		message_buffer[4] = WKPF_PROPERTY_TYPE_REFRESH_RATE;
+		message_buffer[5] = (uint8_t)(value >> 8);
+		message_buffer[6] = (uint8_t)(value);
+		return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	}
 }
 
 uint8_t wkpf_send_request_property_init(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number) {

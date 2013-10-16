@@ -4,6 +4,9 @@
 extern char PyZwave_messagebuffer[1024];
 extern int PyZwave_src;
 extern int PyZwave_print_debug_info;
+extern int pyzwave_basic;
+extern int pyzwave_generic;
+extern int pyzwave_specific;
 int PyWave_send(unsigned id,unsigned char *in,int len);
 int PyZwave_init_usb(char *dev_name);
 int PyZwave_init(char *host);

@@ -1,3 +1,4 @@
+# vim:ts=2 sw=2 expandtab
 import sys, os, traceback, time, re, copy
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from models import WuClassDef, WuComponent, WuLink
@@ -377,6 +378,9 @@ class WuApplication:
       gevent.sleep(0)
 
       for node_id in destination_ids:
+        node = WuNode.find(id=node_id)
+        print "Deploy to node %d type %s"% (node_id, node.type)
+        if node.type == 'native': continue
         remaining_ids.remove(node_id)
         self.logDeployStatus("Deploying to node %d, remaining %s" % (node_id, str(remaining_ids)))
         retries = 3

@@ -23,7 +23,8 @@ def bootstrap_database():
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          id INTEGER not null,
          location TEXT,
-         energy REAL)''')
+         energy REAL,
+		 type TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS wuclasses
         (identity INTEGER PRIMARY KEY AUTOINCREMENT,
          wuclassdef_identity INTEGER,
@@ -368,23 +369,25 @@ class WuNode(Definition):
   tablename = 'wunodes'
 
   # Maintaining an ordered list for save function
-  columns = ['identity', 'id', 'location', 'energy']
+  columns = ['identity', 'id', 'location', 'energy','type']
 
   @classmethod
   def new(cls, id, location, energy=100.0):
     return WuNode(None, id, location, energy)
 
   @classmethod
-  def create(cls, id, location, energy=100.0):
+  def create(cls, id, location, energy=100.0,type='wudevice'):
     node = cls.new(id, location, energy)
+    node.type = type
     node.save()
     return node
 
-  def __init__(self, identity, id, location, energy=100.0):
+  def __init__(self, identity, id, location, energy=100.0,type='wudevice'):
     self.identity = identity
     self.id = id
     self.location = location
     self.energy = energy
+    self.type = type
 
   def wuclasses(self):
     '''
@@ -464,6 +467,7 @@ class WuObject(Definition):
 
   # Maintaining an ordered list for save function
   columns = ['identity', 'wuclassdef_identity', 'node_identity', 'port_number', 'virtual']
+  ZWAVE_SWITCH_PORT = 64
 
   @classmethod
   def new(cls, wuclassdef, node, port_number, virtual=False):

@@ -24,6 +24,9 @@ wkcomm_received_msg wkcomm_received_reply;
 dj_hook *wkcomm_handle_message_hook = NULL;
 
 // Send length bytes to dest
+int wkcomm_send_raw(wkcomm_address_t dest, uint8_t *payload, uint8_t length) {
+	return routing_send_raw(dest, payload, length);
+}
 int wkcomm_do_send(wkcomm_address_t dest, uint8_t command, uint8_t *payload, uint8_t length, uint16_t seqnr) {
 	DEBUG_LOG(DBG_WKCOMM, "wkcomm_send\n");
 	if (length > WKCOMM_MESSAGE_PAYLOAD_SIZE) {

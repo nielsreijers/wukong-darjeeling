@@ -7,6 +7,10 @@
 #include "debug.h"
 #include "djtimer.h"
 #include "uart.h"
+#include <avr/io.h>
+#define output_low(port, pin) port &= ~(1<<pin)
+#define output_high(port, pin) port |= (1<<pin)
+
 
 // Here we have a circular dependency between radio_X and routing.
 // Bit of a code smell, but since the two are supposed to be used together I'm leaving it like this for now.
@@ -35,6 +39,7 @@
 #define ZWAVE_TYPE_REQ          0x00
 #define ZWAVE_TYPE_CMD          0x01
 
+#define ZWAVE_CMD_APPLICATIONNODEINFO 0x03
 #define ZWAVE_CMD_APPLICATIONCOMMANDHANDLER 0x04
 
 #define COMMAND_CLASS_PROPRIETARY   0x88
@@ -85,6 +90,7 @@ uint32_t zwave_time_btn_release =0;
 // Low level ZWave functions originally from testrtt.c
 int SerialAPI_request(unsigned char *buf, int len);
 int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions);
+int ZW_sendDataRaw(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions);
 void Zwave_receive(int processmessages);
 void radio_zwave_learn();
 void radio_zwave_reset();
@@ -115,6 +121,7 @@ void radio_zwave_poll(void) {
 	    DEBUG_LOG(DBG_ZWAVETRACE,"start zwave learn !!!!!!!!!");
 	    radio_zwave_learn();//finish will set zwave mode=0
 	    zwave_mode=0;
+		
     }
     else if(zwave_mode==2)//reset mode
     {
@@ -173,6 +180,7 @@ void radio_zwave_init(void) {
     }
     DEBUG_LOG(DBG_WKCOMM, "My Zwave node_id: %d\n", radio_zwave_my_address);
     radio_zwave_platform_dependent_init();
+	radio_zwave_set_node_info(0,0xff, 0);
 }
 
 radio_zwave_address_t radio_zwave_get_node_id() {
@@ -189,10 +197,32 @@ uint8_t radio_zwave_send(radio_zwave_address_t zwave_addr, uint8_t *payload, uin
     }
     DEBUG_LOG(DBG_WKCOMM, "\n");
 #endif // DBG_WKCOMM
+	DEBUG_LOG(true, "send %d bytes to %d\n", length,zwave_addr);
+    for (int16_t i=0; i<length; ++i) {
+        DEBUG_LOG(true, " %02x", payload[i]);
+    }
 
     return ZW_sendData(zwave_addr, payload, length, txoptions);
 }
 
+
+uint8_t radio_zwave_send_raw(radio_zwave_address_t zwave_addr, uint8_t *payload, uint8_t length) {
+    uint8_t txoptions = ZWAVE_TRANSMIT_OPTION_ACK + ZWAVE_TRANSMIT_OPTION_AUTO_ROUTE;
+
+#ifdef DBG_WKCOMM
+    DEBUG_LOG(DBG_WKCOMM, "Sending %d bytes to %d: ", length, zwave_addr);
+    for (int16_t i=0; i<length; ++i) {
+        DEBUG_LOG(DBG_WKCOMM, " %d", payload[i]);
+    }
+    DEBUG_LOG(DBG_WKCOMM, "\n");
+#endif // DBG_WKCOMM
+	DEBUG_LOG(true, "send %d bytes to %d\n", length,zwave_addr);
+    for (int16_t i=0; i<length; ++i) {
+        DEBUG_LOG(true, " %02x", payload[i]);
+    }
+
+    return ZW_sendDataRaw(zwave_addr, payload, length, txoptions);
+}
 
 
 
@@ -337,6 +367,29 @@ void radio_zwave_reset() {
     }
     zwave_mode=0;
     DEBUG_LOG(DBG_ZWAVETRACE,"reset complete!!!!!!!!!!");
+
+}
+void radio_zwave_set_node_info(uint8_t devmask,uint8_t generic, uint8_t specific) {
+    unsigned char b[10];
+    int k;
+
+    b[0] = 1;
+    b[1] = 8;
+    b[2] = 0;
+    b[3] = 3;
+    b[4] = devmask;
+    b[5] = generic;
+    b[6] = specific;
+    b[7] = 0;
+    b[8] = seq;
+    b[9] = 0xff^7^0^0x3^devmask^generic^specific^0^seq;
+    seq++;
+    for(k=0;k<10;k++)
+    {
+        uart_write_byte(ZWAVE_UART, b[k]);
+    }
+    zwave_mode=0;
+    DEBUG_LOG(true,"set node info!!!!!!!!!!");
 
 }
 
@@ -489,6 +542,34 @@ int ZW_sendData(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions)
     buf[5+len] = txoptions;
     buf[6+len] = seq++;
     if (SerialAPI_request(buf, len + 7) != 0)
+        return -1;
+    while (zwsend_ack_got == -1 && timeout-->0) {
+        radio_zwave_poll();
+        dj_timer_delay(1);
+    }
+    if (zwsend_ack_got == 0) // ACK 0 indicates success
+        return 0;
+    else {
+        DEBUG_LOG(DBG_WKCOMM, "========================================ZW_sendDATA ack got: %x\n", zwsend_ack_got);
+        return -1;    
+    }
+}
+int ZW_sendDataRaw(uint8_t id, uint8_t *in, uint8_t len, uint8_t txoptions)
+{
+    unsigned char buf[WKCOMM_MESSAGE_PAYLOAD_SIZE+10];
+    int i;
+    int timeout = 1000;
+    zwsend_ack_got = -1;
+
+    buf[0] = ZWAVE_TYPE_REQ;
+    buf[1] = ZWAVE_REQ_SENDDATA;
+    buf[2] = id;
+    buf[3] = len;
+    for(i=0; i<len; i++)
+        buf[i+4] = in[i];
+    buf[4+len] = txoptions;
+    buf[5+len] = seq++;
+    if (SerialAPI_request(buf, len + 6) != 0)
         return -1;
     while (zwsend_ack_got == -1 && timeout-->0) {
         radio_zwave_poll();
