@@ -351,8 +351,8 @@ class LocationTreeNode:
                 tmpLst.append(sensor.nodeInfo.id)
         tmpLst = set(tmpLst)
         for child in locTreeNode.children:
-            tmpLst = tmpLst | child.getAllAliveNodeIds()
-        return tmpLst
+            tmpLst = tmpLst | set(child.getAllAliveNodeIds())
+        return list(tmpLst)
     
     def getAllNodeInfos(self):
         ret_val = []

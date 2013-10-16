@@ -4,7 +4,8 @@
     <WuClassList length="2">
         <WuClass id="0" publish="true" virtual="true"/>
         <WuClass id="5" publish="true" virtual="false"/>
-    </WuClassList>
+    </WuClassList>    <WuObject id="5" port="1"/>
+        <WuObject id="3" port="2"/>
     <WuObjectList>
         <WuObject id="5" port="0"/>
         <WuObject id="5" port="1"/>
@@ -13,11 +14,9 @@
 <Node id="2">
     <Location length="31" content="/WuKong/building/1F/101@(0,4,1)"/>
     <WuClassList length="1">
-        <WuClass id="0" publish="true" virtual="true"/>
+        <WuClass id="4" publish="true" virtual="true"/>
     </WuClassList>
     <WuObjectList>
-        <WuObject id="5" port="1"/>
-        <WuObject id="3" port="2"/>
         <WuObject id="4" port="3"/>
     </WuObjectList>
 </Node>

@@ -88,12 +88,10 @@
 
         {% for node_info in node_infos %}
 
-        var more = "{% include 'node-more.html' %}";
-
         $('#node{{ node_info.id }}').click(function(e) {
             e.preventDefault();
             $('#myModal .modal-header').html('<h1>Node Info</h1>');
-            $('#myModal .modal-body').html(more);
+            $('#myModal .modal-body').html("{% include 'node-more.html' %}");
         });
 
         {% end %}
