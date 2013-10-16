@@ -148,7 +148,7 @@ $('.chooseLocNode').click(function promptChooseLocation(){
 
 $('.dialogCloseButton').click(function(){
     $(this).parent().parent().hide();
-})
+});
 
 $('.locTreeNode').dblclick(function locTreeNodeHandler(){
     document.body.dataset.locTreeNodeId = $(this).attr("id");
@@ -162,16 +162,22 @@ $('.locTreeNode').dblclick(function locTreeNodeHandler(){
             alert(data.message);
         }else if (data.status=='0') {
             document.body.dataset.currentLocation = data.location;
-            content = 'Location: ' + data.location + '<br>' +
+            content = 'Location: ' + data.location + '<br><br>' +
            //            '<button type="button" class="set_node">Save Node Configuration</button><br>'+
-                       'Existing Distance Barriers: '+ data.distanceModifier + '<br>' +
-                       '<button id="changeModifier">Change Distance Barrier</button> ';
-
+                       'Existing Distance Barriers: '+ data.distanceModifier + '<br>';
+            footer_content = '<button id="changeModifier">Edit Distance</button>  &nbsp;' +
+                            '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Close</button>'
+            
+            $('#dispTreeNodeInfoFooter').html(footer_content);
             $('#dispTreeNodeInfoBody').html(content);
+            
             $('#changeModifier').click(function(){
                 $("#landmark_dialog_body").html('Under Location: ' + data.location + '<br>');
                 $('#modifier_dialog').draggable();
                 $('#modifier_dialog').show();
+            });
+            $('.dialogCloseButton').click(function(){
+                $(this).parent().parent().hide();
             });
         }else {
             alert("received JASON format is wrong!!!");
@@ -193,13 +199,18 @@ $('.landmarkTreeNode').dblclick(function landmarkTreeNodeHandler() {
             alert(data.message);
         }else if (data.status=='0') {
             document.body.dataset.currentLocation = data.location;
-            content = 'Location: ' + data.location + '<br>' +
-                       '<button id="openLandmarkEditor">Edit a Landmark</button>';
-
+            content = 'Location: ' + data.location + '<br><br>' ;
+            footer_content = '<button id="openLandmarkEditor">Edit Landmark</button>  &nbsp;' +
+                      '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Close</button>'
+            
+            $('#dispTreeNodeInfoFooter').html(footer_content);
             $('#dispTreeNodeInfoBody').html(content);
             $("#openLandmarkEditor").click( function openLandmarkEditorHandler() {
                 $('#landmark_dialog').draggable();
                 $('#landmark_dialog').show();
+            });
+            $('.dialogCloseButton').click(function(){
+                $(this).parent().parent().hide();
             });
         }else {
             alert("received JASON format is wrong!!!");
@@ -261,7 +272,9 @@ function add_modifier(){
         data: {start:start_id, end:end_id, distance:distance},
         type:'PUT',
         success: function(data) {
-            alert(data.message);
+            if (data.status == 1) {
+                alert(data.message);
+            }
         }
     });
 }
