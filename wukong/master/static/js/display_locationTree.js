@@ -49,12 +49,13 @@ $("#changeLandmarkBtn").click(function () {
 });
 
 $("#delLandmarkBtn").click(function(){
-	var name = document.getElementById("landmarkCoordInput").value;
+	var name = $('#selectedLandmark').val(),
+	    coord = $('#landmarkCoordInput').val();
 	$.ajax('/loc_tree/land_mark', {
         type: 'PUT',
         dataType: 'json',
         data: {ope: 0, name: name, location: document.body.dataset.currentLocation,
-            coordinate: '(0,0,0)', size:0, direction:0},
+            coordinate: coord, size:0, direction:0},
         success: function(data) {
             //data = JSON.parse(data);
             //display update

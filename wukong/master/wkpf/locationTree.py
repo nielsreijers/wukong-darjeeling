@@ -507,7 +507,7 @@ class LocationTree:
         print locTreeNode, "in dellandmark"
         rt_val = False
         if locTreeNode:
-            print ("found loctreeNode for dellandmark")
+            print ("found loctreeNode for dellandmark", landmarkId)
             rt_val = locTreeNode.delLandmark(landmarkId)
             print ("dellandmark returns", rt_val)
         return rt_val
