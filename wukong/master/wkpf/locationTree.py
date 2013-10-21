@@ -502,9 +502,9 @@ class LocationTree:
     
     def delLandmark(self, landmarkId, locationStr):
       
-        logging.info("Node",landmarkId," not in location tree, deletion ignored")
+        logging.info("Node"+str(landmarkId)+" not in location tree, deletion ignored")
         locTreeNode = self.findLocation(self.root, locationStr)
-        print locTreeNode, "in dellandmark"
+        #print locTreeNode, "in dellandmark"
         rt_val = False
         if locTreeNode:
             print ("found loctreeNode for dellandmark", landmarkId)

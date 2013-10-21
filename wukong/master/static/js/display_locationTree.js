@@ -264,7 +264,7 @@ $('.locTreeNode').dblclick(function locTreeNodeHandler(){
                        'Existing Distance Barriers: '+ data.distanceModifierByName + '<br>';
             footer_content = '<button id="addModifier">Add Distance</button>  &nbsp;' +
                              '<button id="showEditDistanceDialog">Edit Distance</button>  &nbsp;' +
-                             '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Cancel</button>'
+                             '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Confirm</button>'
             
             $('#dispTreeNodeInfoFooter').html(footer_content);
             $('#dispTreeNodeInfoBody').html(content);

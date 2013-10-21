@@ -876,7 +876,6 @@ class add_landmark(tornado.web.RequestHandler):
     elif(operation=="0"):
       rt_val = wkpf.globals.location_tree.delLandmark(name, location)
       msg = 'deletion of '+ name + ' fails at '+ location
-      print msg, rt_val
     self.content_type = 'application/json'
     if rt_val == True:
         self.write({'status':0, 'id':name, 'msg':'change succeeds'})
