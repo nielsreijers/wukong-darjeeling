@@ -215,11 +215,12 @@ Block.prototype.attach=function(parent) {
         }
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div id=propertyeditor_tab>');
-		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li style="display:none"><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_default>Default Value</a></li><li style="display:none"><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location Policy</a></li><li style="display:none"><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_default>Default Value</a></li><li style="display:none"><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
 
-		$('#propertyeditor_tab').append('<div id=propertyeditor_loc>Hierarchical Location: <input type=text id=propertyeditor_location_hierarchy></input>'+
+		$('#propertyeditor_tab').append('<div id=propertyeditor_loc>Location: <input type=text id=propertyeditor_location_hierarchy style="width:300px"></input>'+
                                         '<button class="chooseLocNode" for="propertyeditor_location_hierarchy">Choose Tree Node</button><br>'+
-                                        'Function: <input type=text id=propertyeditor_location_function></input></div>');
+                                        'Function: <input type=text id=propertyeditor_location_function style="width:300px"></input></div><br>'+
+                                        '(range, farthest, nearest, ~, |, &)');
                                         
 		$('#propertyeditor_tab').append('<div id=propertyeditor_ft style="dislay:none"><label for="propertyeditor_groupsize">Group Size</label>');
 		$('#propertyeditor_ft').append('<br><input id=propertyeditor_groupsize name=value></input>');

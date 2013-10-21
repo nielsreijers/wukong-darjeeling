@@ -752,10 +752,8 @@ class WuClassSource(tornado.web.RequestHandler):
 class loc_tree(tornado.web.RequestHandler): 
   def post(self):
     global node_infos
- 
-    print node_infos      
+      
     addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
-
     wkpf.globals.location_tree.printTree()
     disploc = wkpf.globals.location_tree.getJson()
 
@@ -771,10 +769,12 @@ class loc_tree(tornado.web.RequestHandler):
         self.write({'status':1,'message':'cannot find node id '+str(node_id)})
         return
     else:
+        print curNode.distanceModifier
         self.write({'status':0, 'message':'succeed in finding node id'+str(node_id), 
-                    'distanceModifier':curNode.distanceModifierToString(), 'centerPnt':curNode.centerPnt, 
+                    'distanceModifierByName':curNode.distanceModifierToString(), 'distanceModifierById':curNode.distanceModifierIdToString(),
+                    'centerPnt':curNode.centerPnt, 
                     'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
-                    'global_coord':curNode.getGlobalOrigPnt()}) 
+                    'global_coord':curNode.getGlobalOrigPnt(), 'landmarks': json.dumps(curNode.getLandmarkList())}) 
     
   def put(self, node_id):
     global node_infos
@@ -879,7 +879,7 @@ class add_landmark(tornado.web.RequestHandler):
       print msg, rt_val
     self.content_type = 'application/json'
     if rt_val == True:
-        self.write({'status':0, 'id':name})
+        self.write({'status':0, 'id':name, 'msg':'change succeeds'})
     if rt_val == False:
         self.write({'status':1, 'id':name, 'msg':msg})
 

@@ -24,8 +24,32 @@ $("#addLandmark").click(function () {
     });
 });
 
-$("#delLandmark").click(function(){
-	var name = $('#landmarkNameInput').val();
+//change is equivalent to adding a new one with same name. It will overwrite existing one.
+$("#changeLandmarkBtn").click(function () {
+	var name = $('#selectedLandmark').val(),
+	    coord = $('#landmarkCoordInput').val();
+	landmark[name] = coord;
+	$.ajax('/loc_tree/land_mark', {
+        type: 'PUT',
+        dataType: 'json',
+        data: {ope: 1, name: name, location: document.body.dataset.currentLocation,
+            coordinate:coord, size:0, direction:0},
+        success: function (data) {
+            //data = JSON.parse(data);
+            //display update
+             $.post('/loc_tree', function(data) {
+	    		display_tree("#content",data);
+	    		$('#content').append(data.node);
+			});
+            if (data.status === 1) {
+                alert(data.mesg);
+            }
+        }
+    });
+});
+
+$("#delLandmarkBtn").click(function(){
+	var name = document.getElementById("landmarkCoordInput").value;
 	$.ajax('/loc_tree/land_mark', {
         type: 'PUT',
         dataType: 'json',
@@ -34,12 +58,14 @@ $("#delLandmark").click(function(){
         success: function(data) {
             //data = JSON.parse(data);
             //display update
-             $.post('/loc_tree', function(data) {
-	    		display_tree("#content", data);
-            	$("li").remove("#"+name);
-			});
+            
             if (data.status == 1) {
-                alert(data.mesg);
+                alert(data.msg);
+            } else{
+                $.post('/loc_tree', function(data) {
+    	    		display_tree("#content", data);
+                	$('#content').append(data.node);
+    			});
             }
         }
     });
@@ -73,9 +99,41 @@ $("#addModifier").click(function(){
     add_modifier();
     $('#'+document.body.dataset.locTreeNodeId).dblclick();
 });
-$("#delModifier").click(function(){
-    del_modifier();
-    $('#'+document.body.dataset.locTreeNodeId).dblclick();
+$("#deleteModifierBtn").click(function(){
+    var mylist = document.getElementById("selectedBarrier"),
+        name =  mylist.options[mylist.selectedIndex].dataset.ids;
+    console.log(name);
+    
+    var start_end = JSON.parse(name),
+        start_id = start_end[0],
+        end_id = start_end[1],
+        distance = $('#editDistance_distance').val();
+        console.log(start_id);
+        $.ajax({
+            url:'/loc_tree/modifier/1',
+            data: {start:start_id, end:end_id, distance:distance},
+            type:'PUT',
+            success: function(data) {
+     //           alert(data.message);
+            }
+        });
+});
+//add a modifier with same start and end id will replace existing one
+$("#changeModifierBtn").click(function(){
+    var mylist = document.getElementById("selectedBarrier"),
+        name =  mylist.options[mylist.selectedIndex].dataset.ids,
+        start_end = JSON.parse(name),
+        start_id = start_end[0],
+        end_id = start_end[1],
+        distance = $('#editDistance_distance').val();
+        $.ajax({
+            url:'/loc_tree/modifier/0',
+            data: {start:start_id, end:end_id, distance:distance},
+            type:'PUT',
+            success: function(data) {
+   //             alert(data.message);
+            }
+        });
 });
 $('.sensor_node_btn').click(function(){
    //dialog_content not using now
@@ -118,15 +176,52 @@ $('#confirm_tree_dialog').click(function(){
     $('#'+$('#tree_dialog').get(0).dataset.setFor).val($('#selectedTreeNode').val());
 });
 
+$('.chooseLocNodeFromAll').click(function (){
+    var inputId = $(this).attr('for');
+    $.post('/loc_tree', function(data) {
+    	tree_html = top.generate_tree(data,"locTreeNodeInDialog");
+    	
+    	$('#treeInDialogDiv').empty();
+    	$('#treeInDialogDiv').html(tree_html);
+    //	alert($('#treeInDialogDiv').html());
+    	$('.locTreeNodeInDialog').click(function () {
+            var location_str='';
+            var clickedNodeId = parseInt($(this).attr("id"), 10);
+            while (clickedNodeId != 0) {
+                location_str = '/' + $("#"+clickedNodeId).text() + location_str;
+                clickedNodeId = Math.floor(clickedNodeId/100);
+            }
+            $('#selectedTreeNode').val(location_str);
+            $('#'+$('#tree_dialog').get(0).dataset.setFor).val(location_str);
+        });	
+        $('#confirm_tree_dialog').click(function(){
+            $('#'+$('#tree_dialog').get(0).dataset.setFor).val($('#selectedTreeNode').val());
+        });
+        $('.dialogCloseButton').click(function() {
+            $('#tree_dialog').dialog("close");
+        });
+	});
+    $('#display').treeview({
+        collapsed: true,
+        animated: "fast",
+    });
+    $('#tree_dialog').get(0).dataset.setFor = inputId;
+    
+    $('#tree_dialog').dialog();
+    $('#tree_dialog').draggable();
+    $('#tree_dialog').show();  
+});
 
 $('.chooseLocNode').click(function promptChooseLocation(){
     var inputId = $(this).attr('for'),
         subTreeRoot = $('#'+document.body.dataset.locTreeNodeId).parent(),
         subTreeRootDomCopy = subTreeRoot.get(0).cloneNode(true);
+        
     $(subTreeRootDomCopy).find('.locTreeNode').removeClass().addClass('locTreeNodeInDialog');
     $('#treeInDialog').empty();
 
     $(subTreeRootDomCopy).appendTo('#treeInDialog');
+   // alert($(subTreeRootDomCopy).html());
     $('#treeInDialog').treeview({
         collapsed: true,
         animated: "fast",
@@ -150,6 +245,7 @@ $('.dialogCloseButton').click(function(){
     $(this).parent().parent().hide();
 });
 
+
 $('.locTreeNode').dblclick(function locTreeNodeHandler(){
     document.body.dataset.locTreeNodeId = $(this).attr("id");
     dialog_content = 'Type： LocationTreeNode<br>'+
@@ -164,17 +260,43 @@ $('.locTreeNode').dblclick(function locTreeNodeHandler(){
             document.body.dataset.currentLocation = data.location;
             content = 'Location: ' + data.location + '<br><br>' +
            //            '<button type="button" class="set_node">Save Node Configuration</button><br>'+
-                       'Existing Distance Barriers: '+ data.distanceModifier + '<br>';
-            footer_content = '<button id="changeModifier">Edit Distance</button>  &nbsp;' +
-                            '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Close</button>'
+                       'Existing Distance Barriers: '+ data.distanceModifierByName + '<br>';
+            footer_content = '<button id="addModifier">Add Distance</button>  &nbsp;' +
+                             '<button id="showEditDistanceDialog">Edit Distance</button>  &nbsp;' +
+                             '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Cancel</button>'
             
             $('#dispTreeNodeInfoFooter').html(footer_content);
             $('#dispTreeNodeInfoBody').html(content);
             
-            $('#changeModifier').click(function(){
-                $("#landmark_dialog_body").html('Under Location: ' + data.location + '<br>');
+            $('#addModifier').click(function(){
+              //  $("#landmark_dialog_body").html('Under Location: ' + data.location + '<br>');
                 $('#modifier_dialog').draggable();
                 $('#modifier_dialog').show();
+            });
+            $('#showEditDistanceDialog').click( function () {
+                var distModifiers = $.parseJSON(data.distanceModifierById);
+                var body_content = 'Distance Barrier: <select id="selectedBarrier">'+
+                                    '<option></option>';
+                console.log(distModifiers);
+                for (var key in distModifiers) {
+                    parsekey = $.parseJSON(key);
+                    console.log(parsekey[0]);
+                    var name1 = $("#"+parsekey[0]).text(),
+                        name2 = $("#"+parsekey[1]).text();
+                    if (parsekey[0] <= parsekey[1]) {
+                        body_content += '<option data-ids="'+key+'" data-distance="'+ distModifiers[key]+'">'+ name1 +',' +name2+'</option>';
+                    }
+                }
+                body_content += ' </select><br>' +
+                                'Distance: <input id = "editDistance_distance" type=text size="20"/>';
+                $("#editDistanceBody").html(body_content);                
+                $("#selectedBarrier").change(function getDistForSelectedBarrier (){
+                    var mylist = document.getElementById("selectedBarrier");
+                    document.getElementById("editDistance_distance").value = mylist.options[mylist.selectedIndex].dataset.distance;
+                });
+                $("#editDistanceDialog").draggable();
+                $("#editDistanceDialog").show();
+                
             });
             $('.dialogCloseButton').click(function(){
                 $(this).parent().parent().hide();
@@ -186,6 +308,7 @@ $('.locTreeNode').dblclick(function locTreeNodeHandler(){
         $('#dispTreeNodeInfo').show();
     });
 });
+
 
 $('.landmarkTreeNode').dblclick(function landmarkTreeNodeHandler() {
     document.body.dataset.locTreeNodeId = $(this).attr("id");
@@ -199,15 +322,37 @@ $('.landmarkTreeNode').dblclick(function landmarkTreeNodeHandler() {
             alert(data.message);
         }else if (data.status=='0') {
             document.body.dataset.currentLocation = data.location;
-            content = 'Location: ' + data.location + '<br><br>' ;
-            footer_content = '<button id="openLandmarkEditor">Edit Landmark</button>  &nbsp;' +
-                      '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Close</button>'
+            var content = 'Location: ' + data.location + '<br><br>' ;
+            var footer_content = '<button id="openLandmarkEditor">Add Landmark</button>  &nbsp;' +
+                            '<button id="editLandmarkBtn">Edit Landmark</button>  &nbsp;' +
+                            '<button class="dialogCloseButton" data-dismiss="modal" aria-hidden="true">Close</button>'
             
             $('#dispTreeNodeInfoFooter').html(footer_content);
             $('#dispTreeNodeInfoBody').html(content);
             $("#openLandmarkEditor").click( function openLandmarkEditorHandler() {
                 $('#landmark_dialog').draggable();
                 $('#landmark_dialog').show();
+            });
+            
+            $("#editLandmarkBtn").click( function editLandmarkBtnHandler() {
+                //alert(data.landmarks);
+                var landMarkLst = JSON.parse(data.landmarks);
+                var body_content = 'Landmark Name: <select id="selectedLandmark">'+
+                                    '<option></option>';
+                
+                for (var i=0; i<landMarkLst.length; i++) {
+                    body_content += '<option data-coord="'+ landMarkLst[i][1]+'">'+landMarkLst[i][0] + '</option>';
+                }
+                body_content += ' </select><br>' +
+                                'Local Coordinate: <input id = "landmarkCoordInput" type=text size="20"/>';
+                //alert(body_content);
+                $('#editLandmarkDialog').draggable();
+                $('#editLandmarkDialog').show();
+                $('#editLandmarkBody').html(body_content);
+                $("#selectedLandmark").change(function getCoordFromSelectedLandmark (){
+                    var mylist=document.getElementById("selectedLandmark");
+                    document.getElementById("landmarkCoordInput").value = mylist.options[mylist.selectedIndex].dataset.coord;
+                });
             });
             $('.dialogCloseButton').click(function(){
                 $(this).parent().parent().hide();
@@ -273,24 +418,12 @@ function add_modifier(){
         type:'PUT',
         success: function(data) {
             if (data.status == 1) {
-                alert(data.message);
+   //             alert(data.message);
             }
         }
     });
 }
-function del_modifier(){
-    var start_id = $('#distmod_start_id').attr("loc_node_id");
-    var end_id = $('#distmod_end_id').attr("loc_node_id");
-    var distance = $('#distmod_distance').val();
-    $.ajax({
-        url:'/loc_tree/modifier/1',
-        data: {start:start_id, end:end_id, distance:distance},
-        type:'PUT',
-        success: function(data) {
-            alert(data.message);
-        }
-    });
-}
+
 function load_tree(r)
 {
 	$.ajax({
@@ -377,18 +510,18 @@ function display_tree(container_id,rt) {
     $(container_id).append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
         '<script type="text/javascript" src="/static/js/tree_expand.js"></script>'
         );
-    html_tree = '';
-    html_tree = '<table width="100%">';
+    html_tree = '<p><b>&nbsp;&nbsp;&nbsp;&nbsp;Double Click a Tree Node to Start Editing</b><br><br><br></p>';
+    html_tree += '<table width="100%">';
     html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>';
     html_tree += '<tr><td></td><td>';
     html_tree += '</td><td valign="top">';
     if (container_id == "#content"){    //#content means in user mode, generating for landmark edit
         html_tree += generate_tree(rt, "landmarkTreeNode");
-        html_tree += '<button id="saveTree">Save Landmarks</button><br>';
+        html_tree += '<button id="saveTree">Confirm Update</button><br>';
         //+'<button id="loadTree">Load Saved Distance Barriers Landmarks</button>';
     } else {                            //otherwise installer mode, generating for modifier edit
         html_tree += generate_tree(rt, "locTreeNode");
-        html_tree += '<button id="saveTree">Save Distance Barriers</button><br>';
+        html_tree += '<button id="saveTree">Confirm Update</button><br>';
         //+'<button id="loadTree">Load Saved Distance Barriers Landmarks</button>';
     }  
     html_tree += '</td></tr></table>';

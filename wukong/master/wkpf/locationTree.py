@@ -91,16 +91,33 @@ class LocationTreeNode:
         #distance to self is always 0
         self.distanceModifier = {} #stores a list of distance between children, default 0, used for distance between sensors in different children.
         self.idSet = set([]) #all sensor ids contained in this Node and its children nodes
-
+        
+    def getLandmarkList(self):
+        lmlst = []
+        for landmk in self.landmarkLst:
+            lmlst.append([landmk.name,str(landmk.coord)])
+        return lmlst
+        
     def distanceModifierToString(self):
         tmpDict = {}
-        ret_str = ''
+        ret_str = '{'
         for child in self.children:
             tmpDict[child.id] = child.name
-        print self.distanceModifier
         for k in self.distanceModifier.keys():
-            print k
-            ret_str += '(' + str(tmpDict[k[0]]) +', '+ str(tmpDict[k[1]]) + '):' + str(self.distanceModifier[k]) +'\n'
+            ret_str += '"(' + str(tmpDict[k[0]]) +', '+ str(tmpDict[k[1]]) + ')":' + str(self.distanceModifier[k]) +', '
+        if len(ret_str)>1 and ret_str[-2] ==',':
+            ret_str = ret_str[:-2]
+        ret_str +='}'
+        return ret_str
+    
+    def distanceModifierIdToString(self):
+        tmpDict = {}
+        ret_str = '{'
+        for k in self.distanceModifier.keys():
+            ret_str += '"[' + str(k[0]) +', '+ str(k[1]) + ']":' + str(self.distanceModifier[k]) +', '
+        if len(ret_str)>1 and ret_str[-2] ==',':
+            ret_str = ret_str[:-2]
+        ret_str +='}'
         return ret_str
             
     #set local Global Size Direction from strings
@@ -487,9 +504,12 @@ class LocationTree:
       
         logging.info("Node",landmarkId," not in location tree, deletion ignored")
         locTreeNode = self.findLocation(self.root, locationStr)
+        print locTreeNode, "in dellandmark"
         rt_val = False
         if locTreeNode:
+            print ("found loctreeNode for dellandmark")
             rt_val = locTreeNode.delLandmark(landmarkId)
+            print ("dellandmark returns", rt_val)
         return rt_val
         #delete unnecessary branches in the tree (del branches with no sensor node)
   #      while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
