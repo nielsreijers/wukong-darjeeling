@@ -4,8 +4,8 @@
         <tr>
             <th>#</th>
             <th>Location</th>
-            <th>WuClass</th>
-            <th>WuObject</th>
+            <th align="center">WuClass</th>
+            <th align="center">WuObject</th>
             <th></th>
         </tr>
     </thead>
@@ -26,10 +26,10 @@
                 {{ node_info.location }}
                 {% end %}
             </td>
-            <td>
+            <td style="width:100px" align="center">
                 {{ len(node_info.wuclasses()) }}
             </td>
-            <td>
+            <td style="width:100px" align="center">
                 {{ len(node_info.wuobjects()) }} 
             </td>
             <td>

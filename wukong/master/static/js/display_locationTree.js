@@ -179,12 +179,12 @@ $('#confirm_tree_dialog').click(function(){
 
 $('.chooseLocNodeFromAll').click(function (){
     var inputId = $(this).attr('for');
+    $('#tree_dialog').get(0).dataset.setFor = inputId;
     $.post('/loc_tree', function(data) {
     	tree_html = top.generate_tree(data,"locTreeNodeInDialog");
     	
     	$('#treeInDialogDiv').empty();
     	$('#treeInDialogDiv').html(tree_html);
-    //	alert($('#treeInDialogDiv').html());
     	$('.locTreeNodeInDialog').click(function () {
             var location_str='';
             var clickedNodeId = parseInt($(this).attr("id"), 10);
@@ -193,7 +193,7 @@ $('.chooseLocNodeFromAll').click(function (){
                 clickedNodeId = Math.floor(clickedNodeId/100);
             }
             $('#selectedTreeNode').val(location_str);
-            $('#'+$('#tree_dialog').get(0).dataset.setFor).val(location_str);
+   //         $('#'+$('#tree_dialog').get(0).dataset.setFor).val(location_str);
         });	
         $('#confirm_tree_dialog').click(function(){
             $('#'+$('#tree_dialog').get(0).dataset.setFor).val($('#selectedTreeNode').val());
@@ -201,16 +201,15 @@ $('.chooseLocNodeFromAll').click(function (){
         $('.dialogCloseButton').click(function() {
             $('#tree_dialog').dialog("close");
         });
+   //     $('#tree_dialog').dialog();
+        $('#display').treeview({
+            collapsed: true,
+            animated: "fast",
+        });
+        $('#tree_dialog').draggable();
+        $('#tree_dialog').show();
 	});
-    $('#display').treeview({
-        collapsed: true,
-        animated: "fast",
-    });
-    $('#tree_dialog').get(0).dataset.setFor = inputId;
     
-    $('#tree_dialog').dialog();
-    $('#tree_dialog').draggable();
-    $('#tree_dialog').show();  
 });
 
 $('.chooseLocNode').click(function promptChooseLocation(){
@@ -483,7 +482,7 @@ function generate_tree(rt, node_class) {
             }else{
                 for (var j=i+1;j<node_data.length;++j) {
                     if (node_data[j][1]==node_data[i][1]){
-                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="'+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class=" '+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
                         break;
                     }
                     if (node_data[j][1]<node_data[i][1]){
