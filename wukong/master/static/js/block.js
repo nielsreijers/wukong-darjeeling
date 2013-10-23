@@ -220,7 +220,7 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor_tab').append('<div id=propertyeditor_loc>Location: <input type=text id=propertyeditor_location_hierarchy style="width:300px"></input>'+
                                         '<button class="chooseLocNode" for="propertyeditor_location_hierarchy">Choose Tree Node</button><br>'+
                                         'Function: <input type=text id=propertyeditor_location_function style="width:300px"></input><br>'+
-                                        'Functions Supported: use, range, farthest, nearest, ~, |, &</div>');
+                                        'Functions Supported: use, range, farthest, closest, ~, |, &</div>');
                                         
 		$('#propertyeditor_tab').append('<div id=propertyeditor_ft style="dislay:none"><label for="propertyeditor_groupsize">Group Size</label>');
 		$('#propertyeditor_ft').append('<br><input id=propertyeditor_groupsize name=value></input>');

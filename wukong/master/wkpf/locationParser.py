@@ -419,7 +419,7 @@ if __name__ == "__main__":
     locTree.printTree(locTree.root, 0)
     query = u"/universal/Boli_Building#above(window)"
     query2=u"/universal/Boli_Building#findCenter()"
-    func = u"nearest(4,4,4)"
+    func = u"closest(4,4,4)"
     locParser = LocationParser( locTree)
     result = locParser.parse(query2)
     print "parser result", result
