@@ -49,6 +49,15 @@ uint8_t routing_send(wkcomm_address_t dest, uint8_t *payload, uint8_t length) {
 	#endif
 	return 0;
 }
+uint8_t routing_send_raw(wkcomm_address_t dest, uint8_t *payload, uint8_t length) {
+	#ifdef RADIO_USE_ZWAVE
+		return radio_zwave_send_raw(addr_wkcomm_to_zwave(dest), payload, length);
+	#endif
+	#ifdef RADIO_USE_XBEE
+		return radio_xbee_send_raw(addr_wkcomm_to_xbee(dest), payload, length);
+	#endif
+	return 0;
+}
 
 
 // RECEIVING

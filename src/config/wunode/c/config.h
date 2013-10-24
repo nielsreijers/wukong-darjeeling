@@ -57,7 +57,7 @@ void avr_serialPrintf(char * format, ...);
 
 // Routing: choose 1
 #define ROUTING_USE_NONE
-#define ROUTING_USE_DSDV
+//#define ROUTING_USE_DSDV
 // #define ROUTING_USE_WUKONG
 
 // Radios: choose as many as the routing protocol allows (max 1 for routing_none)

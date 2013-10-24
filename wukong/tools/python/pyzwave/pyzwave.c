@@ -276,6 +276,27 @@ static PyObject* pyzwave_routing(PyObject *self, PyObject *args) {
   }
   return neighbor_list;
 }
+static PyObject* pyzwave_getDeviceType(PyObject *self, PyObject *args) {
+  int i;
+  int node_id;
+  PyObject* device_type;
+
+  if (!PyArg_ParseTuple( args, "i", &node_id))
+    return NULL;
+
+  if (!initialised) {
+    PyErr_SetString(PyExc_IOError, "Call pyzwave.init first.");
+    return NULL;
+  }
+
+  PyZwave_getDeviceType((unsigned)node_id);
+
+  device_type = PyList_New(0);
+  PyList_Append(device_type, PyInt_FromLong((long)pyzwave_basic));
+  PyList_Append(device_type, PyInt_FromLong((long)pyzwave_generic));
+  PyList_Append(device_type, PyInt_FromLong((long)pyzwave_specific));
+  return device_type;
+}
 
 PyMethodDef methods[] = {
   {"init", pyzwave_init, METH_VARARGS, "Sets the IP address to connect to"},
@@ -288,6 +309,7 @@ PyMethodDef methods[] = {
   {"setdebug", pyzwave_setdebug, METH_VARARGS, "Turn debug info on or off"},
   {"discover", pyzwave_discover, METH_VARARGS, "discover nodes"},
   {"routing", pyzwave_routing, METH_VARARGS, "node neighbors"},
+  {"getDeviceType", pyzwave_getDeviceType, METH_VARARGS, "device type"},
   {NULL, NULL, 0, NULL}
 };
 

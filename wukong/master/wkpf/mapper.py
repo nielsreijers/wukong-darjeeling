@@ -1,3 +1,4 @@
+# vim: sw=2 ts=2 expandtab
 import sys, os, traceback, copy
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from parser import *
@@ -94,11 +95,11 @@ def firstCandidate(logger, changesets, routingTable, locTree):
         print component
         try:
             candidates, rating = locParser.parse(component.location)
-            print "candidates", candidates
+            print "candidates", candidates, rating
         except:
             #no mapping result
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            msg = 'Cannot find match for location query "'+ component.location+'" for wuclass "'+ component.type+ '", so we will invalid the query and pick all by default.' 
+            msg = 'Cannot find match for location query "'+ component.location+'" of wuclass "'+ component.type+ '", we will invalid the query and pick all by default.' 
             logger.errorMappingStatus(msg)
             set_wukong_status(msg)
             candidates = locTree.root.getAllAliveNodeIds()
@@ -138,7 +139,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                   # don't save to db
                   component.instances.append(wuobject)
                   break
-            else:
+            elif node.type != 'native' and node.type != 'picokong':
               # create a new virtual wuobject where the node 
               # doesn't have the wuclass for it
               sensorNode = locTree.sensor_dict[node.id]
@@ -150,6 +151,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
 
               # TODO: looks like this will always return true for mapping
               # regardless of whether java impl exist
+            else:
+              pass
 
 
         # limit to min candidate if possible

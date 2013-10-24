@@ -15,10 +15,12 @@ def addHead():
             '\t\t'+'<link type="text/css" href="/static/css/smoothness/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />'+'\n'+
             '\t\t'+'<link type="text/css" href="/static/css/jquery.contextMenu.css" rel="stylesheet" />'+'\n'+
             '\t\t'+'<link type="text/css" href="/static/css/fbp.css" rel="stylesheet" />'+'\n'+
+            '\t\t'+'<link type="text/css" href="/static/css/jquery.treeview.css" rel="stylesheet"/>\n'+
 
             '\t\t'+'<script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/jquery-ui-1.9.2.custom.min.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/jquery.contextMenu.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/jcanvas.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/json2.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/block.js"></script>'+'\n'+
@@ -62,12 +64,32 @@ def addEnd():
                 '\t\t'+'<input type=text id=fileloader_file></input>'+'\n'+
                 '\t\t'+'</div>'+'\n'+
                 '\t\t'+'<div id=propertyeditor>'+'\n'+
-                '\t\t'+'<div> Location </div>'+'\n'+
+                '\t\t'+'<div> Location Policy</div>'+'\n'+
                 '\t\t'+'<input type=text id=propertyeditor_location></input>'+'\n'+
+                '<div id=propertyeditor_loc>Location: <input type=text id=propertyeditor_location_hierarchy size=35></input>'+
+                '<button class="chooseLocNode" for="propertyeditor_location_hierarchy">Choose Tree Node</button><br>'+
+                'Function: <input type=text id=propertyeditor_location_function size=35></input></div>'+
                 '\t\t'+'</div>'+'\n'+
                 '\t\t'+'<div id="progress"><div id="compile_status"></div>'+'\n'+
                 '\t\t'+'<div id="normal"></div><div id="critical_error"></div>'+'\n'+
                 '\t\t'+'<div id="urgent_error"></div></div>'+'\n'+
+                 '<div class="modal ui-widget-content" id="tree_dialog" role="dialog" style="display:none">'+'\n'+
+                '\t\t'+'<div class="modal-header">'+'\n'+
+                    '\t\t'+'<h3>Choose a node</h3>'+'\n'+
+                '\t\t'+'</div>'+'\n'+
+                '\t\t'+'<div class="modal-body">'+'\n'+
+                  '\t\t'+'<div id="treeInDialogDiv">'+'\n'+
+                    '\t\t'+'<ul id="treeInDialog" class="treeview">'+'\n'+
+                    '\t\t'+'</ul>'+'\n'+
+                  '\t\t'+'</div>'+'\n'+
+                  '\t\t'+'Selected TreeNode: <input id = "selectedTreeNode" type=text size="20"/>'+'\n'+
+                '\t\t'+'</div>'+'\n'+
+                '\t\t'+'<div class="modal-footer">'+'\n'+
+                    '\t\t'+'<button id="confirm_tree_dialog" data-dismiss="modal" class="dialogCloseButton">Select</button>'+'\n'+
+                    '\t\t'+'<button data-dismiss="modal" class="dialogCloseButton">Close</button>'+'\n'+
+                '\t\t'+'</div>'+'\n'+
+            '\t\t'+'</div>'+'\n'+
+                
                 '\t'+'</body>'+'\n'+
                 '</html>'
                 )

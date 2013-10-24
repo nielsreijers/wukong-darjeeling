@@ -53,9 +53,11 @@ wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
 # using cloned nodes
 def rebuildTree(nodes):
   nodes_clone = copy.deepcopy(nodes)
-  print "inside rebuild tree:",nodes_clone
   wkpf.globals.location_tree = LocationTree(LOCATION_ROOT)
   wkpf.globals.location_tree.buildTree(nodes_clone)
+  flag = os.path.exists("../ComponentDefinitions/landmarks.txt")
+  if(flag):
+      wkpf.globals.location_tree.loadTree()
   wkpf.globals.location_tree.printTree()
 
 # Helper functions
@@ -750,24 +752,13 @@ class WuClassSource(tornado.web.RequestHandler):
 class loc_tree(tornado.web.RequestHandler): 
   def post(self):
     global node_infos
-    
-    load_xml = ""
-    flag = os.path.exists("../ComponentDefinitions/landmark.xml")
-#    if(flag):
-    if(False):
-      f = open("../ComponentDefinitions/landmark.xml","r")
-      for row in f:
-        load_xml += row 
-    else:
-      pass
-    print node_infos      
+      
     addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
-
     wkpf.globals.location_tree.printTree()
     disploc = wkpf.globals.location_tree.getJson()
 
     self.content_type = 'application/json'
-    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})
+    self.write({'loc':json.dumps(disploc),'node':addloc})
   
   def get(self, node_id):
     global node_infos
@@ -778,10 +769,12 @@ class loc_tree(tornado.web.RequestHandler):
         self.write({'status':1,'message':'cannot find node id '+str(node_id)})
         return
     else:
+        print curNode.distanceModifier
         self.write({'status':0, 'message':'succeed in finding node id'+str(node_id), 
-                    'distanceModifier':str(curNode.distanceModifier), 'centerPnt':curNode.centerPnt, 
+                    'distanceModifierByName':curNode.distanceModifierToString(), 'distanceModifierById':curNode.distanceModifierIdToString(),
+                    'centerPnt':curNode.centerPnt, 
                     'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
-                    'global_coord':curNode.getGlobalOrigPnt()}) 
+                    'global_coord':curNode.getGlobalOrigPnt(), 'landmarks': json.dumps(curNode.getLandmarkList())}) 
     
   def put(self, node_id):
     global node_infos
@@ -823,7 +816,6 @@ class tree_modifier(tornado.web.RequestHandler):
     start_id = self.get_argument("start")
     end_id = self.get_argument("end")
     distance = self.get_argument("distance")
-    print (int(start_id)//100);
     paNode = wkpf.globals.location_tree.findLocationById(int(start_id)//100)      #find parent node
     if paNode !=None:
         if int(mode) == 0:        #adding modifier between siblings
@@ -849,10 +841,17 @@ class save_landmark(tornado.web.RequestHandler):
         self.write({'tree':wkpf.globals.location_tree})
 
   def post(self):
-        landmark_info = self.get_argument('xml')
-        f = open("../ComponentDefinitions/landmark.xml","w")
-        f.write(landmark_info)
-        f.close()
+        wkpf.globals.location_tree.saveTree()
+        self.write({'message':'Save Successfully!'})
+        
+class load_landmark(tornado.web.RequestHandler):
+    def post(self):
+        flag = os.path.exists("../ComponentDefinitions/landmarks.txt")
+        if(flag):
+            wkpf.globals.location_tree.loadTree()
+            self.write({'message':'Load Successfully!'})
+        else:
+            self.write({'message':'"../ComponentDefinitions/landmarks.txt" does not exist '})
         
 class add_landmark(tornado.web.RequestHandler):
   def put(self):
@@ -864,35 +863,39 @@ class add_landmark(tornado.web.RequestHandler):
     operation = self.get_argument("ope")
     size  = self.get_argument("size")
     direct = self.get_argument("direction")
+    coordinate = self.get_argument("coordinate")
     landmark = None
     rt_val = 0
     msg = ''
     if(operation=="1"):
       landId += 1
-      landmark = LandmarkNode(name, location, size, direct) 
+      landmark = LandmarkNode(name, location+"@"+coordinate, size, direct) 
       rt_val = wkpf.globals.location_tree.addLandmark(landmark)
       msg = 'add fails'
       wkpf.globals.location_tree.printTree()
     elif(operation=="0"):
-      wkpf.globals.location_tree.delLandmark()
-      msg = 'deletion fails'
+      rt_val = wkpf.globals.location_tree.delLandmark(name, location)
+      msg = 'deletion of '+ name + ' fails at '+ location
     self.content_type = 'application/json'
-    if rt_val ==0:
-        self.write({'status':0, 'id':landmark.getId()})
-    if rt_val ==1:
-        self.write({'status':1, 'id':landmark.getId(), 'msg':msg})
+    if rt_val == True:
+        self.write({'status':0, 'id':name, 'msg':'change succeeds'})
+    if rt_val == False:
+        self.write({'status':1, 'id':name, 'msg':msg})
 
 class Build(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-
-    os.system('cd ../../src/config/wunode; ant > tmp')
-    f = open("../../src/config/wunode/tmp", "r")
-    log = f.readlines()
-    log = "<br>".join(log)
-    f.close()
-    command = 'cd ../../src/config/wunode; rm -f tmp'
-    os.system(command)
+    cmd = self.get_argument('cmd')
+    if cmd == 'start':
+      command = 'cd ../../src/config/wunode; rm -f tmp'
+      os.system(command)
+      os.system('(cd ../../src/config/wunode; ant 2>&1 | cat > tmp)&')
+      log = 'start'
+    elif cmd == 'poll':
+      f = open("../../src/config/wunode/tmp", "r")
+      log = f.readlines()
+      log = "".join(log)
+      f.close()
 
     self.write(log)
 
@@ -900,23 +903,26 @@ class Build(tornado.web.RequestHandler):
 class Upload(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-    port = self.get_argument("port")
-
-    f = open("../../src/settings.xml","w")
-    s = '<project name="settings">' + '\n' + \
-      '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
-      '</project>'
-    f.write(s)
-    f.close()
-    
-    command = 'cd ../../src/config/wunode; ant avrdude > tmp'
-    os.system(command)
-    f = open("../../src/config/wunode/tmp", "r")
-    log = f.readlines()
-    log = "<br>".join(log)
-    f.close()
-    command = 'cd ../../src/config/wunode; rm -f tmp'
-    os.system(command)
+    cmd = self.get_argument('cmd')
+    if cmd == 'start':
+      port = self.get_argument("port")
+      command = 'cd ../../src/config/wunode; rm -f tmp'
+      os.system(command)
+      f = open("../../src/settings.xml","w")
+      s = '<project name="settings">' + '\n' + \
+        '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
+        '</project>'
+      f.write(s)
+      f.close()
+      
+      command = '(cd ../../src/config/wunode; ant avrdude 2>&1 | cat> tmp)&'
+      os.system(command)
+      log='start'
+    elif cmd == 'poll':
+      f = open("../../src/config/wunode/tmp", "r")
+      log = f.readlines()
+      log = "".join(log)
+      f.close()
 
 
     #p = sub.Popen(command, stdout=sub.PIPE, stderr=sub.PIPE)
@@ -963,6 +969,7 @@ wukong = tornado.web.Application([
   (r"/loc_tree", loc_tree),
   (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
   (r"/loc_tree/save", save_landmark),
+  (r"/loc_tree/load", load_landmark),
   (r"/loc_tree/land_mark", add_landmark),
   (r"/componentxml",WuLibrary),
   (r"/componentxmluser",WuLibraryUser),

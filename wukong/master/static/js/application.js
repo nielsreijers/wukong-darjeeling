@@ -46,9 +46,9 @@ function init()
         $('#designer').parent().removeClass('active');
         window.options.repeat = false;
         $.post('/loc_tree', function(data) {
-                display_tree(data);
-                $('#content').append(data.node);
-                load_landmark(data.xml);                
+                display_tree("#content",data);
+                $('#content').append(data.node);         
+                document.body.dataset.installer_mode = "false";
         });                    
     });
     $('#designer').click(function() {
@@ -61,7 +61,7 @@ function init()
     });
     
     application_fill();
-    
+
 }
 
 function application_fill()
@@ -424,74 +424,4 @@ function poll(url, version, options, callback)
     });
 }
 
-
-function display_tree(rt) {
-    $('#content').empty();
-    $('#content').append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
-        '<script type="text/javascript" src="/static/js/tree_expand.js"></script>'+
-        '<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>'
-        );
-
-    var node_data = JSON.parse(rt.loc);
-    var tree_level = 0;
-    var html_tree = '';
-    html_tree = '<table width="100%">';
-    html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>';
-    html_tree += '<tr><td></td><td>';
-    html_tree += '<ul id="display" class="treeview">';
-    for(var i=0; i<node_data.length;i++){
-          if(node_data[i][1] == tree_level){
-              //do nothing
-          }else if(node_data[i][1] > tree_level){
-            html_tree +='<ul>';
-            tree_level = node_data[i][1];
-        }else if (node_data[i][1]<tree_level){
-          for(var j=0; j<tree_level-node_data[i][1] ;j++){
-                  html_tree += '</ul></li>';
-              }
-              tree_level = node_data[i][1];
-        }
-        //see locationTree.py, class locationTree.toJason() function for detailed data format
-          if(node_data[i][0] === 0){ //this is a tree node
-            if (node_data[i][1] === 0){  //root
-                  html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-            }else{
-                for (var j=i+1;j<node_data.length;++j) {
-                    if (node_data[j][1]==node_data[i][1]){
-                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-                        break;
-                    }
-                    if (node_data[j][1]<node_data[i][1]){
-                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-                        break;
-                    }
-                    if (j==node_data.length-1){
-                        html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="locTreeNode" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-                    }
-                }
-            }
-          }else if (node_data[i][0] == 1){            //this is a sensor 
-                html_tree += '<li id=se'+node_data[i][2][0]+' data-toggle=modal  role=button class="btn" >'+node_data[i][2][0]+node_data[i][2][1]+'</li>';
-          }else if(node_data[i][0]==2){               //this is a landmark
-                html_tree += '<li id=lm'+node_data[i][2][1]+' data-toggle=modal  role=button class="btn" >'+node_data[i][2][0]+node_data[i][2][1]+'</li>';
-          }
-        }
-    html_tree += '</td><td valign="top">';
-    
-       
-    html_tree += '<button id="saveTree">SAVE Landmarks</button>';
-                 //'type <div id="nodeType"></div><br>'+
-                 //'ID <input id="SensorId" type=text size="10"><br>'+
-                 //'Location <input id="locName" type=text size="100"><br>'+
-                 //'Local Coordinate <input id="localCoord" type=text size="100"><br>'+
-                 
-                 
-  //  html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>';
-//  html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
-    html_tree += '</td></tr></table>';
-    $('#content').append(html_tree);
-    $("#display").treeview({
-  collapsed: true,
-  unique: true});
-}
 

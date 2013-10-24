@@ -4,6 +4,7 @@ import logging
 import json
 import ast
 import numpy
+import math
 
 MAX_LIFE = 1
 class LandmarkNode:
@@ -22,8 +23,8 @@ class LandmarkNode:
         self.size = size 
         self.direction = direct
         self.json_data = []
-    def getId():
-        return self.id
+    def getId(self):
+        return self.name
         
 class SensorNode:
     def __init__(self, nodeInfo):
@@ -90,7 +91,35 @@ class LocationTreeNode:
         #distance to self is always 0
         self.distanceModifier = {} #stores a list of distance between children, default 0, used for distance between sensors in different children.
         self.idSet = set([]) #all sensor ids contained in this Node and its children nodes
-
+        
+    def getLandmarkList(self):
+        lmlst = []
+        for landmk in self.landmarkLst:
+            lmlst.append([landmk.name,str(landmk.coord)])
+        return lmlst
+        
+    def distanceModifierToString(self):
+        tmpDict = {}
+        ret_str = '{'
+        for child in self.children:
+            tmpDict[child.id] = child.name
+        for k in self.distanceModifier.keys():
+            ret_str += '"(' + str(tmpDict[k[0]]) +', '+ str(tmpDict[k[1]]) + ')":' + str(self.distanceModifier[k]) +', '
+        if len(ret_str)>1 and ret_str[-2] ==',':
+            ret_str = ret_str[:-2]
+        ret_str +='}'
+        return ret_str
+    
+    def distanceModifierIdToString(self):
+        tmpDict = {}
+        ret_str = '{'
+        for k in self.distanceModifier.keys():
+            ret_str += '"[' + str(k[0]) +', '+ str(k[1]) + ']":' + str(self.distanceModifier[k]) +', '
+        if len(ret_str)>1 and ret_str[-2] ==',':
+            ret_str = ret_str[:-2]
+        ret_str +='}'
+        return ret_str
+            
     #set local Global Size Direction from strings
     def setLGSDFromString(local_str, global_str, size_str, direction_str):
         self.originalPnt = ast.literal_eval(local_str)
@@ -146,29 +175,46 @@ class LocationTreeNode:
            
     #obj could be sensor or landmark 
     def calcDistance(self, sensor, obj):
-        sensorGlobalCoord = (0,0,0)
-        objGlobalCoord = (0,0,0)
-        for i in range(3):
-            for j in range(3):
-                sensorGlobalCoord[i] += self.transMatrix[i][j]*sensor.coord[j]
-                objGlobalCoord[i] += self.transMatrix[i][j]*obj.coord[j]
-        modifier = (sensorGlobalCoord[0]-objGlobalCoord[0])**2+(sensorGlobalCoord[1]-objGlobalCoord[1])**2+(sensorGlobalCoord[2]-objGlobalCoord[2])**2
+#        sensorGlobalCoord = (0,0,0)
+#        objGlobalCoord = (0,0,0)
+#        for i in range(3):
+#            for j in range(3):
+#                sensorGlobalCoord[i] += self.transMatrix[i][j]*sensor.coord[j]
+#                objGlobalCoord[i] += self.transMatrix[i][j]*obj.coord[j]
+ #       modifier = (sensorGlobalCoord[0]-objGlobalCoord[0])**2+(sensorGlobalCoord[1]-objGlobalCoord[1])**2+(sensorGlobalCoord[2]-objGlobalCoord[2])**2
+        #if in same room, Euclid distance
         pos2 = sensor.locationTreeNode
         snrId = sensor.nodeInfo.id
         pos1 = obj.locationTreeNode
+        distance = 0
+        if pos1.id == pos2.id:
+            for i in range(3):
+                distance = distance + (sensor.coord[i] - obj.coord[i])**2
+            distance = math.sqrt(distance)
+            return distance
+        
+        #if in different rooms
+        distance1, distance2 = 0, 0
+        for i in range(3):
+            distance1 = distance1 + sensor.coord[i]**2
+            distance2 = distance2 + obj.coord[i]**2
+        distance1 = math.sqrt(distance1)
+        distance2 = math.sqrt(distance2)
+        distance = distance1 + distance2
+       
         curPos = pos1
         while snrId not in curPos.idSet:
             try:
-                modifier = modifier +self.distanceModifier[(pos1.id,curPos.id)]
-            except KeyError:
-                modifier = modifier
+                distance = distance +self.distanceModifier[(pos1.id,curPos.id)]
+            except KeyError:    #default barrier between different nodes of different layer is 1000
+                distance = distance+0
             pos1 = curPos
             curPos = curPos.parent
         try:
-            modifier = modifier +curPos.distanceModifier[(pos1.id,pos2.id)]
-        except KeyError:
-            modifier = modifier
-        return modifier
+            distance = distance +curPos.distanceModifier[(pos1.id,pos2.id)]
+        except KeyError:     #default barrier between different nodes of the same layer is 0
+            distance = distance+1000
+        return distance
         
     def addDistanceModifier(self, id1, id2, distance):
         found = 0
@@ -264,18 +310,23 @@ class LocationTreeNode:
         
     def addLandmark(self, landmarkNode):
         if landmarkNode not in self.landmarkLst:
+            for existingLandmarkNd in self.landmarkLst:
+                if existingLandmarkNd.name == landmarkNode.name:
+                    self.landmarkLst.remove(existingLandmarkNd)
+                    del existingLandmarkNd
+                    break
             self.landmarkLst.append(landmarkNode)
             landmarkNode.locationTreeNode = self
-            return 0
-        return 1
+            return True
+        return False
     
     def delLandmark (self, landmarkId):
         for landmarkNd in self.landmarkLst:
-            if landmarkId == landmarkNd.id:
+            if landmarkId == landmarkNd.name:
                 self.landmarkLst.remove(landmarkNd)
                 del landmarkNd
-                return 0
-        return 1
+                return True
+        return False
                 
     def findLandmarksByName(self, landmarkName):
         retLst = []
@@ -321,8 +372,8 @@ class LocationTreeNode:
                 tmpLst.append(sensor.nodeInfo.id)
         tmpLst = set(tmpLst)
         for child in locTreeNode.children:
-            tmpLst = tmpLst | child.getAllAliveNodeIds()
-        return tmpLst
+            tmpLst = tmpLst | set(child.getAllAliveNodeIds())
+        return list(tmpLst)
     
     def getAllNodeInfos(self):
         ret_val = []
@@ -399,14 +450,14 @@ class LocationTree:
         del self.sensor_dict[sensorId]
         self.totalSensorCount = self.totalSensorCount - 1
         #delete unnecessary branches in the tree (del branches with no sensor node)
-        while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
-            pa = locTreeNode.parent
-            if pa != None:
-                pa.delChild(locTreeNode)
-            else: #root of the tree
-                break
-            del locTreeNode
-            locTreeNode = pa
+   #     while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
+    #        pa = locTreeNode.parent
+     #       if pa != None:
+      #          pa.delChild(locTreeNode)
+    #        else: #root of the tree
+     #           break
+      #      del locTreeNode
+       #     locTreeNode = pa
     
     def getAllNodeInfos(self):
         return self.root.getAllNodeInfos()
@@ -451,19 +502,97 @@ class LocationTree:
     
     def delLandmark(self, landmarkId, locationStr):
       
-        logging.info("Node",landmarkId," not in location tree, deletion ignored")
+        logging.info("Node"+str(landmarkId)+" not in location tree, deletion ignored")
         locTreeNode = self.findLocation(self.root, locationStr)
-        locTreeNode.delLandmark(landmarkId)
+        #print locTreeNode, "in dellandmark"
+        rt_val = False
+        if locTreeNode:
+            print ("found loctreeNode for dellandmark", landmarkId)
+            rt_val = locTreeNode.delLandmark(landmarkId)
+            print ("dellandmark returns", rt_val)
+        return rt_val
         #delete unnecessary branches in the tree (del branches with no sensor node)
-        while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
-            pa = locTreeNode.parent
-            if pa != None:
-                pa.delChild(locTreeNode)
-            else: #root of the tree
-                break
-            del locTreeNode
-            locTreeNode = pa
-                
+  #      while locTreeNode.sensorCnt == 0 and len(locTreeNode.landmarkLst)==0:
+  #          pa = locTreeNode.parent
+  #          if pa != None:
+  #              pa.delChild(locTreeNode)
+  #          else: #root of the tree
+  #              break
+  #          del locTreeNode
+  #          locTreeNode = pa
+    
+    #save tree structure and landmarks
+    def saveTree(self, filename="../ComponentDefinitions/landmarks.txt"):
+        landmark_str =""
+        fin = open(filename,"w")
+        landmark_str += self.__saveTreeNode(self.root, fin)
+        fin.write( "Landmarks:\n" + landmark_str)
+        fin.close()
+    
+    def loadTree(self, filename="../ComponentDefinitions/landmarks.txt"):
+        fout = open(filename, "r")
+        content = fout.read()
+        location_strs,landmark_strs = content.split("Landmarks:")
+        locations = location_strs.split('\n')
+        landmarks = landmark_strs.split('\n')
+        for i in range(len(locations)):
+            if len(locations[i]) > 0:   
+                [location_str, modifiers] = locations[i].split("::")
+                modifiers = ast.literal_eval(modifiers)
+                newLocTreeNode = self.addLocation(location_str)
+                newLocTreeNode.distanceModifier = modifiers
+        for i in range(len(landmarks)):
+            if len(landmarks[i]) > 0:
+                location_str, name = landmarks[i].split("::")
+                landmarkNd = LandmarkNode(name, location_str, None)
+                self.addLandmark(landmarkNd)
+        self.printTree()
+            
+    #used by saveTree for recursively saving tree structure and landmarks
+    def __saveTreeNode(self, treeNode, fin):
+        currentLocation = treeNode.getLocationStr()
+        landmark_str = ''
+        fin.write(currentLocation+"::"+str(treeNode.distanceModifier)+"\n")
+        for i in range(len(treeNode.landmarkLst)):
+            landmark_str += treeNode.landmarkLst[i].location + "::" + treeNode.landmarkLst[i].name+"\n"
+        for i in range(treeNode.childrenCnt):
+            landmark_str += self.__saveTreeNode(treeNode.children[i], fin)
+        return landmark_str
+            
+    
+    #addLocation returns the locationTreeNode added
+    def addLocation(self, locationStr, startPos = None):
+        if startPos == None:
+            startPos = self.root
+        locationLst,x,y,z = self.parseLocation(locationStr)
+        if locationLst == None or len(locationLst) == 0:
+            logging.error("error! location is not given correctly")
+            return False
+        
+        if startPos.name != locationLst[0]:
+            if startPos == self.root:
+                locationLst = [self.root.name] + locationLst
+            else:
+                logging.error("error! location: "+ str(locationLst[0])+ " of node does not match expected" + startPos.name)
+                print ("error! location: "+ str(locationLst[0])+ " of node does not match expected" + startPos.name)
+                return False
+        curPos = startPos
+        for i in range(1, len(locationLst)):
+            
+            if curPos.childrenCnt==0:
+                curPos.addChild(locationLst[i])
+                curPos = curPos.children[-1]
+            else:
+                child_index = -1
+                for j in range(curPos.childrenCnt):
+                    if curPos.children[j].name == locationLst[i]:
+                        child_index = j
+                if (child_index >= 0):
+                    curPos = curPos.children[child_index]
+                else:
+                    curPos.addChild(locationLst[i])
+                    curPos = curPos.children[-1]
+        return curPos
                         
     #insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
     def addSensor(self, sensorNd, startPos = None ):
@@ -511,7 +640,15 @@ class LocationTree:
         self.sensor_dict[sensorNd.nodeInfo.id] = sensorNd
         self.totalSensorCount = self.totalSensorCount +1
         return True
-    
+    def deleteLocation(self, locationStr, startPos = None):
+        if startPos == None:
+            startPos = self.root
+        locTreeNode = self.findLocation(startPos, locationStr)
+        pa = locTreeNode.parent
+        if pa != None:  #we don't delete root
+          pa.delChild(locTreeNode)
+          del locTreeNode
+        
     def getNodeInfoById (self, Id): #return None on failure
         curNode = self.root
         while curNode != None and (Id in curNode.idSet):

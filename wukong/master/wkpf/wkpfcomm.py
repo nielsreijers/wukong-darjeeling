@@ -1,3 +1,4 @@
+# vi: ts=2 sw=2 expandtab
 import sys, time, copy
 from transport import *
 from locationTree import *
@@ -25,6 +26,7 @@ class Communication:
     def __init__(self):
       self.all_node_infos = []
       self.broker = getAgent()
+      self.device_type = None
       try:
         if SIMULATION == "true":
           raise KeyboardInterrupt
@@ -86,19 +88,48 @@ class Communication:
     def getNodeInfo(self, destination):
       print '[wkpfcomm] getNodeInfo of node id', destination
 
-      location = self.getLocation(destination)
-      node = WuNode.create(destination, location)
-      gevent.sleep(0) # give other greenlets some air to breath
+      (basic,generic,specific) = self.getDeviceType(destination)
+      #print "basic=", basic
+      #print "generic=", generic
+      #print "specific=", specific
+      if generic == 0xff:
+        location = self.getLocation(destination)
+        node = WuNode.create(destination, location)
+        gevent.sleep(0) # give other greenlets some air to breath
 
-      wuClasses = self.getWuClassList(destination)
-      print '[wkpfcomm] get %d wuclasses' % (len(wuClasses))
-      gevent.sleep(0)
+        wuClasses = self.getWuClassList(destination)
+        print '[wkpfcomm] get %d wuclasses' % (len(wuClasses))
+        gevent.sleep(0)
 
-      wuObjects = self.getWuObjectList(destination)
-      print '[wkpfcomm] get %d wuobjects' % (len(wuObjects))
-      gevent.sleep(0)
+        wuObjects = self.getWuObjectList(destination)
+        print '[wkpfcomm] get %d wuobjects' % (len(wuObjects))
+        gevent.sleep(0)
+      else:
+        # Create a virtual wuclass for non wukong device. We support switch only now. 
+        # We may support others in the future.
+        node = WuNode.create(destination, 'WuKong',type='native')
+        wuclassdef = WuClassDef.find(id=4)    # Light_Actuator
+
+        if not wuclassdef:
+          print '[wkpfcomm] Unknown wuclass id', wuclass_id
+          return none
+
+        wuobject = WuObject.find(node_identity=node.identity,
+            wuclassdef_identity=wuclassdef.identity)
+
+        # Create one
+        if not wuobject:
+          # 0x100 is a mgic number. When we see this in the code generator, 
+          # we will generate ZWave command table to implement the wuclass by
+          # using the Z-Wave command.
+          wuobject = WuObject.create(wuclassdef, node, WuObject.ZWAVE_SWITCH_PORT)
+
 
       return node
+
+    def getDeviceType(self, destination):
+      self.device_type = self.zwave.getDeviceType(destination)
+      return self.device_type
 
     def getLocation(self, destination):
       print '[wkpfcomm] getLocation', destination
