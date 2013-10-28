@@ -185,7 +185,7 @@ WuIDE.prototype.refreshBuild = function() {
 	self.timer = setTimeout(function () {
 		self.refreshBuild();
 	},1000);
-	$.get('/build', {cmd:'start'}, function(data) {
+	$.get('/build', {cmd:'poll'}, function(data) {
 		if (data != '') {
 			if (self.data != data)
 				$('#log').val(data).animate({scrollTop:$("#log")[0].scrollHeight - $("#log").height()});
