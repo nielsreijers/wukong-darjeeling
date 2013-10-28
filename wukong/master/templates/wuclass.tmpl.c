@@ -1,12 +1,17 @@
-package javax.wukong.virtualwuclasses;
-import javax.wukong.wkpf.WKPF;
-import javax.wukong.wkpf.VirtualWuObject;
+#include "debug.h"
+#include "../../common/native_wuclasses/native_wuclasses.h"
+#include <avr/io.h>
+#include "../../../../vm/c/common/execution.h"
+#include "../../common/native_wuclasses/GENERATED{{classname}}.h"
 
-public class {{classname}} extends GENERATED{{classname}} {
-    public {{classname}}() {
-	    // Initialize the wuobject here
-	}
-	public void update() {
-		// Check the update of the properties here
-	}
+#ifdef ENABLE_WUCLASS_{{classname}}
+
+void wuclass_{{classname}}_setup(wuobject_t *wuobject) {
+
 }
+
+void wuclass_{{classname}}_update(wuobject_t *wuobject) {
+    
+}
+
+#endif // ENABLE_WUCLASS_{{classname}}
