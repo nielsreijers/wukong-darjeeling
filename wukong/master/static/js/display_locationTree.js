@@ -464,9 +464,9 @@ function generate_tree(rt, node_class) {
     
     html_tree += '<ul id="display" class="treeview">';
     for(var i=0; i<node_data.length;i++){
-          if(node_data[i][1] == tree_level){
+        if(node_data[i][1] == tree_level){
               //do nothing
-          }else if(node_data[i][1] > tree_level){
+        }else if(node_data[i][1] > tree_level){
             html_tree +='<ul>';
             tree_level = node_data[i][1];
         }else if (node_data[i][1]<tree_level){
@@ -477,23 +477,23 @@ function generate_tree(rt, node_class) {
         }
         //see locationTree.py, class locationTree.toJason() function for detailed data format
           if(node_data[i][0] === 0){ //this is a tree node
-            if (node_data[i][1] === 0){  //root
+              if (node_data[i][1] === 0){  //root
                   html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="'+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-            }else{
-                for (var j=i+1;j<node_data.length;++j) {
-                    if (node_data[j][1]==node_data[i][1]){
+              }else{
+  //                for (var j=i+1;j<node_data.length;++j) {
+//                    if (node_data[j][1]==node_data[i][1]){
                         html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class=" '+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-                        break;
-                    }
-                    if (node_data[j][1]<node_data[i][1]){
-                        html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="'+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-                        break;
-                    }
-                    if (j==node_data.length-1){
-                        html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="'+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
-                    }
-                }
-            }
+ //                       break;
+  //                  }
+//                    if (node_data[j][1]<node_data[i][1]){
+ //                       html_tree += '<li  id="'+ node_data[i][2][1] +'"><button class="'+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+  //                      break;
+//                    }
+ //                   if (j==node_data.length-1){
+  //                      html_tree += '<li id="'+ node_data[i][2][1] +'"><button class="'+ node_class +'" id='+node_data[i][2][0]+'>'+node_data[i][2][1]+'</button>';
+//                    }
+  //                }
+              }
           }else if (node_data[i][0] == 1){            //this is a sensor
                 html_tree += '<li id=se'+node_data[i][2][0]+' data-toggle=modal  role=button class="sensor_node_btn btn" >'+node_data[i][2][0]+node_data[i][2][1]+'</li>';
           }else if(node_data[i][0]==2){               //this is a landmark
@@ -501,6 +501,7 @@ function generate_tree(rt, node_class) {
           }
         }
     html_tree += '</td><td valign="top">';
+    alert(html_tree);
     return html_tree;
 }
 
