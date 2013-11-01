@@ -10,7 +10,6 @@ public class VirtualOrGateWuObject extends GENERATEDVirtualOrGateWuObject {
 		// Check the update of the properties here
         boolean in1 = WKPF.getPropertyBoolean(this, INPUT1);
         boolean in2 = WKPF.getPropertyBoolean(this, INPUT2);
-        
         if (in1 || in2) {
             WKPF.setPropertyBoolean(this, OUTPUT, true);
             System.out.println("WKPFUPDATE(ANDGate):and gate -> TRUE");

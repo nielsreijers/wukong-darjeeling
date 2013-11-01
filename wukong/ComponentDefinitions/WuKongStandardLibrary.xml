@@ -135,7 +135,8 @@
         <property name="enable" access="readwrite" datatype="boolean" default="true"  />
         <property name="refresh_rate" access="readwrite" datatype="refresh_rate" default="2000"  />
     </WuClass>
-    <WuClass name="or_gate" id="42" virtual="true" type="soft" privateCData="bool">
+
+    <WuClass name="Or_gate" id="42" virtual="true" type="soft" privateCData="bool">
         <property name="input1" access="writeonly" datatype="boolean"  />
         <property name="input2" access="writeonly" datatype="boolean"  />
         <property name="output" access="readonly" datatype="boolean"  />
