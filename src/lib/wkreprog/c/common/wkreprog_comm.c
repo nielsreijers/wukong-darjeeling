@@ -1,4 +1,4 @@
-#include "execution.h"
+#include "core.h"
 #include "debug.h"
 #include "types.h"
 #include "wkcomm.h"
@@ -17,8 +17,8 @@ void wkreprog_comm_handle_message(void *data) {
 	switch (msg->command) {
 		case WKREPROG_COMM_CMD_REPROG_OPEN: {
 			DEBUG_LOG(DBG_WKREPROG, "Initialise reprogramming.\n");
-			uint16_t size_to_upload = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
-			if (wkreprog_impl_open(size_to_upload)) {
+			// uint16_t size_to_upload = (uint16_t)payload[0] + (((uint16_t)payload[1]) << 8);
+			if (wkreprog_impl_open(0)) {
 				// TODONR: DEBUG_LOG(DBG_WKREPROG, "Setting master address to %x", src);
 			    // wkpf_config_set_master_node_id(src);
 				DEBUG_LOG(DBG_WKREPROG, "Going to runlevel RUNLEVEL_REPROGRAMMING.\n");
@@ -36,7 +36,6 @@ void wkreprog_comm_handle_message(void *data) {
 				response_size = 1;
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_OPEN_R;
-			wkcomm_send_reply(msg, response_cmd, payload, response_size);
 		}
 		break;
 		case WKREPROG_COMM_CMD_REPROG_WRITE: {
@@ -58,9 +57,7 @@ void wkreprog_comm_handle_message(void *data) {
 					payload[2] = (uint8_t)(wkreprog_pos>>8);
 					response_size = 3;
 				}
-				// Sending the reply first, then writing to flash is faster since both can take some time and can be done in parallel
 				response_cmd = WKREPROG_COMM_CMD_REPROG_WRITE_R;
-				wkcomm_send_reply(msg, response_cmd, payload, response_size);
 			}
 			if (pos_in_message == wkreprog_pos) {
 				DEBUG_LOG(DBG_WKREPROG, "Write %d bytes at position 0x%x.\n", codelength, wkreprog_pos);
@@ -91,7 +88,6 @@ void wkreprog_comm_handle_message(void *data) {
 				DEBUG_LOG(DBG_WKREPROG, "Flushing pending writes to flash.\n");
 			}
 			response_cmd = WKREPROG_COMM_CMD_REPROG_COMMIT_R;
-			wkcomm_send_reply(msg, response_cmd, payload, response_size);
 
 			if (reprogramming_ok)
 				wkreprog_impl_close();
@@ -102,4 +98,6 @@ void wkreprog_comm_handle_message(void *data) {
 			wkreprog_impl_reboot();
 		}
 	}
+	if (response_cmd != 0)
+		wkcomm_send_reply(msg, response_cmd, payload, response_size);
 }

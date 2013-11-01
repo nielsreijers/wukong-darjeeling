@@ -1,7 +1,8 @@
 #include "wkcomm.h"
 #include "panic.h"
 #include "debug.h"
-#include "execution.h"
+#include "core.h"
+
 #include "wkpf.h"
 #include "wkpf_comm.h"
 #include "wkpf_config.h"
@@ -9,7 +10,10 @@
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
 
-uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
+#define NUMBER_OF_WUCLASSES_PER_MESSAGE 9
+#define NUMBER_OF_WUOBJECTS_PER_MESSAGE 9
+
+uint8_t send_message(wkcomm_address_t dest_node_id, uint8_t command, uint8_t *payload, uint8_t length) {
 	// Print some debug info
 #ifdef DEBUG
 	DEBUG_LOG(DBG_WKPF, "WKPF: sending property set command to %d:", dest_node_id);
@@ -35,42 +39,70 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t *payload, 
 	}
 }
 
-uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
-	uint8_t message_buffer[7];
-	message_buffer[0] = port_number;
-	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
-	message_buffer[2] = (uint8_t)(wuclass_id);
-	message_buffer[3] = property_number;
-	message_buffer[4] = WKPF_PROPERTY_TYPE_SHORT;
-	message_buffer[5] = (uint8_t)(value >> 8);
-	message_buffer[6] = (uint8_t)(value);
-	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+uint8_t wkpf_call_adaptor(wkcomm_address_t dest_node_id, uint16_t wuclass_id, uint8_t property_number, uint16_t value)
+{
+	uint8_t buf[6];
+	uint8_t r;
+
+	DEBUG_LOG(true, "Send value %d to node %d\n", value, dest_node_id);
+	buf[0] = 0x20;		// COMMAND_CLASS_BASIC
+	buf[1] = 1;			// BASIC_SET
+	buf[2] = value;		// level
+	r =  wkcomm_send_raw(dest_node_id,buf,3);
+	DEBUG_LOG(true,"send raw done\n");
+	return r;
+
 }
 
-uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value) {
+uint8_t wkpf_send_set_property_int16(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
+	uint8_t message_buffer[7];
+	if (port_number >= DEVICE_NATIVE_ZWAVE_SWITCH) {
+		return wkpf_call_adaptor(dest_node_id, wuclass_id, property_number, value);
+	} else {
+		message_buffer[0] = port_number;
+		message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+		message_buffer[2] = (uint8_t)(wuclass_id);
+		message_buffer[3] = property_number;
+		message_buffer[4] = WKPF_PROPERTY_TYPE_SHORT;
+		message_buffer[5] = (uint8_t)(value >> 8);
+		message_buffer[6] = (uint8_t)(value);
+		return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	}
+}
+
+
+uint8_t wkpf_send_set_property_boolean(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, bool value) {
 	uint8_t message_buffer[6];
-	message_buffer[0] = port_number;
-	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
-	message_buffer[2] = (uint8_t)(wuclass_id);
-	message_buffer[3] = property_number;
-	message_buffer[4] = WKPF_PROPERTY_TYPE_BOOLEAN;
-	message_buffer[5] = (uint8_t)(value);
-	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 6);
+	if (port_number >= DEVICE_NATIVE_ZWAVE_SWITCH) {
+		return wkpf_call_adaptor(dest_node_id, wuclass_id, property_number, value? 255:0);
+	} else {
+		message_buffer[0] = port_number;
+		message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+		message_buffer[2] = (uint8_t)(wuclass_id);
+		message_buffer[3] = property_number;
+		message_buffer[4] = WKPF_PROPERTY_TYPE_BOOLEAN;
+		message_buffer[5] = (uint8_t)(value);
+		return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 6);
+	}
 }
 
-uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
+uint8_t wkpf_send_set_property_refresh_rate(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
 	uint8_t message_buffer[7];
-	message_buffer[0] = port_number;
-	message_buffer[1] = (uint8_t)(wuclass_id >> 8);
-	message_buffer[2] = (uint8_t)(wuclass_id);
-	message_buffer[3] = property_number;
-	message_buffer[4] = WKPF_PROPERTY_TYPE_REFRESH_RATE;
-	message_buffer[5] = (uint8_t)(value >> 8);
-	message_buffer[6] = (uint8_t)(value);
-	return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	if (port_number >= DEVICE_NATIVE_ZWAVE_SWITCH) {
+		return WKPF_COMM_CMD_ERROR_R;
+	} else {
+		message_buffer[0] = port_number;
+		message_buffer[1] = (uint8_t)(wuclass_id >> 8);
+		message_buffer[2] = (uint8_t)(wuclass_id);
+		message_buffer[3] = property_number;
+		message_buffer[4] = WKPF_PROPERTY_TYPE_REFRESH_RATE;
+		message_buffer[5] = (uint8_t)(value >> 8);
+		message_buffer[6] = (uint8_t)(value);
+		return send_message(dest_node_id, WKPF_COMM_CMD_WRITE_PROPERTY, message_buffer, 7);
+	}
 }
 
-uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
+uint8_t wkpf_send_request_property_init(wkcomm_address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
 	uint8_t message_buffer[2];
 	message_buffer[0] = port_number;
 	message_buffer[1] = property_number;
@@ -78,7 +110,7 @@ uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_num
 }
 
 
-//void wkpf_comm_handle_message(address_t src, uint8_t nvmcomm_command, uint8_t *payload, uint8_t response_size, uint8_t response_cmd) {
+//void wkpf_comm_handle_message(wkcomm_address_t src, uint8_t nvmcomm_command, uint8_t *payload, uint8_t response_size, uint8_t response_cmd) {
 void wkpf_comm_handle_message(void *data) {
 	wkcomm_received_msg *msg = (wkcomm_received_msg *)data;
 	uint8_t *payload = msg->payload;
@@ -99,7 +131,7 @@ void wkpf_comm_handle_message(void *data) {
 			uint8_t requested_offset = payload[0];
 
 			// Read the EEPROM
-			uint8_t length = wkpf_config_get_part_of_location_string((char *)payload, requested_offset, WKCOMM_MESSAGE_SIZE);
+			uint8_t length = wkpf_config_get_part_of_location_string((char *)payload, requested_offset, WKCOMM_MESSAGE_PAYLOAD_SIZE);
 
 			DEBUG_LOG(DBG_WKPF, "WKPF_COMM_CMD_GET_LOCATION: Reading %d bytes at offset %d\n", length, requested_offset);
 
@@ -156,30 +188,67 @@ void wkpf_comm_handle_message(void *data) {
 		}
 		break;
 		case WKPF_COMM_CMD_GET_WUCLASS_LIST: {
+			// Request format: payload[0] request message number
+			// Response format: payload[0] response message number
+			// Response format: payload[1] total number of messages
+			// Response format: payload[2] number of wuclasses
+
 			uint8_t number_of_wuclasses = wkpf_get_number_of_wuclasses();
-			payload[0] = number_of_wuclasses;
-			for (uint8_t i=0; i<number_of_wuclasses && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
+			uint8_t number_of_messages = (number_of_wuclasses / NUMBER_OF_WUCLASSES_PER_MESSAGE);
+			if ((number_of_wuclasses % NUMBER_OF_WUCLASSES_PER_MESSAGE) != 0)
+				number_of_messages++;
+			uint8_t start_at_wuclass_index = payload[0]*NUMBER_OF_WUCLASSES_PER_MESSAGE;
+			payload[1] = number_of_messages;
+			payload[2] = number_of_wuclasses;
+
+			uint8_t number_of_wuclasses_in_message = number_of_wuclasses - start_at_wuclass_index;
+			if (number_of_wuclasses_in_message > NUMBER_OF_WUCLASSES_PER_MESSAGE)
+				number_of_wuclasses_in_message = NUMBER_OF_WUCLASSES_PER_MESSAGE;
+
+			for (uint8_t i=0; i<number_of_wuclasses_in_message; i++) {
 				wuclass_t *wuclass;
-				wkpf_get_wuclass_by_index(i, &wuclass);
-				payload[3*i + 1] = (uint8_t)(wuclass->wuclass_id >> 8);
-				payload[3*i + 2] = (uint8_t)(wuclass->wuclass_id);
-				payload[3*i + 3] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+				wkpf_get_wuclass_by_index(i+start_at_wuclass_index, &wuclass);
+
+        payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
+        payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
+				if (wuclass->flags & WKPF_WUCLASS_FLAG_APP_CAN_CREATE_INSTANCE) {
+					payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 3 : 2;
+				} else {
+					payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
+        }
 			}
-			response_size = 3*number_of_wuclasses + 1; // 3*wuclasses + 1 byte number of wuclasses
+			response_size = 3*number_of_wuclasses_in_message + 3; // 3*wuclasses + 3 bytes for message nr, number of messages, number of wuclasses
 			response_cmd = WKPF_COMM_CMD_GET_WUCLASS_LIST_R;
 		}
 		break;
 		case WKPF_COMM_CMD_GET_WUOBJECT_LIST: {
+			// Request format: payload[0] request message number
+			// Response format: payload[0] response message number
+			// Response format: payload[1] total number of messages
+			// Response format: payload[2] number of wuobjects
+
+
 			uint8_t number_of_wuobjects = wkpf_get_number_of_wuobjects();
-			payload[0] = number_of_wuobjects;
-			for (uint8_t i=0; i<number_of_wuobjects && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
+			uint8_t number_of_wuobject_messages = (number_of_wuobjects / NUMBER_OF_WUOBJECTS_PER_MESSAGE);
+			if ((number_of_wuobjects % NUMBER_OF_WUOBJECTS_PER_MESSAGE) != 0)
+				number_of_wuobject_messages++;
+			uint8_t start_at_wuobject_index = payload[0]*NUMBER_OF_WUOBJECTS_PER_MESSAGE;
+			payload[1] = number_of_wuobject_messages;
+			payload[2] = number_of_wuobjects;
+
+			uint8_t number_of_wuobjects_in_message = number_of_wuobjects - start_at_wuobject_index;
+			if (number_of_wuobjects_in_message > NUMBER_OF_WUOBJECTS_PER_MESSAGE)
+				number_of_wuobjects_in_message = NUMBER_OF_WUOBJECTS_PER_MESSAGE;
+
+			for (uint8_t i=0; i<number_of_wuobjects_in_message; i++) {
 				wuobject_t *wuobject;
-				wkpf_get_wuobject_by_index(i, &wuobject);
-				payload[3*i + 1] = (uint8_t)(wuobject->port_number);
-				payload[3*i + 2] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
-				payload[3*i + 3] = (uint8_t)(wuobject->wuclass->wuclass_id);
+				wkpf_get_wuobject_by_index(start_at_wuobject_index+i, &wuobject);
+				payload[4*i + 3] = (uint8_t)(wuobject->port_number);
+				payload[4*i + 4] = (uint8_t)(wuobject->wuclass->wuclass_id >> 8);
+				payload[4*i + 5] = (uint8_t)(wuobject->wuclass->wuclass_id);
+        payload[4*i + 6] = WKPF_IS_VIRTUAL_WUCLASS(wuobject->wuclass);
 			}
-			response_size = 3*number_of_wuobjects + 1; // 3*wuobjects + 1 byte number of wuclasses
+			response_size = 4*number_of_wuobjects_in_message + 3; // 4*wuobjects + 3 bytes for message nr, number of messages, number of wuobjects (max 39 bytes, barely over 40 bytes)
 			response_cmd = WKPF_COMM_CMD_GET_WUOBJECT_LIST_R;
 		}
 		break;

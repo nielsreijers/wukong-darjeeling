@@ -1,6 +1,7 @@
 // vim: ts=4 sw=4
 var FBP_canvas;
 var FBP_CANVAS_TOP=50;
+var FBP_linkIsActive= false;
 var g_lines=[];
 var g_nodes=[];
 var g_pages={};
@@ -25,6 +26,10 @@ $(document).ready(function() {
         FBP_addBlock();
     });
 */
+    toolbar.append('<td valign="top"><button id=toolbar_editComponent>Edit Component</button></td>');
+    $('#toolbar_editComponent').click(function() {
+        FBP_editComponent();
+    });
     toolbar.append('<td valign="top"><button id=toolbar_importBlock>Import</button></td>');
     $('#toolbar_importBlock').click(function() {
         FBP_importBlock();
@@ -71,6 +76,12 @@ $(document).ready(function() {
         setTimeout(function() {
             $('#msg').hide();
         },2000);
+		tmp = g_selected_line;
+		g_selected_line = l;
+		if (tmp)
+			tmp.draw(FBP_canvas);
+		if (g_selected_line)
+			g_selected_line.draw(FBP_canvas);
     });
     $('#fileloader').dialog({autoOpen:false});
     $('#fileloader_file').val('fbp.sce');
@@ -78,6 +89,23 @@ $(document).ready(function() {
     window.progress = $('#progress');
     $('#progress').dialog({autoOpen:false, modal:true, width:'50%', height:'300'});
 });
+
+
+function FBP_editComponent()
+{
+	$('body').append('<div id=edit_component></div>');
+	$('#edit_component').append('<iframe width=100% height=90% src=/static/editcomponent.html?appid='+id+'></iframe>');
+	$('#edit_component').dialog({
+		width:'80%',
+		height:800,
+		buttons:{
+			'OK': function() {
+				$('#edit_component').dialog('close');
+				$('#edit_component').remove();
+			}
+		}
+	});
+}
 
 function FBP_fillBlockType(div)
 {
@@ -101,6 +129,18 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
+	if (g_selected_line) {
+		var lines=[];
+		for(i=0;i<g_lines.length;i++) {
+			if (g_lines[i] != g_selected_line) {
+				lines.push(g_lines[i]);
+			}
+		}
+		g_lines = lines;
+		FBP_refreshLines();
+		g_selected_line = null;
+		return;
+	}
 	if (Block.current == null) return;
     for(i=0;i<g_nodes.length;i++) {
         if (g_nodes[i].id == Block.current.id) {
@@ -169,6 +209,13 @@ function FBP_link()
         alert("select a source first");
         return;
     }
+	if (FBP_linkIsActive) {
+		FBP_linkIsActive = false;
+		$('#canvastop').unbind();
+		$('#canvastop').hide();
+		return;
+	}
+	FBP_linkIsActive = true;
     FBP_source = Block.current;
     var x1,y1,x2,y2;
 
@@ -311,9 +358,35 @@ function FBP_parseXMLPage(comps)
         meta.h = c.attr("h");
         meta.id = c.attr("instanceId");
         meta.type = c.attr("type");
+        
+
+        meta.sigProper = {};
+        var properties = c.find("signalProperty");
+        if(properties.length > 0) {
+            var attrs = properties[0].attributes;
+            if(attrs) {
+                for(j=0;j<attrs.length;j++) {
+                    var attr = attrs[j];
+                    meta.sigProper[attr.name] = attr.value;
+                }
+            }
+        }
+
+        meta.monitorProper = {};
+        var properties = c.find("monitorProperty");
+        if(properties.length > 0) {
+            var attrs = properties[0].attributes;
+            if(attrs) {
+                for(j=0;j<attrs.length;j++) {
+                    var attr = attrs[j];
+                    meta.monitorProper[attr.name] = attr.value;
+                }
+            }
+        }
+
         loc = c.find("location");
         if (loc.length > 0) {
-            meta.location = loc.attr("requirement");
+            meta.location = loc.attr("requirement").replace('&amp;','&').replace('&tilde;','~');
         }
         //console.log(c.find("group_size").attr("requirement"));
         console.log('location ' + meta.location);
@@ -531,7 +604,7 @@ function FBP_toXML(gnodes,glines)
             xml = xml + '        <link fromProperty="'+line.signal+'" toInstanceId="'+line.dest+'" toProperty="'+line.action+'"/>\n';
         }
         if (source.location && source.location != '') {
-            xml = xml + '        <location requirement="'+source.location+'" />\n';
+            xml = xml + '        <location requirement="'+source.location.replace('&','&amp;')+'" />\n';
         }
         if (source.group_size && source.group_size != '') {
             xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
@@ -540,14 +613,6 @@ function FBP_toXML(gnodes,glines)
             xml = xml + '        <reaction_time requirement="'+source.reaction_time+'" />\n';
         }
 //sato add start            
-        if(source.actions){
-			xml = xml + '        <actionProperty ';
-			var l;	var act;
-			$.each(source.actions, function(name, val) {
-				xml = xml + name + '="'+val+'" ';
-			});
-			xml = xml + ' />\n';
-		}
 		if(source.signals) {
 			xml = xml + '        <signalProperty ';
 			var l;	var sig;
@@ -564,7 +629,7 @@ function FBP_toXML(gnodes,glines)
         if (linehash[source.id] == undefined) {
             xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
             if (gnodes[k].location && gnodes[k].location != '') {
-                xml = xml + '        <location requirement="'+source.location+'" />\n';
+                xml = xml + '        <location requirement="'+source.location.replace('&','&amp;')+'" />\n';
             }
         	if (source.group_size && source.group_size != '') {
             	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
@@ -574,14 +639,6 @@ function FBP_toXML(gnodes,glines)
 	        }
            
 //sato add start            
-            if(gnodes[k].actions){
-				xml = xml + '        <actionProperty ';
-				var l;	var act;
-				$.each(gnodes[k].actions, function(name, val) {
-					xml = xml + name + '="'+val+'" ';
-				});
-				xml = xml + ' />\n';
-			}
 			if(gnodes[k].signals) {
 				xml = xml + '        <signalProperty ';
 				var l;	var sig;
@@ -601,11 +658,13 @@ function FBP_toXML(gnodes,glines)
 function Signal(name)
 {
     this.name = name;
+	this.index = 0;
 }
 
 function Action(name)
 {
     this.name = name;
+	this.index = 0;
 }
 
 

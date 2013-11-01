@@ -1,5 +1,6 @@
 # vim: ts=4 sw=4
 import sys, os, fcntl
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import pickle
 import tornado.ioloop
 import hashlib
@@ -10,7 +11,6 @@ from gevent.event import AsyncResult
 from gevent.queue import Queue
 import wusignal
 import time
-sys.path.append(os.path.abspath("../../master"))
 from configuration import *
 from globals import *
 
@@ -35,34 +35,45 @@ def new_deliver(*args):
     return Message(*args)
 
 class DeferredQueue:
+    _defer_queue = None
+    @classmethod
+    def init(cls):
+        if not cls._defer_queue:
+            cls._defer_queue = DeferredQueue()
+        return cls._defer_queue
+
     def __init__(self):
         self.queue = {}
 
     def removeTimeoutDefer(self):
         for key, defer in self.queue.items():
             if defer.timeout < int(round(time.time() * 1000)):
+                #print 'remove timeouted defer', defer
                 # call error cb
-                defer.error_cb()
+                defer.error_cb(None)
                 del self.queue[key]
 
     def find_defer(self, deliver):
+        #print 'finding defer for message in queue', self.queue
         for defer_id, defer in self.queue.items():
             if defer.verify(deliver, defer):
+                print '[transport] found'
                 return defer_id, defer
             else:
-                log = "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
-                logging.warning(log)
+                print "[transport] Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
+        print '[transport] not found'
         return False, False
 
     def add_defer(self, defer):
         queue_id = str(len(self.queue)) + hashlib.md5(str(defer.message.destination) + str(defer.message.command)).hexdigest()
-        log = "adding to queue: queue_id " + str(queue_id)
-        logging.debug(log)
+        print "[transport] adding to queue: queue_id ", str(queue_id)
         self.queue[queue_id] = defer
         return queue_id
 
     def remove_defer(self, defer_id):
+        #print 'remove_defer'
         if defer_id in self.queue:
+            #print 'removing defer', self.queue[defer_id]
             del self.queue[defer_id]
             return defer_id
         else:
@@ -94,7 +105,7 @@ class TransportAgent:
 
     # could be overridden 
     def verify(self, allowed_replies):
-        return lambda deliver, defer: (deliver.command in allowed_replies and deliver.command != pynvc.WKPF_ERROR_R) and (deliver.payload != None and deliver.payload[0:2]==defer.message.payload[0:2])
+        return lambda deliver, defer: (deliver.command in allowed_replies) and (deliver.payload != None and deliver.payload[0:2]==defer.message.payload[0:2])
 
 
     # to be run in a greenlet thread, context switching with handler
@@ -106,22 +117,17 @@ class TransportAgent:
         pass
 
 class ZwaveAgent(TransportAgent):
-    agent = None
-
+    _zwave_agent = None
     @classmethod
     def init(cls):
-        if not cls.agent:
-            cls.agent = ZwaveAgent()
-        return cls.agent
+        if not cls._zwave_agent:
+            cls._zwave_agent = ZwaveAgent()
+        return cls._zwave_agent
 
     def __init__(self):
         self._mode = 'stop'
 
-        # pyzwave
-        try:
-            pyzwave.init(ZWAVE_GATEWAY_IP)
-        except IOError as e:
-            return False
+        pyzwave.init(ZWAVE_GATEWAY_IP)
 
         TransportAgent.__init__(self)
 
@@ -130,8 +136,8 @@ class ZwaveAgent(TransportAgent):
         def callback(reply):
             cb(reply)
 
-        def error_callback():
-            error_cb()
+        def error_callback(reply):
+            error_cb(reply)
 
         defer = new_defer(callback, 
                 error_callback,
@@ -147,8 +153,8 @@ class ZwaveAgent(TransportAgent):
         def callback(reply):
             result.set(reply)
 
-        def error_callback():
-            result.set(None)
+        def error_callback(reply):
+            result.set(reply)
 
 
         defer = new_defer(callback, 
@@ -163,6 +169,22 @@ class ZwaveAgent(TransportAgent):
         # received ack from Agent
         return message
 
+    def getDeviceType(self,node):
+
+        result = AsyncResult()
+
+        def callback(reply):
+            result.set(reply)
+
+        defer = new_defer(callback,
+                callback,
+                None,
+                None,
+                new_message(node, "device_type", 0),
+                0)
+        tasks.put_nowait(defer)
+
+        return result.get()
     def routing(self):
 
         result = AsyncResult()
@@ -242,13 +264,13 @@ class ZwaveAgent(TransportAgent):
                     # with seq number
                     deliver = new_deliver(src, reply[0], reply[1:])
                     messages.put_nowait(deliver)
-                    logging.debug('receive: put a message to messages')
+                    print '[transport] receive: put a message to messages'
             except:
-                logging.exception('receive exception')
+                print '[transport] receive exception'
 
-            defer_queue.removeTimeoutDefer()
+            getDeferredQueue().removeTimeoutDefer()
 
-            #logging.debug('receive: going to sleep')
+            #logger.debug('receive: going to sleep')
             gevent.sleep(0.01) # sleep for at least 10 msec
 
 
@@ -256,10 +278,10 @@ class ZwaveAgent(TransportAgent):
     def handler(self):
         while 1:
             defer = tasks.get()
-            logging.debug('handler: getting defer from task queue')
+            #print 'handler: getting defer from task queue'
 
             if defer.message.command == "discovery":
-                logging.debug('handler: processing discovery request')
+                #print 'handler: processing discovery request'
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
                 total_nodes = nodes[1]
@@ -271,7 +293,7 @@ class ZwaveAgent(TransportAgent):
                     pass # sometimes gateway_id is not in the list
                 defer.callback(discovered_nodes)
             elif defer.message.command == "routing":
-                logging.debug('handler: processing routing request')
+                #print 'handler: processing routing request'
                 routing = {}
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
@@ -287,87 +309,203 @@ class ZwaveAgent(TransportAgent):
                     except ValueError:
                         pass
                 defer.callback(routing)
+            elif defer.message.command == "device_type":
+                #print 'handler: processing routing request'
+                device_type = pyzwave.getDeviceType(defer.message.destination)
+                defer.callback(device_type)
             else:
-                logging.debug('handler: processing send request')
+                #print 'handler: processing send request'
                 retries = 1
                 destination = defer.message.destination
                 command = defer.message.command
                 payload = defer.message.payload
 
+                # prevent pyzwave send got preempted and defer is not in queue
+                if len(defer.allowed_replies) > 0:
+                    print "[transport] handler: appending defer", defer, "to queue"
+                    getAgent().append(defer)
+
                 while retries > 0:
                     try:
-                        logging.debug("handler: sending message from defer")
+                        #print "handler: sending message from defer"
                         pyzwave.send(destination, [0x88, command] + payload)
-
-                        if len(defer.allowed_replies) > 0:
-                            BrokerAgent.init().append(defer)
 
                         break
                     except Exception as e:
                         log = "==IOError== retries remaining: " + str(retries)
-                        logging.exception(log)
+                        print '[transport] ' + log
                     retries -= 1
 
                 if retries == 0 or len(defer.allowed_replies) == 0:
-                    logging.error("handler: returns immediately to handle failues, or defer has no expected replies")
+                    print "[transport] handler: returns immediately to handle failues, or defer has no expected replies"
                     defer.callback(None)
 
             gevent.sleep(0)
 
-class BrokerAgent:
-    agent = None
-
+# Mock agent behavior, will only provide fixed responses and will not contact any external devices
+# So no receive, and no call to any c library, no calls to broker, etc
+class MockAgent(TransportAgent):
+    _agent = None
     @classmethod
     def init(cls):
-        if not cls.agent:
-            cls.agent = BrokerAgent()
-        return cls.agent
+        if not cls._agent:
+            cls._agent = MockAgent()
+        return cls._agent
 
     def __init__(self):
-        #tornado.ioloop.PeriodicCallback(self.run, 100) # in a new ioloop instance
-        self._agents = []
+        self._mode = 'stop'
+
+        TransportAgent.__init__(self)
+
+    # add a defer to queue
+    def deferSend(self, destination, command, payload, allowed_replies, cb, error_cb):
+        def callback(reply):
+            cb(reply)
+
+        def error_callback(reply):
+            error_cb(reply)
+
+        defer = new_defer(callback, 
+                error_callback,
+                self.verify(allowed_replies), 
+                allowed_replies, 
+                new_message(destination, command, self.getNextSequenceNumberAsPrefixPayload() + payload), int(round(time.time() * 1000)) + 10000)
+        tasks.put_nowait(defer)
+        return defer
+    def getDeviceType(self,node):   #mock only wudevice, not sure what does the 3 fields do though, feel free to change it if you understand it
+        return (None, 0xff, None)
+    def send(self, destination, command, payload, allowed_replies):
+        result = AsyncResult()
+
+        def callback(reply):
+            result.set(reply)
+
+        def error_callback(reply):
+            result.set(reply)
+
+
+        defer = new_defer(callback, 
+                error_callback,
+                self.verify(allowed_replies), 
+                allowed_replies, 
+                new_message(destination, command, self.getNextSequenceNumberAsPrefixPayload() + payload), int(round(time.time() * 1000)) + 10000)
+        tasks.put_nowait(defer)
+
+        message = result.get() # blocking
+
+        # received ack from Agent
+        return message
+
+    def routing(self):
+
+        result = AsyncResult()
+
+        def callback(reply):
+            result.set(reply)
+
+        defer = new_defer(callback,
+                callback,
+                None,
+                None,
+                new_message(1, "routing", 0),
+                0)
+        tasks.put_nowait(defer)
+
+        return result.get()
+
+    def discovery(self):
+        return []
+
+    def add(self):
+        if self._mode != 'stop':
+            return False
+        return True
+
+    def delete(self):
+        if self._mode != 'stop':
+            return False
+        return True
+
+    def stop(self):
+        self._mode = 'stop'
+        return True
+
+    def poll(self):
+        return "Not availble"
+
+    # to be run in a thread, and others will use ioloop to monitor this thread
+    def handler(self):
+        while 1:
+            defer = tasks.get()
+
+            if defer.message.command == "discovery":
+                defer.callback(self.discovery())
+            elif defer.message.command == "routing":
+                defer.callback({})
+            else:
+                defer.callback(None)
+
+class BrokerAgent:
+    _broker_agent = None
+    @classmethod
+    def init(cls):
+        if not cls._broker_agent:
+            cls._broker_agent = BrokerAgent()
+        return cls._broker_agent
+
+    def __init__(self):
         gevent.spawn(self.run)
-        self._defer_queue = defer_queue
-        logging.info('BrokerAgent init')
+        print '[transport] BrokerAgent init'
 
     def append(self, defer):
-        self._defer_queue.add_defer(defer)
-
-    def add(self, agent):
-        self._agents.append(agent)
+        getDeferredQueue().add_defer(defer)
 
     def run(self):
         while 1:
             # monitor pipes from receive
             deliver = messages.get()
-            logging.debug('getting messages from nodes')
-            logging.debug(str(deliver))
+            print '[transport] getting messages from nodes'
+            print '[transport] ' + str(deliver)
 
             # display logs from nodes if received
             if deliver.command == pynvc.LOGGING:
-                logging.info('[LOGGING] node %d : %s' % (deliver.destination,
-                            str(bytearray(deliver.payload))))
+                print '[transport] node %d : %s' % (deliver.destination,
+                            str(bytearray(deliver.payload)))
 
             # find out which defer it is for
-            defer_id, defer = self._defer_queue.find_defer(deliver)
+            defer_id, defer = getDeferredQueue().find_defer(deliver)
 
             if defer_id and defer:
                 # call callback
-                defer.callback(deliver)
+                if deliver.command == pynvc.WKPF_ERROR_R:
+                    defer.error_cb(deliver)
+                else:
+                    defer.callback(deliver)
 
                 # remove it
-                self._defer_queue.remove_defer(defer_id)
+                getDeferredQueue().remove_defer(defer_id)
             else:
                 # if it is special messages
                 if not is_master_busy():
                     if deliver.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
-                        logging.info("reconfiguration message received")
+                        print "[transport] reconfiguration message received"
                         wusignal.signal_reconfig()
+                    else:
+                        print "[transport] what?"
                 else:
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
-                    logging.debug("message discarded")
-                    logging.debug(str(deliver))
+                    print "[transport] message discarded"
+                    print '[transport] ' + str(deliver)
             gevent.sleep(0)
 
-defer_queue = DeferredQueue()
-agent = BrokerAgent.init()
+def getAgent():
+    return BrokerAgent.init()
+
+def getMockAgent():
+    return MockAgent.init()
+
+def getZwaveAgent():
+    return ZwaveAgent.init()
+
+def getDeferredQueue():
+    return DeferredQueue.init()

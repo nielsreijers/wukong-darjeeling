@@ -1,5 +1,10 @@
 *.class
 *.pyc
+*~
+*.swp
+*.swo
+__comp__*
+a.out
 GENERATED*
 history.xml
 temp_di_app_infusion_archive.c
@@ -18,9 +23,11 @@ programflash.data
 darjeeling.sublime-project
 darjeeling.sublime-workspace
 WKDeploy.java
-wukong/apps
+WKDeploy.xml
+WKDeployCustomComponents.xml
 master.cfg
 src/config/native/config.txt
+src/settings.xml
 stk500boot.eep
 stk500boot.elf
 stk500boot.lss
@@ -33,3 +40,7 @@ stk500boot.o.d
 darjeeling_flash_page.o
 darjeeling_flash_page.hex
 wkdeploy.dja
+standardlibrary.db
+gid.db
+fbp.html
+wukong/tools/testrtt/testrtt

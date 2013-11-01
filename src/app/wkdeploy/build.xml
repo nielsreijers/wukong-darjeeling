@@ -1,20 +1,22 @@
-<project default="all">
-
+<project default="wkpf-all">
 
 	<!-- set the name of the library -->
 	<property name="name" value="wkdeploy"/>
 	
 	<!-- list of libraries this library depends on -->
-	<property name="lib-depends" value="base, darjeeling2, uart, wkcomm, wkpf"/>
+	<!-- Only list Java libraries here -->
+	<property name="lib-depends" value="base, wkpf_virtual"/>
 	
+	<property name="wkpftable" value="WKDeploy.xml"/>
+	<property name="wkpf-app-specific-componentxml" value="WKDeployCustomComponents.xml"/>
+
 	<!-- include the library build template -->
-	<import file="../app.xml"/>
+	<import file="../wkpf-app.xml"/>
 
 	<!-- additional java path to include -->
-	<property name="app-sourcepath" value="${apppath}/../../wukong"/>
-
-	<target name="master-create-deploy-archive" depends="all">
-		<djarchive dest="${apppath}/${name}/build/${name}.dja" appInfusions="${apppath}/${name}/build/${name}.di" />
-	</target>
+  <!-- including global virtual wuclass java implementation -->
+  <!-- seems like java uses path as namespace, so since WKDeploy is using
+    namespace from javax, we can only include path at the first wukong level -->
+  <property name="app-sourcepath" value="${apppath}/../../wukong"/>
 
 </project>

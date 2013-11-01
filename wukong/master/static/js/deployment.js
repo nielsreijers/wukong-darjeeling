@@ -1,13 +1,13 @@
 
 
 $(function() {
-    window.options = {repeat: true};
-
+    $('#deployment-tab').click(function () {
+        $('a#nodes-btn').click();
+    });
     $('a#nodes-btn').click(function(e) {
-        e.preventDefault();
+        console.log('refresh nodes');
         $(this).tab('show');
 
-        console.log('refresh nodes');
         $('#nodes').block({
             message: '<h1>Processing</h1>',
             css: { border: '3px solid #a00' }
@@ -21,46 +21,47 @@ $(function() {
     $('a#mapping_results-btn').click(function(e) {
         $.post('/applications/' + current_application + '/deploy/map', function(data) {
             // Already an object
-            console.log(data)
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
                 var $table = $('#mapping_results table tbody');
                 $table.empty();
 
-                console.log(data.mapping_results);
-                if (data.mapping_results) {
-                  $('a#deploy-btn').disabler().disabler("enable");
-                }
-                else {
-                   // $('a#deploy-btn').attr('disabled', 'disabled');
-                   // $('a#deploy-btn').removeAttr('disabled');
-                   alert("No mapping result!")
-                   $('a#deploy-btn').disabler().disabler("disable");
-                   
-                }
-                var no_result = false
                 _.each(data.mapping_results, function(result) {
-                    var compiled;
-                    if (result.nodeId == null){
-                        $('a#deploy-btn').disabler().disabler("disable");
-                        no_result = true;
-                    }
-                    if (result.leader) {
-                        compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    if (result.instances.length > 0) {
+                        _.each(result.instances, function(instance) {
+                          if (instance.portNumber) {
+                            if (instance.virtual) {
+                              $table.append(_.template('<tr class=warning><td><%= instanceId %></td><td>(Virtual) <%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                            } else {
+                              $table.append(_.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                            }
+                          } else {
+                            $table.append(_.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>')(instance));
+                          }
+                        });
                     } else {
-                        compiled = _.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                        $table.append(_.template('<tr class=error><td><%= instanceId %></td><td><%= name %></td><td>Cannot find matching wuobjects</td><td></td></tr>')(result));
                     }
-                    $table.append(compiled(result));
                 });
-                if (no_result){
-                    alert("No mapping result!");
+
+                // print mapping status to #mapping-progress
+                $('#mapping-progress').empty();
+                for (var i=0; i<data.mapping_status.length; i++) {
+                  $('#mapping-progress').append("<pre>[" + data.mapping_status[i].level + "]" + data.mapping_status[i].msg + "</pre>");
+                }
+
+                // disable deploy button if mapping is not successful
+                if (!data.mapping_result) {
+                  $('li a#deploy-btn').closest('li').hide();
+                } else {
+                  $('li a#deploy-btn').closest('li').show();
                 }
             }
         });
     });
 
-    // Actually deploy
+    // User clicking on deploy tab button (inner)
     $('a#deploy-btn').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
@@ -70,10 +71,12 @@ $(function() {
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
-                    $.post('/applications/' + current_application + '/reset');
-                    $('#deploy_results').dialog("close");
-                });
+                // Print deploy status to #deploy-progress
+                // Starts a new polling to deploy-progress
+                application_polling(current_application, '#deploy-progress', 'deploy_status');
+                //$('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
+                    //$('#deploy_results').dialog("close");
+                //});
             }
         });
     });

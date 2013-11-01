@@ -18,12 +18,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Darjeeling.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <avr/pgmspace.h>
-#include <avr/io.h>
 
 #include "debug.h"
 #include "vm.h"
@@ -33,44 +27,36 @@
 #include "vmthread.h"
 #include "djtimer.h"
 #include "execution.h"
+#include "djarchive.h"
 #include "hooks.h"
-
-#include "jlib_base.h"
-#include "jlib_darjeeling3.h"
-#include "jlib_uart.h"
-#include "jlib_wkcomm.h"
-#include "jlib_wkpf.h"
-#include "jlib_wkreprog.h"
-
-#include "pointerwidth.h"
-
-extern unsigned char di_lib_infusions_archive_data[];
-extern unsigned char di_app_infusion_archive_data[];
-
-unsigned char mem[HEAPSIZE];
+#include "core.h"
 
 #include "avr.h"
 
+extern const unsigned char di_lib_infusions_archive_data[];
+extern const unsigned char di_app_infusion_archive_data[];
+
+// From GENERATEDlibinit.c, which is generated during build based on the libraries in this config's libs.
+extern dj_named_native_handler java_library_native_handlers[];
+extern uint8_t java_library_native_handlers_length;
+
+
+unsigned char mem[HEAPSIZE];
+
 int main()
 {
+	// Declared in djarchive.c so that the reprogramming code can find it.
+	di_app_archive = (dj_di_pointer)di_app_infusion_archive_data;
+
 	// initialise serial port
 	avr_serialInit(115200);
 
-	dj_named_native_handler handlers[] = {
-			{ "base", &base_native_handler },
-			{ "darjeeling3", &darjeeling3_native_handler },
-			{ "uart", &uart_native_handler },
-			{ "wkcomm", &wkcomm_native_handler },
-			{ "wkpf", &wkpf_native_handler },
-			{ "wkreprog", &wkreprog_native_handler },
-		};
-	uint16_t length = sizeof(handlers)/ sizeof(handlers[0]);
-
-	dj_vm_main(mem, HEAPSIZE, (dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, handlers, length);
+	core_init(mem, HEAPSIZE);
+	dj_vm_main((dj_di_pointer)di_lib_infusions_archive_data, (dj_di_pointer)di_app_infusion_archive_data, java_library_native_handlers, java_library_native_handlers_length);
 
 	// Listen to the radio
 	while(true)
-		dj_hook_call(dj_vm_pollingHook, NULL);
+		dj_hook_call(dj_core_pollingHook, NULL);
 
 	return 0;
 }
